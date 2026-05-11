@@ -1,6 +1,6 @@
 ---
 working_dir: ./docker/skedaddle
-auto_discover: true
+auto_discovery: true
 auto_discover_opts:
   depth: 1
   delete: true
