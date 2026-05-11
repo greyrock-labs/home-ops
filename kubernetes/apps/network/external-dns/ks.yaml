@@ -23,13 +23,13 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: externaldns-ovh
+  name: externaldns-digitalocean
 spec:
   commonMetadata:
     labels:
-      app.kubernetes.io/name: externaldns-ovh
+      app.kubernetes.io/name: externaldns-digitalocean
   interval: 1h
-  path: "./kubernetes/apps/network/external-dns/ovh"
+  path: "./kubernetes/apps/network/external-dns/digitalocean"
   prune: true
   sourceRef:
     kind: GitRepository

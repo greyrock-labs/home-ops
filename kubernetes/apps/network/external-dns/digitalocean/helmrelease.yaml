@@ -3,42 +3,32 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: externaldns-ovh
+  name: externaldns-digitalocean
 spec:
   chartRef:
     kind: OCIRepository
-    name: externaldns-ovh
+    name: externaldns-digitalocean
   interval: 30m
   values:
-    fullnameOverride: externaldns-ovh
+    fullnameOverride: externaldns-digitalocean
     logLevel: info
     domainFilters:
       - greyrock.io
     env:
-      - name: OVH_APPLICATION_KEY
+      - name: DO_TOKEN
         valueFrom:
           secretKeyRef:
-            name: externaldns-ovh-secret
-            key: ovh_application_key
-      - name: OVH_APPLICATION_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: externaldns-ovh-secret
-            key: ovh_application_secret
-      - name: OVH_CONSUMER_KEY
-        valueFrom:
-          secretKeyRef:
-            name: externaldns-ovh-secret
-            key: ovh_consumer_key
+            name: externaldns-digitalocean-secret
+            key: api_token
     extraArgs:
       - --crd-source-apiversion=externaldns.k8s.io/v1alpha1
       - --crd-source-kind=DNSEndpoint
       - --gateway-name=envoy-external
     podAnnotations:
-      secret.reloader.stakater.com/reload: externaldns-ovh-secret
+      secret.reloader.stakater.com/reload: externaldns-digitalocean-secret
     policy: sync
     provider:
-      name: ovh
+      name: digitalocean
     resources:
       requests:
         cpu: 13m
