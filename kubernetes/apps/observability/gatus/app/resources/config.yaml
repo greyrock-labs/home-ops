@@ -36,7 +36,7 @@ storage:
 ui:
   title: Status | Gatus
   header: Status
-  logo: https://avatars.githubusercontent.com/u/6213398
+  logo: https://avatars.githubusercontent.com/u/1583719
   link: https://github.com/doonga
   buttons:
     - name: Github
