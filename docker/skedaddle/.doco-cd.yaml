@@ -6,7 +6,7 @@ auto_discover_opts:
   delete: true
 external_secrets:
   GATUS_PUSHOVER_TOKEN: op://Services/Pushover/gatus_token
-  GATUS_PUSHOVER_KEY: op://Services/Pushover/userkey_bernd
+  GATUS_PUSHOVER_KEY: op://Services/Pushover/userkey_todd
   GATUS_REMOTE_DDNS_HOSTNAME: op://automation/gatus/home_heartbeat_ddns_hostname
   GATUS_REMOTE_HEARTBEAT_TOKEN: op://automation/gatus/icarus_home_heartbeat_token
   TOWONEL_ACME_EMAIL: op://automation/towonel-tunnel/acme_email
