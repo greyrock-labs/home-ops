@@ -1,0 +1,30 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/helmfile
+helmDefaults:
+  cleanupOnFail: true
+  wait: true
+  waitForJobs: true
+  args:
+    - --include-crds
+    - --no-hooks
+
+releases:
+  - name: envoy-gateway
+    namespace: network
+    chart: oci://mirror.gcr.io/envoyproxy/gateway-helm
+    version: v1.7.2
+
+  - name: external-dns
+    namespace: network
+    chart: oci://ghcr.io/home-operations/charts-mirror/external-dns
+    version: 1.21.1
+
+  - name: keda
+    namespace: kube-system
+    chart: oci://ghcr.io/home-operations/charts-mirror/keda
+    version: 2.19.0
+
+  - name: kube-prometheus-stack
+    namespace: observability
+    chart: oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack
+    version: 84.5.0

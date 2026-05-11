@@ -1,0 +1,23 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: selfhosted
+components:
+  - ../../components/flux-alerts
+resources:
+  - ./namespace.yaml
+  - ./actual/ks.yaml
+  - ./argus/ks.yaml
+  - ./bichon/ks.yaml
+  - ./atuin/ks.yaml
+  - ./freshrss/ks.yaml
+  - ./karakeep/ks.yaml
+  - ./it-tools/ks.yaml
+  - ./manyfold/ks.yaml
+  - ./nextcloud/ks.yaml
+  - ./paperless/ks.yaml
+  - ./spoolman/ks.yaml
+  - ./thelounge/ks.yaml
+  - ./searxng/ks.yaml
+  - ./webhook/ks.yaml

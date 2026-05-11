@@ -1,0 +1,122 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: frigate
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: frigate
+  interval: 30m
+  values:
+    controllers:
+      frigate:
+        pod:
+          resourceClaims:
+            - name: gpu
+              resourceClaimTemplateName: frigate-gpu
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/blakeblackshear/frigate
+              tag: 0.17.1@sha256:1724960349dad0bd2ae8ec884171a6fd5755a4dc242a0e66cadbda9c0e85c99b
+            envFrom:
+              - secretRef:
+                  name: frigate-secret
+            probes:
+              liveness:
+                enabled: true
+                spec:
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/version
+                    port: 5000
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
+            resources:
+              claims:
+                - name: gpu
+              requests:
+                cpu: 200m
+                memory: 2Gi
+              limits:
+                memory: 8Gi
+    persistence:
+      config:
+        existingClaim: frigate
+      media:
+        type: nfs
+        path: /mnt/tank/apps/frigate
+        server: codswallop.internal.greyrock.io
+        globalMounts:
+          - path: /media/frigate
+      cache:
+        enabled: true
+        type: emptyDir
+        medium: Memory
+        sizeLimit: 2Gi
+        globalMounts:
+          - path: /dev/shm
+      tmpfs:
+        type: emptyDir
+        advancedMounts:
+          frigate:
+            app:
+              - path: /tmp
+                subPath: tmp
+    route:
+      frigate:
+        hostnames:
+          - frigate.greyrock.io
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+        rules:
+          - backendRefs:
+              - identifier: frigate
+                port: http
+      go2rtc:
+        hostnames:
+          - frigate-go2rtc.greyrock.io
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+        rules:
+          - backendRefs:
+              - identifier: frigate
+                port: go2rtc
+    service:
+      frigate:
+        type: LoadBalancer
+        annotations:
+          lbipam.cilium.io/ips: 10.1.6.64
+        ports:
+          http:
+            appProtocol: kubernetes.io/ws
+            port: 5000
+            primary: true
+          go2rtc:
+            port: 1984
+          rtsp:
+            port: 8554
+          webrtc-tcp:
+            port: 8555
+            protocol: TCP
+          webrtc-udp:
+            port: 8555
+            protocol: UDP

@@ -1,0 +1,9 @@
+---
+customization:
+  extraKernelArgs:
+    - initcall_blacklist=algif_aead_init
+  systemExtensions:
+    officialExtensions:
+      - siderolabs/i915
+      - siderolabs/intel-ucode
+      - siderolabs/thunderbolt

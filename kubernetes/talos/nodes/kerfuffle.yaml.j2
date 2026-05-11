@@ -1,0 +1,24 @@
+---
+machine:
+  install:
+    diskSelector:
+      serial: S436NC0R700270
+  type: controlplane
+---
+apiVersion: v1alpha1
+kind: HostnameConfig
+hostname: kerfuffle
+---
+apiVersion: v1alpha1
+kind: LinkAliasConfig
+name: net0
+selector:
+    match: link.driver == "i40e" && mac(link.permanent_addr) == "58:47:ca:77:5a:bb"
+---
+apiVersion: v1alpha1
+kind: UserVolumeConfig
+name: local-hostpath
+provisioning:
+  diskSelector:
+    match: disk.serial == "S436NA0N765111"
+  maxSize: 0

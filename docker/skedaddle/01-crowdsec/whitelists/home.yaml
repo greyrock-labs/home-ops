@@ -1,0 +1,7 @@
+---
+name: custom/home-allowlist
+description: "Allow home ISP (BlackGATE - AS201290)"
+whitelist:
+  reason: "home ISP (BlackGATE)"
+  expression:
+    - evt.Meta.ASNumber == "201290"
