@@ -35,6 +35,9 @@ spec:
           - --crd-source-apiversion=externaldns.k8s.io/v1alpha1
           - --crd-source-kind=DNSEndpoint
           - --gateway-name=envoy-external
+        securityContext:
+          runAsUser: 65532
+          runAsGroup: 65532
         livenessProbe:
           httpGet:
             path: /healthz
