@@ -47,7 +47,7 @@ spec:
           limits:
             memory: 8Gi # Only needed when bootstrapping
       storage:
-        devicePathFilter: /dev/disk/by-id/nvme-Micron_7450_MTFDKBA960TFR_.*
+        devicePathFilter: /dev/disk/by-id/nvme-WUS3CA116C7P3E3_.*
         useAllDevices: false
         useAllNodes: true
     cephBlockPools:
