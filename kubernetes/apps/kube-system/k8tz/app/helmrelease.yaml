@@ -13,7 +13,7 @@ spec:
     namespace: null
     createNamespace: false
     replicaCount: 2
-    timezone: Europe/Amsterdam
+    timezone: America/New_York
     cronJobTimeZone: true
     webhook:
       certManager:
