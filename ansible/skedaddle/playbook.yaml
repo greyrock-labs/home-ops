@@ -23,7 +23,7 @@
       delegate_to: localhost
       become: false
       loop:
-        - key: Shared/c6itdbmw5gdslnnep2vfihhu54/Service accounts/doco-cd
+        - key: Automation/doco-cd/1pw_sa_token
           var: doco_1pw_sa_token
         - key: automation/doco-cd/api_secret
           var: doco_api_secret
