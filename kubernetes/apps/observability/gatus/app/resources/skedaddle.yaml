@@ -2,7 +2,7 @@
 endpoints:
   - name: skedaddle | ping
     group: vps
-    url: icmp://135.125.53.129
+    url: icmp://161.35.252.109
     interval: 1m
     ui:
       hide-url: true
