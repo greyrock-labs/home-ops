@@ -41,13 +41,13 @@ spec:
         livenessProbe:
           httpGet:
             path: /healthz
-            port: http-webhook
+            port: 8888
           initialDelaySeconds: 10
           timeoutSeconds: 5
         readinessProbe:
           httpGet:
             path: /readyz
-            port: http-webhook
+            port: 8888
           initialDelaySeconds: 10
           timeoutSeconds: 5
     resources:
