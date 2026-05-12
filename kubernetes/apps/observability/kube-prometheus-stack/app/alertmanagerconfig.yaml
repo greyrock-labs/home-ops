@@ -51,10 +51,10 @@ spec:
         - httpConfig:
             bearerTokenSecret:
               name: alertmanager-secret
-              key: icarus_home_heartbeat_token
+              key: skedaddle_home_heartbeat_token
           urlSecret:
             name: alertmanager-secret
-            key: icarus_home_heartbeat_url
+            key: skedaddle_home_heartbeat_url
     - name: pushover
       pushoverConfigs:
         - html: true
