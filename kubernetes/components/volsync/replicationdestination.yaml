@@ -25,7 +25,7 @@ spec:
       - mountPath: repository
         volumeSource:
           nfs:
-            path: /mnt/drone/backup/volsync
+            path: /mnt/user/volsync
             server: codswallop.internal.greyrock.io
     repository: ${APP}-volsync-secret
     sourceIdentity:
