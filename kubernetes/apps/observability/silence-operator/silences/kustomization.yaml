@@ -5,5 +5,5 @@ kind: Kustomization
 resources:
   - ./cephnodediskspacewarning.yaml
   - ./cephnodenetworkpacketdrops.yaml
-  - ./gladius_memory_usage.yaml
+  - ./codswallop_memory_usage.yaml
   - ./keda_hpa_maxed_out.yaml
