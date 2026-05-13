@@ -23,7 +23,7 @@ spec:
       route:
         enabled: true
         hostnames:
-          - renovate.greyrock.io
+          - renovate-webhook.greyrock.io
         parentRefs:
           - name: envoy-internal
             namespace: network
