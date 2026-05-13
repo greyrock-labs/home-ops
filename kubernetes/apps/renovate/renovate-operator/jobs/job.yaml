@@ -32,14 +32,3 @@ spec:
       secretRef:
         name: renovate-secret
         key: RENOVATE_WEBHOOK_TOKEN
-    forgejo:
-      sync:
-        enabled: true
-        webhookURL: https://renovate-webhook.greyrock.io/webhook/v1/forgejo
-        topic: renovate
-        tokenSecretRef:
-          name: renovate-secret
-          key: RENOVATE_TOKEN
-        authTokenSecretRef:
-          name: renovate-secret
-          key: RENOVATE_WEBHOOK_TOKEN
