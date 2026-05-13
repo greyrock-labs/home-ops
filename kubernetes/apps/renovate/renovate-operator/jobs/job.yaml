@@ -33,7 +33,7 @@ spec:
       sync:
         enabled: true
         webhookURL: https://renovate-webhook.greyrock.io/
-        authTokenSecretRef:
+        tokenSecretRef:
           name: renovate-secret
           key: RENOVATE_TOKEN
         events:
