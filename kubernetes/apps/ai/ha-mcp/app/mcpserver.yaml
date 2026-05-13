@@ -9,7 +9,7 @@ spec:
     name: mcp-tools
   env:
     - name: HOMEASSISTANT_URL
-      value: http://hestia.internal.greyrock.io:8123
+      value: http://homeassistant.internal.greyrock.io:8123
   image: ghcr.io/homeassistant-ai/ha-mcp:7.4.0
   podTemplateSpec:
     spec:
