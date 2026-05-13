@@ -31,6 +31,8 @@
           var: doco_webhook_secret
         - key: Automation/crowdsec/api_token
           var: crowdsec_api_key
+        - key: Private/Personal SSH Key/public key
+          var: ubuntu_ssh_public_key
       check_mode: false
       changed_when: false
       no_log: true
@@ -42,6 +44,7 @@
         doco_api_secret: "{{ secrets_raw.results[1].stdout }}"
         doco_webhook_secret: "{{ secrets_raw.results[2].stdout }}"
         crowdsec_api_key: "{{ secrets_raw.results[3].stdout }}"
+        ubuntu_ssh_public_key: "{{ secrets_raw.results[4].stdout }}"
       no_log: true
 
     - name: packages
@@ -65,6 +68,14 @@
             name: ipset
             state: present
             update_cache: false
+
+    - name: ssh | Authorize SSH key for ubuntu user
+      tags:
+        - ssh
+      ansible.posix.authorized_key:
+        user: ubuntu
+        state: present
+        key: "{{ ubuntu_ssh_public_key }}"
 
     - name: ssh
       tags:
@@ -117,6 +128,7 @@
           community.general.ufw:
             state: enabled
             policy: deny
+          notify: Restart Docker
 
     - name: docker
       tags:
@@ -331,6 +343,11 @@
     - name: Restart ssh.socket
       ansible.builtin.service:
         name: ssh.socket
+        state: restarted
+
+    - name: Restart Docker
+      ansible.builtin.service:
+        name: docker
         state: restarted
 
     - name: Restart crowdsec-firewall-bouncer

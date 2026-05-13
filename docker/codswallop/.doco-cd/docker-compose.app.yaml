@@ -22,7 +22,7 @@ services:
           interval: 3600
       SECRET_PROVIDER: 1password
       SECRET_PROVIDER_ACCESS_TOKEN_FILE: /run/secrets/1pw_token
-      TZ: Europe/Amsterdam
+      TZ: America/New_York
       WEBHOOK_SECRET_FILE: /run/secrets/webhook_secret
     healthcheck:
       test:
