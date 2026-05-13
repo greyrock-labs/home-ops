@@ -36,5 +36,6 @@ spec:
         tokenSecretRef:
           name: renovate-secret
           key: RENOVATE_TOKEN
+        topic: renovate
         events:
           - pull_request
