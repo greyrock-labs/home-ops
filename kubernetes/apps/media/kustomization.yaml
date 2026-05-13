@@ -11,4 +11,3 @@ resources:
   - ./bookboss/ks.yaml
 
   - ./maintainerr/ks.yaml
-  # - ./mumc/ks.yaml
