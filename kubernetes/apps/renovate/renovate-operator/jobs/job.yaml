@@ -35,10 +35,11 @@ spec:
     forgejo:
       sync:
         enabled: true
-        webhookURL: https://renovate-webhook.greyrock.io/webhook/v1/forgejo?namespace=renovate&job=forgejo-greyrock
+        webhookURL: https://renovate-webhook.greyrock.io/webhook/v1/forgejo
+        topic: renovate
         tokenSecretRef:
           name: renovate-secret
           key: RENOVATE_TOKEN
-        topic: renovate
-        events:
-          - pull_request
+        authTokenSecretRef:
+          name: renovate-secret
+          key: RENOVATE_WEBHOOK_TOKEN
