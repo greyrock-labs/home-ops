@@ -29,3 +29,12 @@ spec:
     enabled: true
     authentication:
       enabled: false
+    forgejo:
+      sync:
+        enabled: true
+        webhookURL: https://renovate-webhook.greyrock.io/
+        authTokenSecretRef:
+          name: renovate-secret
+          key: RENOVATE_TOKEN
+        events:
+          - pull_request
