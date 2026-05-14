@@ -6,9 +6,9 @@ metadata:
   name: home-assistant
 spec:
   hostnames:
-    - homeassistant.greyrock.io
+    - home.greyrock.io
   parentRefs:
-    - name: envoy-internal
+    - name: envoy-external
       namespace: network
   rules:
     - backendRefs:
