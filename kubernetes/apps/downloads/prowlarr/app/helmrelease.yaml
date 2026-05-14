@@ -75,7 +75,7 @@ spec:
     persistence:
       config:
         existingClaim: prowlarr-config
-      tmp:
+      tmpfs:
         type: emptyDir
     route:
       app:
