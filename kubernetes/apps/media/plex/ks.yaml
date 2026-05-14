@@ -9,6 +9,7 @@ spec:
     labels:
       app.kubernetes.io/name: plex
   components:
+    - ../../../../components/gpu
     - ../../../../components/volsync
   dependsOn:
     - name: intel-gpu-resource-driver

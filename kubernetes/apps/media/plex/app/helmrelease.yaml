@@ -16,6 +16,9 @@ spec:
     controllers:
       plex:
         pod:
+          resourceClaims:
+            - name: gpu
+              resourceClaimTemplateName: plex-gpu
           securityContext:
             fsGroup: 2000
             fsGroupChangePolicy: OnRootMismatch
@@ -48,10 +51,11 @@ spec:
                   failureThreshold: 30
                   periodSeconds: 10
             resources:
+              claims:
+                - name: gpu
               requests:
                 cpu: 100m
               limits:
-                gpu.intel.com/i915: 1
                 memory: 9248M
             securityContext:
               allowPrivilegeEscalation: false
