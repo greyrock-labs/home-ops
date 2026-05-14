@@ -31,10 +31,6 @@ spec:
               secretKeyRef:
                 name: externaldns-digitalocean-secret
                 key: api_token
-        extraArgs:
-          - --crd-source-apiversion=externaldns.k8s.io/v1alpha1
-          - --crd-source-kind=DNSEndpoint
-          - --gateway-name=envoy-external
         securityContext:
           runAsUser: 65532
           runAsGroup: 65532
@@ -58,6 +54,10 @@ spec:
         memory: 42M
     serviceMonitor:
       enabled: true
+    extraArgs:
+      - --crd-source-apiversion=externaldns.k8s.io/v1alpha1
+      - --crd-source-kind=DNSEndpoint
+      - --gateway-name=envoy-external
     sources:
       - crd
       - gateway-httproute
