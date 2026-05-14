@@ -77,7 +77,7 @@ spec:
       nfs-nas-media:
         type: nfs
         server: codswallop.internal.greyrock.io
-        path: /mnt/tank/media
+        path: /mnt/user/data
         advancedMounts:
           shelfmark:
             shelfmark:

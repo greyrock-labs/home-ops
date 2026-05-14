@@ -78,7 +78,7 @@ spec:
         existingClaim: sonarr-config
       media:
         type: nfs
-        path: /mnt/tank/media
+        path: /mnt/user/data
         server: codswallop.internal.greyrock.io
         globalMounts:
           - path: /data/nas-media
