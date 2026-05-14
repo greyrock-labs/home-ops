@@ -27,7 +27,6 @@ spec:
               repository: ghcr.io/home-operations/sabnzbd
               tag: 5.0.1
             env:
-              CROSS_SEED_HOST: cross-seed.downloads.svc.cluster.local:2468
               SABNZBD__PORT: &port 8080
               SABNZBD__HOST_WHITELIST_ENTRIES: >-
                 sabnzbd,
@@ -85,8 +84,8 @@ spec:
         path: /mnt/user/data
         server: codswallop.internal.greyrock.io
         globalMounts:
-          - path: /data/nas-media/Downloads/sabnzbd
-            subPath: Downloads/sabnzbd
+          - path: /data/nas-usenet
+            subPath: usenet
       tmpfs:
         type: emptyDir
         globalMounts:
