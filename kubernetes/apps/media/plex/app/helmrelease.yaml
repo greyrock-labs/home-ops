@@ -21,7 +21,7 @@ spec:
               resourceClaimTemplateName: plex-gpu
           securityContext:
             fsGroup: 2000
-            fsGroupChangePolicy: OnRootMismatch
+            fsGroupChangePolicy: Always
             runAsGroup: 2000
             runAsUser: 2000
         containers:
