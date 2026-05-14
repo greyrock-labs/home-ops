@@ -92,8 +92,8 @@ spec:
         advancedMounts:
           plex:
             app:
-              - path: /data/nas-media/Library
-                subPath: Library
+              - path: /data/nas-media
+                subPath: media
     route:
       app:
         hostnames:
