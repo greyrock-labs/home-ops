@@ -1,0 +1,18 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.greyrock.io/monitoring.coreos.com/servicemonitor_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: externaldns-digitalocean
+spec:
+  endpoints:
+    - path: /metrics
+      port: http
+  jobLabel: app.kubernetes.io/instance
+  namespaceSelector:
+    matchNames:
+      - network
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: externaldns-digitalocean
+      app.kubernetes.io/name: external-dns
