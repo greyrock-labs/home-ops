@@ -29,7 +29,11 @@ spec:
         lfs:
           PATH: /data/git/lfs
         mailer:
-          ENABLED: false
+          ENABLED: true
+          FROM: no-reply@greyrock.io
+          HOST: smtp.fastmail.com:465
+          IS_TLS_ENABLED: true
+          PROTOCOL: smtps
         openid:
           ENABLE_OPENID_SIGNIN: false
           ENABLE_OPENID_SIGNUP: false
@@ -84,6 +88,9 @@ spec:
           groupClaimName: groups
           provider: openidConnect
           scopes: profile email groups
+    extraEnvFrom:
+      - secretRef:
+          name: forgejo-mailer
     extraContainerVolumeMounts:
       - name: signing-key
         mountPath: /data/signing
