@@ -96,6 +96,11 @@ spec:
                 subPath: media
     route:
       app:
+        annotations:
+          gatus.home-operations.com/endpoint: |-
+            url: https://plex.greyrock.io/identity
+            conditions:
+              - "[STATUS] == 200"
         hostnames:
           - plex.greyrock.io
         parentRefs:
