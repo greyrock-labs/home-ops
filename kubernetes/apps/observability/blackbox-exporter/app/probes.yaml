@@ -11,12 +11,14 @@ spec:
   targets:
     staticConfig:
       static:
-        - downstairs-hallway-slzbmr2.internal.greyrock.io
-        - garage-tablet.internal.greyrock.io
+        - brouhaha.internal.greyrock.io
+        - bumfuzzle.internal.greyrock.io
         - codswallop.internal.greyrock.io
-        - hallway-tablet.internal.greyrock.io
-        - livingroom-vacuum.internal.greyrock.io
-        - jetkvm.internal.greyrock.io
+        - homeassistant.internal.greyrock.io
+        - kerfuffle.internal.greyrock.io
+        - kvm-nas.internal.greyrock.io
+        - tubeszb-efr32-mgm24-2023.internal.greyrock.io
+        - tubeszb-zw.internal.greyrock.io
 ---
 # yaml-language-server: $schema=https://k8s-schemas.greyrock.io/monitoring.coreos.com/probe_v1.json
 apiVersion: monitoring.coreos.com/v1
