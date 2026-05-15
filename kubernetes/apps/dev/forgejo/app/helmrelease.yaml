@@ -11,6 +11,17 @@ spec:
   interval: 30m
   values:
     gitea:
+      additionalConfigFromEnvs:
+        - name: GITEA__mailer__PASSWD
+          valueFrom:
+            secretKeyRef:
+              name: forgejo-mailer
+              key: GITEA__mailer__PASSWD
+        - name: GITEA__mailer__USER
+          valueFrom:
+            secretKeyRef:
+              name: forgejo-mailer
+              key: GITEA__mailer__USER
       admin:
         username: ""
       config:
@@ -88,9 +99,6 @@ spec:
           groupClaimName: groups
           provider: openidConnect
           scopes: profile email groups
-    extraEnvFrom:
-      - secretRef:
-          name: forgejo-mailer
     extraContainerVolumeMounts:
       - name: signing-key
         mountPath: /data/signing
