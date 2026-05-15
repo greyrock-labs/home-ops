@@ -42,8 +42,6 @@ spec:
         mailer:
           ENABLED: true
           FROM: no-reply@greyrock.io
-          HOST: ""
-          IS_TLS_ENABLED: true
           PROTOCOL: smtps
           SMTP_ADDR: smtp.fastmail.com
           SMTP_PORT: 465
