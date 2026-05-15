@@ -42,9 +42,10 @@ spec:
         mailer:
           ENABLED: true
           FROM: no-reply@greyrock.io
-          HOST: smtp.fastmail.com:465
           IS_TLS_ENABLED: true
           PROTOCOL: smtps
+          SMTP_ADDR: smtp.fastmail.com
+          SMTP_PORT: 465
         openid:
           ENABLE_OPENID_SIGNIN: false
           ENABLE_OPENID_SIGNUP: false
