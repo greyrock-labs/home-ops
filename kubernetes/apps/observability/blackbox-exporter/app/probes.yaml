@@ -11,12 +11,22 @@ spec:
   targets:
     staticConfig:
       static:
+        - basement-iotawatt.internal.greyrock.io
         - brouhaha.internal.greyrock.io
         - bumfuzzle.internal.greyrock.io
         - codswallop.internal.greyrock.io
+        - garage-iotawatt.internal.greyrock.io
         - homeassistant.internal.greyrock.io
         - kerfuffle.internal.greyrock.io
+        - kvm-brouhaha.internal.greyrock.io
+        - kvm-bumfuzzle.internal.greyrock.io
+        - kvm-homeassistant.internal.greyrock.io
+        - kvm-kerfuffle.internal.greyrock.io
         - kvm-nas.internal.greyrock.io
+        - time1.internal.greyrock.io
+        - time2.internal.greyrock.io
+        - time3.internal.greyrock.io
+        - time4.internal.greyrock.io
         - tubeszb-efr32-mgm24-2023.internal.greyrock.io
         - tubeszb-zw.internal.greyrock.io
 ---
