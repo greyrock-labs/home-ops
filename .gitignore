@@ -3,6 +3,7 @@
 Thumbs.db
 
 # Other files
+.claude
 *.iso
 kubeconfig
 talosconfig
