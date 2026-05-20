@@ -15,23 +15,20 @@ spec:
             k8s:io.kubernetes.pod.namespace: network
             gateway.networking.k8s.io/gateway-name: envoy-internal
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: media
-            app.kubernetes.io/name: mumc
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: media
-            app.kubernetes.io/name: arrem-sync
+            k8s:io.kubernetes.pod.namespace: downloads
+            app.kubernetes.io/name: radarr
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: downloads
             app.kubernetes.io/name: sonarr
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: downloads
-            app.kubernetes.io/name: radarr
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: media
-            app.kubernetes.io/name: jellyplex-watched
-        - matchLabels:
             k8s:io.kubernetes.pod.namespace: media
             app.kubernetes.io/name: maintainerr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: media
+            app.kubernetes.io/name: seerr
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: media
+            app.kubernetes.io/name: watchstate
       toPorts:
         - ports:
             - port: "8096"
