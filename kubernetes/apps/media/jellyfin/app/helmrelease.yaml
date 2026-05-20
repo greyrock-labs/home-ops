@@ -84,12 +84,12 @@ spec:
       nfs-nas-media:
         type: nfs
         server: codswallop.internal.greyrock.io
-        path: /mnt/tank/media
+        path: /mnt/user/data
         advancedMounts:
           jellyfin:
             app:
-              - path: /data/nas-media/Library
-                subPath: Library
+              - path: /data/nas-media
+                subPath: media
       tmpfs:
         type: emptyDir
         advancedMounts:
