@@ -61,3 +61,11 @@ skedaddle-doco-cd.greyrock.io {
 skedaddle-gatus.greyrock.io {
 	reverse_proxy gatus:8080
 }
+
+tunnel.greyrock.io {
+	reverse_proxy towonel-hub:8443
+}
+
+twnl.greyrock.io {
+	reverse_proxy towonel-hub:8443
+}

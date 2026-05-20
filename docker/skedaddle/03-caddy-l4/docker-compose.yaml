@@ -11,6 +11,8 @@ services:
       VPS_LOCAL_HOSTS: >-
         skedaddle-doco-cd.greyrock.io
         skedaddle-gatus.greyrock.io
+        tunnel.greyrock.io
+        twnl.greyrock.io
     ports:
       - 80:80
       - 443:443
