@@ -42,7 +42,7 @@ services:
       timeout: 5s
       start_period: 30s
     # renovate: datasource=docker depName=registry.erwanleboucher.dev/erwanleboucher.dev/eleboucher/towonel-node
-    image: registry.erwanleboucher.dev/erwanleboucher.dev/eleboucher/towonel-node:0.0.34
+    image: registry.erwanleboucher.dev/erwanleboucher.dev/eleboucher/towonel-node:0.0.41
     logging:
       driver: json-file
       options:
