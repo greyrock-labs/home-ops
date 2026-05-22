@@ -11,7 +11,7 @@ data:
         root /usr/share/nginx/html;
 
         location = / {
-            return 301 $scheme://$http_host/terms-and-conditions;
+            return 301 https://legal.greyrock.io/terms-and-conditions;
         }
 
         location = /terms-and-conditions {
