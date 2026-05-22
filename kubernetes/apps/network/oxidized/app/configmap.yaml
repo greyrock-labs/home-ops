@@ -7,7 +7,7 @@ data:
   config: |
     ---
     username: oxidized
-    interval: 86400
+    interval: 3600
     use_syslog: false
     debug: false
     threads: 30
