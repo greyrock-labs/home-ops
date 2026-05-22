@@ -1,0 +1,50 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oxidized-config
+data:
+  config: |
+    ---
+    interval: 3600
+    use_syslog: false
+    debug: false
+    threads: 30
+    timeout: 20
+    retries: 3
+    rest: 0.0.0.0:8888
+    input:
+      default: ssh
+      debug: false
+      ssh:
+        secure: false
+        keys: false
+    output:
+      default: git
+      git:
+        user: Oxidized
+        email: oxidized@greyrock.io
+        repo: /data/network-backups
+    source:
+      default: csv
+      csv:
+        file: /oxidized/router.db
+        delimiter: !ruby/regexp /:/
+        map:
+          name: 0
+          model: 1
+  router.db: |-
+    # Format: hostname_or_ip:model
+    # Ruckus ICX models: brocadeicx
+    # Mikrotik models:   routeros
+    #
+    # Ruckus ICX switches
+    # icx-sw01.internal.greyrock.io:brocadeicx
+    # icx-sw02.internal.greyrock.io:brocadeicx
+    #
+    # Mikrotik switches
+    switch-office-core.internal.greyrock.io:routeros
+    #
+    # Mikrotik router
+    # mt-router.internal.greyrock.io:routeros
