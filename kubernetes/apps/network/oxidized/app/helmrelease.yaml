@@ -67,6 +67,8 @@ spec:
         globalMounts:
           - path: /home/oxidized/.ssh/id_rsa
             subPath: ssh_private_key
+          - path: /home/oxidized/.ssh/id_rsa.pub
+            subPath: ssh_public_key
       ssh-known-hosts:
         type: secret
         name: oxidized-secret

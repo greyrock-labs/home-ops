@@ -26,8 +26,12 @@ data:
         user: Oxidized
         email: oxidized@greyrock.io
         repo: /data/network-backups
-        remote: git@git.greyrock.io:greyrock-labs/network-backups.git
-        push: true
+    hooks:
+      push_to_forgejo:
+        type: githubrepo
+        events: [post_store]
+        remote_repo: git@git.greyrock.io:greyrock-labs/network-backups.git
+        privatekey: /home/oxidized/.ssh/id_rsa
     source:
       default: csv
       csv:
