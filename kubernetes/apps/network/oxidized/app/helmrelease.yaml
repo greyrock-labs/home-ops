@@ -67,6 +67,12 @@ spec:
         globalMounts:
           - path: /home/oxidized/.ssh/id_rsa
             subPath: ssh_private_key
+      ssh-known-hosts:
+        type: secret
+        name: oxidized-secret
+        globalMounts:
+          - path: /home/oxidized/.ssh/known_hosts
+            subPath: forgejo_known_hosts
       workdir:
         type: emptyDir
         globalMounts:

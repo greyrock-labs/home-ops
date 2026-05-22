@@ -26,6 +26,8 @@ data:
         user: Oxidized
         email: oxidized@greyrock.io
         repo: /data/network-backups
+        remote: git@git.greyrock.io:greyrock-labs/network-backups.git
+        push: true
     source:
       default: csv
       csv:
