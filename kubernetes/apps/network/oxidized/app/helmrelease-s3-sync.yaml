@@ -61,7 +61,7 @@ spec:
                   --s3-provider DigitalOcean \
                   --s3-access-key-id "${DO_ACCESS_KEY_ID}" \
                   --s3-secret-access-key "${DO_SECRET_ACCESS_KEY}" \
-                  --s3-endpoint "${DO_ENDPOINT}" \
+                  --s3-endpoint "${DO_ENDPOINT#https://}" \
                   --transfers 4 \
                   --checksum
             resources:
