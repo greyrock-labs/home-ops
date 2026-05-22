@@ -1,0 +1,57 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: legal
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: legal
+  interval: 30m
+  values:
+    controllers:
+      legal:
+        containers:
+          app:
+            image:
+              repository: docker.io/nginxinc/nginx-unprivileged
+              tag: 1.27-alpine
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+            resources:
+              requests:
+                cpu: 5m
+                memory: 32Mi
+              limits:
+                memory: 64Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop:
+                  - ALL
+    persistence:
+      html:
+        type: configMap
+        name: legal-html
+        globalMounts:
+          - path: /usr/share/nginx/html
+            readOnly: true
+    route:
+      app:
+        hostnames:
+          - legal.greyrock.io
+        parentRefs:
+          - name: envoy-external
+            namespace: network
+    service:
+      app:
+        ports:
+          http:
+            port: 8080

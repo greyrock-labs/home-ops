@@ -1,0 +1,110 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.greyrock.io/core/configmap_v1.json
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: legal-html
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms and Conditions – Grey Rock Guest WiFi</title>
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; max-width: 680px; margin: 2rem auto; padding: 0 1.5rem; color: #222; line-height: 1.7; }
+      h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+      h2 { font-size: 1.15rem; margin-top: 2rem; }
+      .updated { color: #666; font-size: 0.9rem; margin-bottom: 2rem; }
+      p { margin: 0.75rem 0; }
+    </style>
+    </head>
+    <body>
+    <h1>Terms and Conditions</h1>
+    <p class="updated">Last updated: May 22, 2026</p>
+
+    <h2>1. Acceptance of Terms</h2>
+    <p>By accessing the Grey Rock guest wireless network ("Guest WiFi"), you agree to be bound by these Terms and Conditions. If you do not agree, do not use the Guest WiFi.</p>
+
+    <h2>2. Service Description</h2>
+    <p>Grey Rock provides complimentary wireless internet access to guests. To authenticate, you may be required to provide a valid mobile phone number and enter a one-time passcode delivered via SMS. The Guest WiFi is provided on an "as-is" basis with no guarantee of availability, speed, or uninterrupted service.</p>
+
+    <h2>3. SMS Authentication</h2>
+    <p>By entering your phone number on the Guest WiFi captive portal, you consent to receive a single SMS message containing a one-time authentication passcode. Standard message and data rates from your mobile carrier may apply. No recurring or marketing messages will be sent. You may text <strong>STOP</strong> at any time to opt out of future messages. Text <strong>HELP</strong> for support. For additional assistance, contact admin@greyrock.io.</p>
+
+    <h2>4. Message Frequency</h2>
+    <p>You will receive one (1) SMS message per authentication attempt. No additional messages will be sent unless you initiate a new authentication request.</p>
+
+    <h2>5. Acceptable Use</h2>
+    <p>You agree not to use the Guest WiFi to: engage in any unlawful activity; transmit any material that infringes intellectual property rights; distribute malware, viruses, or other harmful software; attempt to gain unauthorized access to any network, system, or data; interfere with or disrupt the network or other users' access; or engage in excessive bandwidth consumption that degrades service for other users.</p>
+
+    <h2>6. No Warranty</h2>
+    <p>The Guest WiFi is provided "as is" and "as available" without warranties of any kind, whether express or implied. Grey Rock does not warrant that the service will be secure, error-free, or free from interruption.</p>
+
+    <h2>7. Limitation of Liability</h2>
+    <p>Grey Rock shall not be liable for any direct, indirect, incidental, consequential, or punitive damages arising from your use of the Guest WiFi, including but not limited to loss of data, unauthorized access to your transmissions, or any other matter relating to the service.</p>
+
+    <h2>8. Security</h2>
+    <p>The Guest WiFi is an open network. Grey Rock does not guarantee the security of data transmitted over the network. You are responsible for taking appropriate measures to protect your devices and data, including the use of encrypted connections (HTTPS, VPN) when transmitting sensitive information.</p>
+
+    <h2>9. Monitoring</h2>
+    <p>Grey Rock reserves the right to monitor network usage to ensure compliance with these terms and to maintain network performance. Grey Rock may restrict or terminate access at any time without notice for any reason.</p>
+
+    <h2>10. Modifications</h2>
+    <p>Grey Rock reserves the right to modify these terms at any time. Continued use of the Guest WiFi after changes constitutes acceptance of the updated terms.</p>
+
+    <h2>11. Contact</h2>
+    <p>For questions or support regarding the Guest WiFi service or SMS messages, contact wifi@greyrock.io. Text <strong>HELP</strong> for SMS support or <strong>STOP</strong> to opt out.</p>
+    </body>
+    </html>
+  privacy.html: |-
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy – Grey Rock Guest WiFi</title>
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; max-width: 680px; margin: 2rem auto; padding: 0 1.5rem; color: #222; line-height: 1.7; }
+      h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+      h2 { font-size: 1.15rem; margin-top: 2rem; }
+      .updated { color: #666; font-size: 0.9rem; margin-bottom: 2rem; }
+      p { margin: 0.75rem 0; }
+    </style>
+    </head>
+    <body>
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: May 22, 2026</p>
+
+    <h2>1. Information We Collect</h2>
+    <p>When you use the Grey Rock guest wireless network ("Guest WiFi"), we may collect the following information: your mobile phone number (for SMS authentication), your device's MAC address, and basic connection metadata such as connection time and duration.</p>
+
+    <h2>2. How We Use Your Information</h2>
+    <p>Your phone number is used solely to deliver a one-time SMS passcode for network authentication. Device and connection information is used to manage network access, maintain performance, and ensure security. We do not use your information for marketing, advertising, or promotional purposes.</p>
+
+    <h2>3. SMS Messages</h2>
+    <p>By submitting your phone number on the captive portal, you consent to receive a single SMS message containing an authentication passcode. No recurring messages will be sent. Standard message and data rates may apply. You may text <strong>STOP</strong> to opt out or <strong>HELP</strong> for assistance.</p>
+
+    <h2>4. Information Sharing</h2>
+    <p>We do not sell, rent, or share your personal information with third parties for marketing purposes. Your phone number is shared with our SMS service provider (Twilio) solely for the purpose of delivering the authentication passcode. We may disclose information if required by law or to protect the safety and security of our network and users.</p>
+
+    <h2>5. Data Retention</h2>
+    <p>Phone numbers and authentication records are retained only for as long as necessary to provide the Guest WiFi service and maintain network security. Connection logs are periodically purged.</p>
+
+    <h2>6. Security</h2>
+    <p>We take reasonable measures to protect the information we collect. However, no method of electronic transmission or storage is completely secure. The Guest WiFi is an open network, and we cannot guarantee the security of data you transmit while connected.</p>
+
+    <h2>7. Your Rights</h2>
+    <p>You may request deletion of your personal information by contacting us using the information below. You may decline to provide your phone number, in which case you will not be able to access the Guest WiFi.</p>
+
+    <h2>8. Children's Privacy</h2>
+    <p>The Guest WiFi is not directed at children under 13. We do not knowingly collect personal information from children under 13.</p>
+
+    <h2>9. Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. The updated policy will be posted at this URL with a revised "Last updated" date.</p>
+
+    <h2>10. Contact</h2>
+    <p>For questions about this Privacy Policy or to request data deletion, contact wifi@greyrock.io.</p>
+    </body>
+    </html>
