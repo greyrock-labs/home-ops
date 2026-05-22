@@ -4,6 +4,7 @@ customization:
     - initcall_blacklist=algif_aead_init
   systemExtensions:
     officialExtensions:
-      - siderolabs/i915
+      - siderolabs/i915-ucode
+      - siderolabs/intel-npu
       - siderolabs/intel-ucode
       - siderolabs/zfs
