@@ -69,8 +69,6 @@ spec:
         globalMounts:
           - path: /oxidized
       backups:
-        type: nfs
-        server: codswallop.internal.greyrock.io
-        path: /mnt/user/network-backups
+        existingClaim: oxidized-backups
         globalMounts:
           - path: /data/network-backups

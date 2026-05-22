@@ -8,10 +8,21 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: oxidized
+  components:
+    - ../../../../components/volsync
   dependsOn:
     - name: external-secrets
       namespace: external-secrets
+    - name: volsync
+      namespace: system
   interval: 1h
+  postBuild:
+    substitute:
+      APP: oxidized
+      APP_UID: "30000"
+      APP_GID: "30000"
+      VOLSYNC_CLAIM: oxidized-backups
+      VOLSYNC_CAPACITY: 1Gi
   path: "./kubernetes/apps/network/oxidized/app"
   prune: true
   sourceRef:
