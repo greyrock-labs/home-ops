@@ -67,6 +67,6 @@ spec:
       backups:
         type: nfs
         server: codswallop.internal.greyrock.io
-        path: /mnt/user/data/network-backups
+        path: /mnt/user/network-backups
         globalMounts:
           - path: /data/network-backups
