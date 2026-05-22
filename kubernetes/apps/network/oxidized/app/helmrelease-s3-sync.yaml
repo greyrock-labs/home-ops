@@ -1,0 +1,83 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: oxidized-s3-sync
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: oxidized
+  interval: 30m
+  values:
+    controllers:
+      oxidized-s3-sync:
+        type: cronjob
+        cronjob:
+          backoffLimit: 2
+          concurrencyPolicy: Forbid
+          failedJobsHistory: 1
+          schedule: "0 */6 * * *"
+          successfulJobsHistory: 1
+        pod:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsUser: 65534
+            runAsGroup: 65534
+            runAsNonRoot: true
+        containers:
+          app:
+            image:
+              repository: docker.io/rclone/rclone
+              tag: 1.68.2
+            env:
+              RCLONE_CONFIG: /dev/null
+              DO_ACCESS_KEY_ID:
+                valueFrom:
+                  secretKeyRef:
+                    name: oxidized-secret
+                    key: do_spaces_access_key_id
+              DO_SECRET_ACCESS_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: oxidized-secret
+                    key: do_spaces_secret_access_key
+              DO_ENDPOINT:
+                valueFrom:
+                  secretKeyRef:
+                    name: oxidized-secret
+                    key: do_spaces_endpoint
+              DO_BUCKET:
+                valueFrom:
+                  secretKeyRef:
+                    name: oxidized-secret
+                    key: do_spaces_bucket
+            command:
+              - /bin/sh
+              - -c
+              - |
+                rclone sync /data/network-backups \
+                  ":s3:${DO_BUCKET}/network-backups" \
+                  --s3-provider DigitalOcean \
+                  --s3-access-key-id "${DO_ACCESS_KEY_ID}" \
+                  --s3-secret-access-key "${DO_SECRET_ACCESS_KEY}" \
+                  --s3-endpoint "${DO_ENDPOINT}" \
+                  --transfers 4 \
+                  --checksum
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 256Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+    persistence:
+      backups:
+        existingClaim: oxidized-backups
+        globalMounts:
+          - path: /data/network-backups
+            readOnly: true
