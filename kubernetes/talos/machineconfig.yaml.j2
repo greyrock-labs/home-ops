@@ -12,7 +12,7 @@ machine:
     diskQuotaSupport: true
     hostDNS:
       enabled: true
-      forwardKubeDNSToHost: true
+      forwardKubeDNSToHost: false
       resolveMemberNames: true
     kubePrism:
       enabled: true
@@ -51,7 +51,7 @@ machine:
         rsize=1048576
         wsize=1048576
   install:
-    image: factory.talos.dev/metal-installer/c2edd5fcd4be75408274a70ace8b576ce2538414d44a3b5b4f19aef971186d41:v1.13.2
+    image: factory.talos.dev/metal-installer/6e2770f975bbb7d778dbed53deb0a381e3984a747c9ffd1ab8ef90287d5501bb:v1.13.2
   kernel:
     modules:
       - name: nbd
@@ -181,11 +181,3 @@ apiVersion: v1alpha1
 kind: WatchdogTimerConfig
 device: /dev/watchdog0
 timeout: 5m
----
-apiVersion: v1alpha1
-kind: VolumeConfig
-name: EPHEMERAL
-provisioning:
-  diskSelector:
-    match: system_disk
-  maxSize: 512GiB
