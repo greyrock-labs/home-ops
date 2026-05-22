@@ -5,7 +5,24 @@ kind: ConfigMap
 metadata:
   name: legal-html
 data:
-  index.html: |
+  default.conf: |
+    server {
+        listen 8080;
+        root /usr/share/nginx/html;
+
+        location = / {
+            return 301 /terms-and-conditions;
+        }
+
+        location = /terms-and-conditions {
+            try_files /terms-and-conditions.html =404;
+        }
+
+        location = /privacy-policy {
+            try_files /privacy-policy.html =404;
+        }
+    }
+  terms-and-conditions.html: |
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -58,7 +75,7 @@ data:
     <p>For questions or support regarding the Guest WiFi service or SMS messages, contact wifi@greyrock.io. Text <strong>HELP</strong> for SMS support or <strong>STOP</strong> to opt out.</p>
     </body>
     </html>
-  privacy.html: |-
+  privacy-policy.html: |-
     <!DOCTYPE html>
     <html lang="en">
     <head>
