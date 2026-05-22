@@ -29,7 +29,7 @@ spec:
           app:
             image:
               repository: docker.io/rclone/rclone
-              tag: 1.68.2
+              tag: 1.74.2
             env:
               RCLONE_CONFIG: /dev/null
               DO_ACCESS_KEY_ID:
