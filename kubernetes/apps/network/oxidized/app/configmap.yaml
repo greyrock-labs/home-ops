@@ -1,5 +1,5 @@
 ---
-# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+# yaml-language-server: $schema=https://json.schemastore.org/configmap
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,7 +7,8 @@ metadata:
 data:
   config: |
     ---
-    interval: 3600
+    username: oxidized
+    interval: 86400
     use_syslog: false
     debug: false
     threads: 30
