@@ -35,6 +35,8 @@ spec:
   dependsOn:
     - name: toolhive-operator-crds
       namespace: ai
+    - name: dragonfly-operator
+      namespace: database
   healthChecks:
     - apiVersion: helm.toolkit.fluxcd.io/v2
       kind: HelmRelease
