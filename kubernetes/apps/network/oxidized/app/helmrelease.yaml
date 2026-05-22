@@ -64,6 +64,10 @@ spec:
         globalMounts:
           - path: /home/oxidized/.ssh/id_rsa
             subPath: ssh_private_key
+      workdir:
+        type: emptyDir
+        globalMounts:
+          - path: /oxidized
       backups:
         type: nfs
         server: codswallop.internal.greyrock.io
