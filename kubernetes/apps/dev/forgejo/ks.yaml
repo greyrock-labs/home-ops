@@ -50,6 +50,9 @@ spec:
   commonMetadata:
     labels:
       app.kubernetes.io/name: forgejo
+  dependsOn:
+    - name: forgejo
+      namespace: dev
   interval: 1h
   path: "./kubernetes/apps/dev/forgejo/runner"
   prune: true
