@@ -15,8 +15,6 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         pod:
-          hostNetwork: true
-          dnsPolicy: ClusterFirstWithHostNet
           annotations:
             k8s.v1.cni.cncf.io/networks: |
               [{
