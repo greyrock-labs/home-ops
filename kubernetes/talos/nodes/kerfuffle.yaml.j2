@@ -9,19 +9,18 @@ apiVersion: v1alpha1
 kind: HostnameConfig
 hostname: kerfuffle
 ---
-# TODO: update driver (mlx4_en) and mac address when new hardware arrives
 apiVersion: v1alpha1
 kind: LinkAliasConfig
 name: net0
 selector:
-    match: link.driver == "i40e" && mac(link.permanent_addr) == "58:47:ca:77:5a:bb"
+    match: link.driver == "mlx5_core" && mac(link.permanent_addr) == "0c:42:a1:ac:b0:2a"
 ---
 apiVersion: v1alpha1
 kind: UserVolumeConfig
 name: nvr-0
 provisioning:
   diskSelector:
-    match: disk.serial == "ZYDHJWC9"
+    match: disk.wwid == "naa.5000c500fd3037b8"
   maxSize: 0
 filesystem:
   type: xfs
@@ -31,7 +30,7 @@ kind: UserVolumeConfig
 name: nvr-1
 provisioning:
   diskSelector:
-    match: disk.serial == "ZYDJ1E1P"
+    match: disk.wwid == "naa.5000c500fd3a7e2a"
   maxSize: 0
 filesystem:
   type: xfs
