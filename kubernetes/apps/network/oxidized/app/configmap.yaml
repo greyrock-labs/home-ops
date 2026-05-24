@@ -15,7 +15,9 @@ data:
     retries: 3
     extensions:
       oxidized-web:
-        listen: 0.0.0.0:8888
+        load: true
+        listen: 0.0.0.0
+        port: 8888
     input:
       default: ssh
       debug: false
