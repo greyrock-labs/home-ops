@@ -58,13 +58,16 @@ data:
   push.sh: |
     #!/bin/sh
     set -e
-    TMPDIR=$(mktemp -d)
-    trap "rm -rf $TMPDIR" EXIT
-    GIT_SSH_COMMAND="ssh -i /home/oxidized/.ssh/id_rsa -o UserKnownHostsFile=/home/oxidized/.ssh/known_hosts" \
-      git clone git@git.greyrock.io:greyrock-labs/network-backups.git "$TMPDIR"
-    cp /data/configs/* "$TMPDIR/"
-    git -C "$TMPDIR" add -A
-    git -C "$TMPDIR" -c user.name="Oxidized" -c user.email="oxidized@greyrock.io" \
+    WORKDIR=$(mktemp -d)
+    KEYFILE=$(mktemp)
+    trap "rm -rf $WORKDIR $KEYFILE" EXIT
+    cp /home/oxidized/.ssh/id_rsa "$KEYFILE"
+    chmod 600 "$KEYFILE"
+    GIT_SSH_COMMAND="ssh -i $KEYFILE -o UserKnownHostsFile=/home/oxidized/.ssh/known_hosts -o StrictHostKeyChecking=no"
+    export GIT_SSH_COMMAND
+    git clone git@git.greyrock.io:greyrock-labs/network-backups.git "$WORKDIR"
+    cp /data/configs/* "$WORKDIR/"
+    git -C "$WORKDIR" add -A
+    git -C "$WORKDIR" -c user.name="Oxidized" -c user.email="oxidized@greyrock.io" \
       commit -m "auto: update $OX_NODE_NAME" || true
-    GIT_SSH_COMMAND="ssh -i /home/oxidized/.ssh/id_rsa -o UserKnownHostsFile=/home/oxidized/.ssh/known_hosts" \
-      git -C "$TMPDIR" push
+    git -C "$WORKDIR" push
