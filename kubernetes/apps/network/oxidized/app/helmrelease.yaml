@@ -17,8 +17,14 @@ spec:
         pod:
           securityContext:
             fsGroup: 30000
-            runAsUser: 30000
-            runAsGroup: 30000
+        initContainers:
+          fix-perms:
+            image:
+              repository: busybox
+              tag: latest
+            command: ["sh", "-c", "chown -R 30000:30000 /data/network-backups"]
+            securityContext:
+              runAsUser: 0
         containers:
           app:
             image:
