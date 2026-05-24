@@ -70,7 +70,7 @@ spec:
       ssh-key:
         type: secret
         name: oxidized-secret
-        defaultMode: 0644
+        defaultMode: 0600
         globalMounts:
           - path: /home/oxidized/.ssh/id_rsa
             subPath: ssh_private_key
