@@ -23,17 +23,14 @@ data:
         secure: false
         keys: false
     output:
-      default: git
-      git:
-        user: Oxidized
-        email: oxidized@greyrock.io
-        repo: /data/network-backups
+      default: file
+      file:
+        dir: /data/configs
     hooks:
       push_to_forgejo:
-        type: githubrepo
+        type: exec
         events: [post_store]
-        remote_repo: git@git.greyrock.io:greyrock-labs/network-backups.git
-        privatekey: /home/oxidized/.ssh/id_rsa
+        cmd: /oxidized/push.sh
     source:
       default: csv
       csv:
@@ -56,3 +53,16 @@ data:
     #
     # Mikrotik router
     # mt-router.internal.greyrock.io:routeros
+  push.sh: |
+    #!/bin/sh
+    set -e
+    TMPDIR=$(mktemp -d)
+    trap "rm -rf $TMPDIR" EXIT
+    GIT_SSH_COMMAND="ssh -i /home/oxidized/.ssh/id_rsa -o UserKnownHostsFile=/home/oxidized/.ssh/known_hosts" \
+      git clone git@git.greyrock.io:greyrock-labs/network-backups.git "$TMPDIR"
+    cp /data/configs/* "$TMPDIR/"
+    git -C "$TMPDIR" add -A
+    git -C "$TMPDIR" -c user.name="Oxidized" -c user.email="oxidized@greyrock.io" \
+      commit -m "auto: update $OX_NODE_NAME" || true
+    GIT_SSH_COMMAND="ssh -i /home/oxidized/.ssh/id_rsa -o UserKnownHostsFile=/home/oxidized/.ssh/known_hosts" \
+      git -C "$TMPDIR" push

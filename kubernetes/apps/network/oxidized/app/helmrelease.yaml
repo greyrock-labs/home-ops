@@ -17,14 +17,6 @@ spec:
         pod:
           securityContext:
             fsGroup: 30000
-        initContainers:
-          fix-perms:
-            image:
-              repository: busybox
-              tag: latest
-            command: ["sh", "-c", "chown -R 30000:30000 /data/network-backups"]
-            securityContext:
-              runAsUser: 0
         containers:
           app:
             image:
@@ -68,6 +60,13 @@ spec:
         globalMounts:
           - path: /oxidized/router.db
             subPath: router.db
+      push-script:
+        type: configMap
+        name: oxidized-config
+        defaultMode: 0755
+        globalMounts:
+          - path: /oxidized/push.sh
+            subPath: push.sh
       ssh-key:
         type: secret
         name: oxidized-secret
@@ -90,4 +89,4 @@ spec:
       backups:
         existingClaim: oxidized-backups
         globalMounts:
-          - path: /data/network-backups
+          - path: /data/configs
