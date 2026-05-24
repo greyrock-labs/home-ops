@@ -17,6 +17,8 @@ spec:
         pod:
           securityContext:
             fsGroup: 30000
+            runAsUser: 30000
+            runAsGroup: 30000
         containers:
           app:
             image:

@@ -13,7 +13,9 @@ data:
     threads: 30
     timeout: 20
     retries: 3
-    rest: 0.0.0.0:8888
+    extensions:
+      oxidized-web:
+        listen: 0.0.0.0:8888
     input:
       default: ssh
       debug: false
