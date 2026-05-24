@@ -12,4 +12,3 @@ resources:
   - ./envoy-gateway/ks.yaml
   - ./multus/ks.yaml
   - ./towonel-agent/ks.yaml
-  - ./oxidized/ks.yaml
