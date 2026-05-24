@@ -21,8 +21,14 @@
     {
       description: "Configure loose versioning for packages",
       matchDatasources: ["docker"],
-      matchPackageNames: ["ghcr.io/home-operations/emby", "ghcr.io/maziggy/bambuddy"],
+      matchPackageNames: ["ghcr.io/maziggy/bambuddy"],
       versioning: "loose",
+    },
+    {
+      description: "Configure regex versioning for scrypted",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/koush/scrypted"],
+      versioning: "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<compatibility>.+)$",
     },
   ],
 }
