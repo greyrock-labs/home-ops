@@ -27,7 +27,7 @@ data:
     output:
       default: file
       file:
-        dir: /data/configs
+        directory: /data/configs
     hooks:
       push_to_forgejo:
         type: exec
