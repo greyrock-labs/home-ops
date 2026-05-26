@@ -14,10 +14,6 @@ spec:
       recordType: A
       targets:
         - *vps_ip
-    - dnsName: tunnel.greyrock.io
-      recordType: A
-      targets:
-        - *vps_ip
     - dnsName: skedaddle-doco-cd.greyrock.io
       recordType: A
       targets:

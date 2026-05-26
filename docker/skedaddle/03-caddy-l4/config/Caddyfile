@@ -5,6 +5,7 @@
 
 	layer4 {
 		:443 {
+      matching_timeout 15s
 			@local tls sni {$VPS_LOCAL_HOSTS}
 			route @local {
 				proxy {
@@ -28,10 +29,6 @@
 					upstream 127.0.0.1:8080
 				}
 			}
-			@http http
-			route @http {
-				proxy towonel-hub:8081
-			}
 		}
 	}
 
@@ -52,6 +49,11 @@
 			}
 		}
 	}
+
+	log default {
+		output stdout
+		format json
+	}
 }
 
 skedaddle-doco-cd.greyrock.io {
@@ -63,9 +65,11 @@ skedaddle-gatus.greyrock.io {
 }
 
 tunnel.greyrock.io {
+  log
 	reverse_proxy towonel-hub:8443
 }
 
 twnl.greyrock.io {
+  log
 	reverse_proxy towonel-hub:8443
 }

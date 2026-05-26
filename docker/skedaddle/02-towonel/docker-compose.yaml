@@ -11,25 +11,19 @@ services:
           cpus: "1.0"
     environment:
       RUST_LOG: info
-      TOWONEL_IDENTITY_KEY_PATH: /data/node.key
       TOWONEL_INVITE_HASH_KEY: ${TOWONEL_INVITE_HASH_KEY}
       TOWONEL_HUB_ENABLED: "true"
       TOWONEL_HUB_ALLOW_PRIVILEGED_PORTS: "true"
-      TOWONEL_HUB_DB_DRIVER: sqlite
-      TOWONEL_HUB_DB_DSN: /data/hub.db
-      TOWONEL_HUB_LISTEN_ADDR: 0.0.0.0:8443
-      TOWONEL_HUB_HEALTH_LISTEN_ADDR: 0.0.0.0:9091
       TOWONEL_HUB_PUBLIC_URL: https://twnl.greyrock.io
-      TOWONEL_HUB_OPERATOR_API_KEY_PATH: /data/operator.key
-      TOWONEL_HUB_URL: http://localhost:8443
+      # Behind a reverse proxy on :443 — these stay non-default:
       TOWONEL_EDGE_ENABLED: "true"
-      TOWONEL_EDGE_LISTEN_ADDR: 0.0.0.0:4443
       TOWONEL_EDGE_HEALTH_LISTEN_ADDR: 0.0.0.0:9092
-      TOWONEL_EDGE_PUBLIC_ADDRESSES: tunnel.greyrock.io:443
+      TOWONEL_EDGE_IROH_PORT: "51820"
+      TOWONEL_EDGE_LISTEN_ADDR: 0.0.0.0:4443
       TOWONEL_EDGE_PROXY_PROTOCOL: "true"
-      TOWONEL_EDGE_TLS_CERT_DIR: /data/certs
-      TOWONEL_EDGE_TLS_ACME_EMAIL: ${TOWONEL_ACME_EMAIL}
-      TOWONEL_EDGE_TLS_HTTP_LISTEN_ADDR: 0.0.0.0:8081
+    expose:
+      - "4443"
+      - "8443"
     healthcheck:
       test:
         - "CMD"
@@ -41,8 +35,8 @@ services:
       interval: 30s
       timeout: 5s
       start_period: 30s
-    # renovate: datasource=docker depName=registry.erwanleboucher.dev/erwanleboucher.dev/eleboucher/towonel-node
-    image: registry.erwanleboucher.dev/erwanleboucher.dev/eleboucher/towonel-node:0.0.34
+    # renovate: datasource=docker depName=codeberg.org/towonel/towonel-node
+    image: codeberg.org/towonel/towonel-node:0.1.8
     logging:
       driver: json-file
       options:
@@ -50,6 +44,7 @@ services:
         max-file: "3"
     ports:
       - 22:22
+      - "51820:51820/udp"
     networks:
       - edge
     restart: unless-stopped
