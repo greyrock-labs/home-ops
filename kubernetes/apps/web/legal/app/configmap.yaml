@@ -101,10 +101,10 @@ data:
     <p>Your phone number is used solely to deliver a one-time SMS passcode for network authentication. Device and connection information is used to manage network access, maintain performance, and ensure security. We do not use your information for marketing, advertising, or promotional purposes.</p>
 
     <h2>3. SMS Messages</h2>
-    <p>By submitting your phone number on the captive portal, you consent to receive a single SMS message containing an authentication passcode. No recurring messages will be sent. Standard message and data rates may apply. You may text <strong>STOP</strong> to opt out or <strong>HELP</strong> for assistance.</p>
+    <p>By submitting your phone number on the captive portal, you consent to receive a single SMS message containing an authentication passcode. Message frequency: one (1) message per authentication request. No recurring or marketing messages will be sent. Message and data rates may apply. You may text <strong>STOP</strong> to opt out or <strong>HELP</strong> for assistance.</p>
 
     <h2>4. Information Sharing</h2>
-    <p>We do not sell, rent, or share your personal information with third parties for marketing purposes. Your phone number is shared with our SMS service provider (Twilio) solely for the purpose of delivering the authentication passcode. We may disclose information if required by law or to protect the safety and security of our network and users.</p>
+    <p>We do not sell, rent, or share your mobile phone number or any personal information with third parties or affiliates for marketing or promotional purposes. Your phone number is shared with our SMS service provider (Twilio) solely for the purpose of delivering the authentication passcode. We may disclose information if required by law or to protect the safety and security of our network and users.</p>
 
     <h2>5. Data Retention</h2>
     <p>Phone numbers and authentication records are retained only for as long as necessary to provide the Guest WiFi service and maintain network security. Connection logs are periodically purged.</p>
