@@ -3,49 +3,53 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: externaldns-unifi
+  name: externaldns-mikrotik
 spec:
   chartRef:
     kind: OCIRepository
-    name: externaldns-unifi
+    name: externaldns-mikrotik
   interval: 30m
   values:
-    fullnameOverride: externaldns-unifi
+    fullnameOverride: externaldns-mikrotik
     logLevel: &logLevel info
     domainFilters:
       - greyrock.io
     podAnnotations:
-      secret.reloader.stakater.com/reload: externaldns-unifi-secret
+      secret.reloader.stakater.com/reload: externaldns-mikrotik-secret
     policy: sync
     provider:
       name: webhook
       webhook:
         image:
-          repository: ghcr.io/kashalls/external-dns-unifi-webhook
-          tag: v0.8.2
+          repository: ghcr.io/mirceanton/external-dns-provider-mikrotik
+          tag: v1.6.2
         env:
           - name: LOG_LEVEL
             value: *logLevel
-          - name: UNIFI_HOST
-            value: https://10.1.0.1
-          - name: UNIFI_API_KEY
+          - name: MIKROTIK_BASEURL
+            value: https://10.1.20.1
+          - name: MIKROTIK_SKIP_TLS_VERIFY
+            value: "true"
+          - name: MIKROTIK_USERNAME
             valueFrom:
               secretKeyRef:
-                name: external-dns-unifi-secret
-                key: external_dns_api_key
-        extraArgs:
-          - --crd-source-apiversion=externaldns.k8s.io/v1alpha1
-          - --crd-source-kind=DNSEndpoint
+                name: externaldns-mikrotik-secret
+                key: username
+          - name: MIKROTIK_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: externaldns-mikrotik-secret
+                key: password
         livenessProbe:
           httpGet:
             path: /healthz
-            port: http-webhook
+            port: 8888
           initialDelaySeconds: 10
           timeoutSeconds: 5
         readinessProbe:
           httpGet:
             path: /readyz
-            port: http-webhook
+            port: 8888
           initialDelaySeconds: 10
           timeoutSeconds: 5
     resources:
