@@ -11,9 +11,9 @@ spec:
   targets:
     staticConfig:
       static:
-        - basement-iotawatt.internal.greyrock.io
+        - iotabase.internal.greyrock.io
         - codswallop.internal.greyrock.io
-        - garage-iotawatt.internal.greyrock.io
+        - iotagrge.internal.greyrock.io
         - homeassistant.internal.greyrock.io
         - kerfuffle.internal.greyrock.io
         - kvm-homeassistant.internal.greyrock.io
