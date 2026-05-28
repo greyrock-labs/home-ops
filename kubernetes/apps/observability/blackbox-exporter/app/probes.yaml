@@ -11,20 +11,38 @@ spec:
   targets:
     staticConfig:
       static:
-        - iotabase.internal.greyrock.io
         - codswallop.internal.greyrock.io
-        - iotagrge.internal.greyrock.io
+        - game-room-core.internal.greyrock.io
+        - game-room-icx-7150.internal.greyrock.io
+        - game-room-icx-8200.internal.greyrock.io
+        - game-room-r770.internal.greyrock.io
+        - garage-core.internal.greyrock.io
+        - garage-icx-7150.internal.greyrock.io
+        - garage-icx-8200.internal.greyrock.io
+        - garage-r650.internal.greyrock.io
+        - garage-rear-driveway-t750se.internal.greyrock.io
+        - garage-side-driveway-t750se.internal.greyrock.io
+        - garage-side-yard-t750se.internal.greyrock.io
         - homeassistant.internal.greyrock.io
+        - iotabase.internal.greyrock.io
+        - iotagrge.internal.greyrock.io
         - kerfuffle.internal.greyrock.io
+        - kitchen-r770.internal.greyrock.io
         - kvm-homeassistant.internal.greyrock.io
         - kvm-kerfuffle.internal.greyrock.io
         - kvm-nas.internal.greyrock.io
+        - office-core.internal.greyrock.io
+        - office-icx-8200.internal.greyrock.io
+        - office-r770.internal.greyrock.io
+        - office-icx-7150.internal.greyrock.io
         - time1.internal.greyrock.io
         - time2.internal.greyrock.io
         - time3.internal.greyrock.io
         - time4.internal.greyrock.io
         - tubeszb-efr32-mgm24-2023.internal.greyrock.io
         - tubeszb-zw.internal.greyrock.io
+        - unleashed.internal.greyrock.io
+        - upstairs-hallway-r650.internal.greyrock.io
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/probe_v1.json
 apiVersion: monitoring.coreos.com/v1
