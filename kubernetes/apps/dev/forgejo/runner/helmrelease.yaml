@@ -160,8 +160,8 @@ spec:
           k8s-plugin:
             image:
               pullPolicy: Always
-              repository: ghcr.io/bjw-s/forgejo-runner-k8s-plugin
-              tag: dev@sha256:a4fefd174dc3ff878d1748620c22d172863f7171849a8b163bc32ad1d7dccb90
+              repository: git.erwanleboucher.dev/eleboucher/runner-k8s-plugin
+              tag: 12.10.2@sha256:1cbdef4bc907748ded57b01f4fd30ea14a1a8088ab8129932b90ea51f31992f5
             args:
               - --listen
               - unix:///plugin/forgejo-runner-k8s.sock
