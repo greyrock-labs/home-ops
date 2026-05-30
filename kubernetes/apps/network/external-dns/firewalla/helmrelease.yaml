@@ -3,54 +3,53 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: externaldns-mikrotik
+  name: externaldns-firewalla
 spec:
   chartRef:
     kind: OCIRepository
-    name: externaldns-mikrotik
+    name: externaldns-firewalla
   interval: 30m
   values:
-    fullnameOverride: externaldns-mikrotik
+    fullnameOverride: externaldns-firewalla
     logLevel: &logLevel info
     domainFilters:
       - greyrock.io
     podAnnotations:
-      secret.reloader.stakater.com/reload: externaldns-mikrotik-secret
+      secret.reloader.stakater.com/reload: externaldns-firewalla-secret
     policy: sync
     provider:
       name: webhook
       webhook:
         image:
-          repository: ghcr.io/mirceanton/external-dns-provider-mikrotik
-          tag: v1.6.2
+          repository: ghcr.io/theoutdoorprogrammer/external-dns-firewalla-webhook
+          tag: 1.1.0
         env:
           - name: LOG_LEVEL
             value: *logLevel
-          - name: MIKROTIK_BASEURL
-            value: https://10.1.20.1
-          - name: MIKROTIK_SKIP_TLS_VERIFY
-            value: "true"
-          - name: SERVER_HOST
-            value: 0.0.0.0
-          - name: MIKROTIK_USERNAME
+          - name: FIREWALLA_HOST
+            value: 10.1.20.1
+          - name: FIREWALLA_PROVIDER_PORT
+            value: "8888"
+          - name: FIREWALLA_HEALTH_PORT
+            value: "8080"
+          - name: WEBHOOK_PORT
+            value: "8888"
+          - name: METRICS_PORT
+            value: "8080"
+          - name: SHARED_SECRET
             valueFrom:
               secretKeyRef:
-                name: externaldns-mikrotik-secret
-                key: username
-          - name: MIKROTIK_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: externaldns-mikrotik-secret
-                key: password
+                name: externaldns-firewalla-secret
+                key: shared-secret
         livenessProbe:
           httpGet:
-            path: /healthz
+            path: /health
             port: 8080
           initialDelaySeconds: 10
           timeoutSeconds: 5
         readinessProbe:
           httpGet:
-            path: /readyz
+            path: /ready
             port: 8080
           initialDelaySeconds: 10
           timeoutSeconds: 5
