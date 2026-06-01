@@ -22,9 +22,7 @@ spec:
     configMaps:
       config-template:
         data:
-          config.tmpl: |-
-            username: ${OXIDIZED_USERNAME}
-            password: ${OXIDIZED_PASSWORD}
+          config-static: |-
             model: routeros
             resolve_dns: true
             interval: 3600
@@ -80,17 +78,17 @@ spec:
               - /bin/sh
               - -c
             args:
-              - apk add --no-cache gettext && envsubst '${OXIDIZED_USERNAME} ${OXIDIZED_PASSWORD}' < /config-template/config.tmpl > /oxidized-config/config && cp /config-template/router.db /oxidized-config/router.db
+              - |
+                printf 'username: %s\npassword: %s\n' "$OXIDIZED_USERNAME" "$OXIDIZED_PASSWORD" | cat - /config-template/config-static > /oxidized-config/config && cp /config-template/router.db /oxidized-config/router.db
             envFrom:
               - secretRef:
                   name: oxidized-secret
             securityContext:
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
+              readOnlyRootFilesystem: true
               capabilities:
                 drop:
                   - ALL
-              runAsUser: 0
         containers:
           app:
             image:
