@@ -26,15 +26,15 @@ spec:
             model: routeros
             resolve_dns: true
             interval: 3600
-            use_syslog: false
-            log: /dev/stdout
             debug: false
             threads: 30
             timeout: 20
             retries: 3
             next_adds_job: false
-            pid: false
             rest: 0.0.0.0:8888
+            logger:
+              appenders:
+                - type: stdout
             stats:
               history_size: 10
             input:
