@@ -1,0 +1,79 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: unimus
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: unimus
+  interval: 30m
+  values:
+    controllers:
+      unimus:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          securityContext:
+            fsGroup: 0
+            fsGroupChangePolicy: OnRootMismatch
+        containers:
+          app:
+            image:
+              repository: docker.io/croc/unimus
+              tag: latest
+            env:
+              TZ: America/Chicago
+              JAVA_OPTS: -Xms256M -Xmx1024M -Dunimus.core.connect-timeout=20000 -Dunimus.core.inter-connection-delay=1000 -Dunimus.core.cli-expect-timeout=30000
+            probes:
+              liveness:
+                enabled: true
+                spec:
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                spec:
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 50m
+                memory: 512Mi
+              limits:
+                memory: 1280Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+
+    persistence:
+      config:
+        existingClaim: unimus-config
+        advancedMounts:
+          unimus:
+            app:
+              - path: /etc/unimus
+
+    route:
+      app:
+        hostnames:
+          - unimus.greyrock.io
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+
+    service:
+      app:
+        ports:
+          http:
+            port: 8085
