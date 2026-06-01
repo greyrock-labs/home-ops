@@ -59,12 +59,12 @@ spec:
             game-room-core.internal.greyrock.io:routeros
             office-core.internal.greyrock.io:routeros
             garage-core.internal.greyrock.io:routeros
-            office-icx-8200.internal.greyrock.io:brocadeicx
-            game-room-icx-8200.internal.greyrock.io:brocadeicx
-            garage-icx-8200.internal.greyrock.io:brocadeicx
-            office-icx-7150.internal.greyrock.io:brocadeicx
-            garage-icx-7150.internal.greyrock.io:brocadeicx
-            game-room-icx-7150.internal.greyrock.io:brocadeicx
+            office-icx-8200.internal.greyrock.io:fastiron
+            game-room-icx-8200.internal.greyrock.io:fastiron
+            garage-icx-8200.internal.greyrock.io:fastiron
+            office-icx-7150.internal.greyrock.io:fastiron
+            garage-icx-7150.internal.greyrock.io:fastiron
+            game-room-icx-7150.internal.greyrock.io:fastiron
     controllers:
       oxidized:
         annotations:
