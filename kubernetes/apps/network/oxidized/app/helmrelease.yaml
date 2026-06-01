@@ -12,9 +12,11 @@ spec:
   values:
     defaultPodOptions:
       securityContext:
-        fsGroup: 2000
+        fsGroup: 30000
         fsGroupChangePolicy: OnRootMismatch
-        runAsNonRoot: false
+        runAsGroup: 30000
+        runAsNonRoot: true
+        runAsUser: 30000
         seccompProfile:
           type: RuntimeDefault
     configMaps:
