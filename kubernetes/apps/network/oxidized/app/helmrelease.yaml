@@ -1,0 +1,170 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: oxidized
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: oxidized
+  interval: 30m
+  values:
+    defaultPodOptions:
+      securityContext:
+        fsGroup: 2000
+        fsGroupChangePolicy: OnRootMismatch
+        runAsNonRoot: false
+        seccompProfile:
+          type: RuntimeDefault
+    configMaps:
+      config-template:
+        data:
+          config.tmpl: |-
+            username: ${OXIDIZED_USERNAME}
+            password: ${OXIDIZED_PASSWORD}
+            model: routeros
+            resolve_dns: true
+            interval: 3600
+            use_syslog: false
+            log: /dev/stdout
+            debug: false
+            threads: 30
+            timeout: 20
+            retries: 3
+            next_adds_job: false
+            pid: false
+            rest: 0.0.0.0:8888
+            stats:
+              history_size: 10
+            input:
+              default: ssh
+              debug: false
+              ssh:
+                secure: false
+            output:
+              default: file
+              file:
+                directory: /network-configs
+            source:
+              default: csv
+              csv:
+                file: /oxidized-config/router.db
+                delimiter: !ruby/regexp /:/
+                map:
+                  name: 0
+                  model: 1
+          router.db: |-
+            grey-rock-router.internal.greyrock.io:routeros
+            game-room-core.internal.greyrock.io:routeros
+            office-core.internal.greyrock.io:routeros
+            garage-core.internal.greyrock.io:routeros
+            office-icx-8200.internal.greyrock.io:brocadeicx
+            game-room-icx-8200.internal.greyrock.io:brocadeicx
+            garage-icx-8200.internal.greyrock.io:brocadeicx
+            office-icx-7150.internal.greyrock.io:brocadeicx
+            garage-icx-7150.internal.greyrock.io:brocadeicx
+            game-room-icx-7150.internal.greyrock.io:brocadeicx
+    controllers:
+      oxidized:
+        annotations:
+          secret.reloader.stakater.com/reload: oxidized-secret
+        initContainers:
+          config-init:
+            image:
+              repository: docker.io/library/alpine
+              tag: "3.23"
+            command:
+              - /bin/sh
+              - -c
+            args:
+              - apk add --no-cache gettext && envsubst '${OXIDIZED_USERNAME} ${OXIDIZED_PASSWORD}' < /config-template/config.tmpl > /oxidized-config/config && cp /config-template/router.db /oxidized-config/router.db
+            envFrom:
+              - secretRef:
+                  name: oxidized-secret
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop:
+                  - ALL
+              runAsUser: 0
+        containers:
+          app:
+            image:
+              repository: docker.io/oxidized/oxidized
+              tag: 0.37.0
+            env:
+              OXIDIZED_HOME: /oxidized-config
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /nodes
+                    port: 8888
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /nodes
+                    port: 8888
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /nodes
+                    port: 8888
+                  periodSeconds: 10
+                  failureThreshold: 30
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: false
+              capabilities:
+                drop:
+                  - ALL
+    persistence:
+      config-template:
+        type: configMap
+        identifier: config-template
+        advancedMounts:
+          oxidized:
+            config-init:
+              - path: /config-template
+      network-configs:
+        type: nfs
+        path: /mnt/user/network-configs
+        server: codswallop.internal.greyrock.io
+        globalMounts:
+          - path: /network-configs
+      oxidized-config:
+        type: emptyDir
+        globalMounts:
+          - path: /oxidized-config
+      tmpfs:
+        type: emptyDir
+        advancedMounts:
+          oxidized:
+            app:
+              - path: /tmp
+                subPath: tmp
+    service:
+      app:
+        ports:
+          http:
+            port: 8888
