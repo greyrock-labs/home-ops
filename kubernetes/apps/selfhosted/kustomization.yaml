@@ -11,6 +11,7 @@ resources:
   - ./atuin/ks.yaml
   - ./freshrss/ks.yaml
   - ./it-tools/ks.yaml
+  - ./localca/ks.yaml
   - ./manyfold/ks.yaml
   - ./nextcloud/ks.yaml
   - ./paperless/ks.yaml
