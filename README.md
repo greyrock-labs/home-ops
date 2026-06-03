@@ -9,16 +9,16 @@ _... managed by Flux, Renovate and GitHub Actions_ :robot:
 
 Kubernetes cluster stats:
 
-[![Talos](https://img.shields.io/endpoint?url=https%3A%2F%2Fkromgo.greyrock.io%2Ftalos_version&style=for-the-badge&logo=talos&logoColor=white&color=orange&label=talos)](https://talos.dev)&nbsp;
-[![Kubernetes](https://img.shields.io/endpoint?url=https%3A%2F%2Fkromgo.greyrock.io%2Fkubernetes_version&style=for-the-badge&logo=kubernetes&logoColor=white&color=blue&label=k8s)](https://kubernetes.io)&nbsp;&nbsp;
-[![Flux](https://img.shields.io/endpoint?url=https%3A%2F%2Fkromgo.greyrock.io%2Fflux_version&style=for-the-badge&logo=flux&logoColor=white&color=blue&label=flux)](https://fluxcd.io)
+[![Talos](https://kromgo.greyrock.io/badges/talos_version)](https://talos.dev)&nbsp;
+[![Kubernetes](https://kromgo.greyrock.io/badges/kubernetes_version)](https://kubernetes.io)&nbsp;&nbsp;
+[![Flux](https://kromgo.greyrock.io/badges/flux_version)](https://fluxcd.io)
 
-[![Age-Days](https://kromgo.greyrock.io/cluster_age_days?format=badge)](https://github.com/kashalls/kromgo/)&nbsp;
-[![Node-Count](https://kromgo.greyrock.io/cluster_node_count?format=badge)](https://github.com/kashalls/kromgo/)&nbsp;
-[![Alerts](https://kromgo.greyrock.io/cluster_alert_count?format=badge)](https://github.com/kashalls/kromgo/)&nbsp;
-[![Pod-Count](https://kromgo.greyrock.io/cluster_pod_count?format=badge)](https://github.com/kashalls/kromgo/)&nbsp;
-[![CPU-Usage](https://kromgo.greyrock.io/cluster_cpu_usage?format=badge)](https://github.com/kashalls/kromgo/)&nbsp;
-[![Memory-Usage](https://kromgo.greyrock.io/cluster_memory_usage?format=badge)](https://github.com/kashalls/kromgo/)
+[![Age-Days](https://kromgo.greyrock.io/badges/cluster_age_days)](https://github.com/home-operations/kromgo/)&nbsp;
+[![Nodes](https://kromgo.greyrock.io/badges/cluster_node_count)](https://github.com/home-operations/kromgo/)&nbsp;
+[![Alerts](https://kromgo.greyrock.io/badges/cluster_alert_count)](https://github.com/home-operations/kromgo/)&nbsp;
+[![Pod-Count](https://kromgo.greyrock.io/badges/cluster_pod_count)](https://github.com/home-operations/kromgo/)&nbsp;
+[![CPU-Usage](https://kromgo.greyrock.io/badges/cluster_cpu_usage)](https://github.com/home-operations/kromgo/)&nbsp;
+[![Memory-Usage](https://kromgo.greyrock.io/badges/cluster_memory_usage)](https://github.com/home-operations/kromgo/)
 
 </div>
 <br>
