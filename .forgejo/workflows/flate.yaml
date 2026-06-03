@@ -30,19 +30,15 @@ jobs:
 
   flate:
     if: ${{ needs.filter-changes.outputs.changed-files != '[]' }}
-    name: Flate ${{ matrix.resource }}
+    name: Flate
     runs-on: ubuntu-latest
     needs:
       - filter-changes
     permissions:
       contents: read
       pull-requests: write
-    strategy:
-      matrix:
-        resource:
-          - helmrelease
-          - kustomization
-      fail-fast: false
+    env:
+      FLATE_PATH: ./kubernetes/flux/cluster
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -56,14 +52,17 @@ jobs:
           token: ""
 
       - name: Run flate test
-        run: flate test ${{ matrix.resource }} --path ./kubernetes/flux/cluster --base ${{ forgejo.event.repository.default_branch }}
+        run: flate test all --base ${{ forgejo.event.repository.default_branch }}
 
       - name: Run flate diff
         id: diff
         run: |-
+          diff=$(flate diff all)
+          echo "Changes:"
+          echo "${diff}"
           {
             echo 'diff<<EOF'
-            flate diff ${{ matrix.resource }} --path ./kubernetes/flux/cluster
+            echo "${diff}"
             echo 'EOF'
           } >> "${FORGEJO_OUTPUT}"
 
@@ -72,10 +71,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
           PR_NUMBER: ${{ forgejo.event.pull_request.number }}
-          HEADER: "${{ forgejo.event.pull_request.number }}/kubernetes/${{ matrix.resource }}"
+          MARKER: "<!-- sticky-comment: flate -->"
           DIFF_CONTENT: ${{ steps.diff.outputs.diff }}
         run: |-
-          MARKER="<!-- sticky-comment: ${HEADER} -->"
           BODY=$(printf $'%s\n```diff\n%s\n```' "${MARKER}" "${DIFF_CONTENT}")
           BODY_JSON=$(jq -Rs '{"body": .}' <<< "${BODY}")
 
