@@ -61,6 +61,8 @@ spec:
         memory: 90M
     serviceMonitor:
       enabled: true
+    extraArgs:
+      - --gateway-name=envoy-internal
     sources:
       - gateway-httproute
       - service
