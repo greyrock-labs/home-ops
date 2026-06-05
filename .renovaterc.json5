@@ -2,11 +2,11 @@
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   extends: [
     "github>doonga/renovate-config",
-    "github>greyrock-labs/home-ops//.renovate/overrides.json5",
+    "github>greyrock-labs/home-ops//.renovate/customManagers.json5",
     "github>greyrock-labs/home-ops//.renovate/groups.json5",
     "github>greyrock-labs/home-ops//.renovate/autoMerge.json5",
-    "github>greyrock-labs/home-ops//.renovate/customManagers.json5",
-    "github>greyrock-labs/home-ops//.renovate/grafanaDashboards.json5",
+    "github>greyrock-labs/home-ops//.renovate/versions.json5",
+    "github>greyrock-labs/home-ops//.renovate/overrides.json5",
   ],
   flux: {
     managerFilePatterns: ["/^kubernetes/.+\\.yaml(?:\\.j2)?$/"],
@@ -17,18 +17,4 @@
   kubernetes: {
     managerFilePatterns: ["/^kubernetes/.+\\.yaml(?:\\.j2)?$/"],
   },
-  packageRules: [
-    {
-      description: "Configure loose versioning for packages",
-      matchDatasources: ["docker"],
-      matchPackageNames: ["ghcr.io/maziggy/bambuddy"],
-      versioning: "loose",
-    },
-    {
-      description: "Configure regex versioning for scrypted",
-      matchDatasources: ["docker"],
-      matchPackageNames: ["ghcr.io/koush/scrypted"],
-      versioning: "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<compatibility>.+)$",
-    },
-  ],
 }
