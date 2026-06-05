@@ -14,7 +14,7 @@ spec:
     bandwidthManager:
       enabled: true
       bbr: true
-    l2announcements:
+    bgpControlPlane:
       enabled: true
     bpf:
       masquerade: true
