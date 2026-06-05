@@ -22,7 +22,7 @@ spec:
       webhook:
         image:
           repository: ghcr.io/crutonjohn/external-dns-opnsense-webhook
-          tag: v1.0.0
+          tag: main
         env:
           - name: LOG_LEVEL
             value: *logLevel
