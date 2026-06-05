@@ -62,6 +62,9 @@ spec:
         memory: 90M
     serviceMonitor:
       enabled: true
+    extraArgs:
+      - --webhook-provider-read-timeout=30s
+      - --webhook-provider-write-timeout=30s
     sources:
       - gateway-httproute
       - service
