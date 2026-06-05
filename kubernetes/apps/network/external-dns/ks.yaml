@@ -3,13 +3,13 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: externaldns-firewalla
+  name: externaldns-opnsense
 spec:
   commonMetadata:
     labels:
-      app.kubernetes.io/name: externaldns-firewalla
+      app.kubernetes.io/name: externaldns-opnsense
   interval: 1h
-  path: "./kubernetes/apps/network/external-dns/firewalla"
+  path: "./kubernetes/apps/network/external-dns/opnsense"
   prune: true
   sourceRef:
     kind: GitRepository
