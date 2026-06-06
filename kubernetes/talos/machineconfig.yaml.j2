@@ -170,6 +170,13 @@ kind: DHCPv4Config
 name: bond0
 clientIdentifier: mac
 ---
+# Internal
+apiVersion: v1alpha1
+kind: VLANConfig
+name: bond0.10
+vlanID: 10
+parent: bond0
+---
 apiVersion: v1alpha1
 kind: WatchdogTimerConfig
 device: /dev/watchdog0
