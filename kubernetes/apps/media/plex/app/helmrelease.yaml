@@ -27,7 +27,7 @@ spec:
               repository: ghcr.io/home-operations/plex
               tag: 1.43.2.10687
             env:
-              PLEX_ADVERTISE_URL: https://10.1.100.6:32400,https://plex.greyrock.io:443
+              PLEX_ADVERTISE_URL: https://10.1.25.6:32400,https://plex.greyrock.io:443
               PLEX_NO_AUTH_NETWORKS: 10.244.0.0/16
             probes:
               liveness: &probes
@@ -108,7 +108,7 @@ spec:
       app:
         type: LoadBalancer
         annotations:
-          lbipam.cilium.io/ips: 10.1.100.6
+          lbipam.cilium.io/ips: 10.1.25.6
         externalTrafficPolicy: Local
         ports:
           http:
