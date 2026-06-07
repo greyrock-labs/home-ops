@@ -3,55 +3,49 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: externaldns-opnsense
+  name: externaldns-unifi
 spec:
   chartRef:
     kind: OCIRepository
-    name: externaldns-opnsense
+    name: externaldns-unifi
   interval: 30m
   values:
-    fullnameOverride: externaldns-opnsense
+    fullnameOverride: externaldns-unifi
     logLevel: &logLevel info
     domainFilters:
       - greyrock.io
     podAnnotations:
-      secret.reloader.stakater.com/reload: externaldns-opnsense-secret
+      secret.reloader.stakater.com/reload: externaldns-unifi-secret
     policy: sync
     provider:
       name: webhook
       webhook:
         image:
-          repository: ghcr.io/crutonjohn/external-dns-opnsense-webhook
-          tag: main
+          repository: ghcr.io/home-operations/external-dns-unifi-webhook
+          tag: 0.10.2@sha256:1f51f841e217d8bc6481655481ce82e0f0be70ad359c23d7d866d53a51d87fa9
         env:
           - name: LOG_LEVEL
             value: *logLevel
-          - name: OPNSENSE_HOST
+          - name: UNIFI_HOST
             value: https://10.1.20.1
-          - name: OPNSENSE_SKIP_TLS_VERIFY
-            value: "true"
-          - name: SERVER_HOST
-            value: 0.0.0.0
-          - name: OPNSENSE_API_KEY
+          - name: UNIFI_API_KEY
             valueFrom:
               secretKeyRef:
-                name: externaldns-opnsense-secret
-                key: api-key
-          - name: OPNSENSE_API_SECRET
-            valueFrom:
-              secretKeyRef:
-                name: externaldns-opnsense-secret
-                key: api-secret
+                name: external-dns-unifi-secret
+                key: external_dns_api_key
+        extraArgs:
+          - --crd-source-apiversion=externaldns.k8s.io/v1alpha1
+          - --crd-source-kind=DNSEndpoint
         livenessProbe:
           httpGet:
             path: /healthz
-            port: 8080
+            port: http-webhook
           initialDelaySeconds: 10
           timeoutSeconds: 5
         readinessProbe:
           httpGet:
             path: /readyz
-            port: 8080
+            port: http-webhook
           initialDelaySeconds: 10
           timeoutSeconds: 5
     resources:
@@ -62,10 +56,8 @@ spec:
         memory: 90M
     serviceMonitor:
       enabled: true
-    extraArgs:
-      - --webhook-provider-read-timeout=30s
-      - --webhook-provider-write-timeout=30s
     sources:
+      - crd
       - gateway-httproute
       - service
     triggerLoopOnEvent: true
