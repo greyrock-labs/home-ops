@@ -12,9 +12,6 @@ spec:
     staticConfig:
       static:
         - codswallop.internal.greyrock.io
-        - garage-rear-driveway-t750se.internal.greyrock.io
-        - garage-side-driveway-t750se.internal.greyrock.io
-        - garage-side-yard-t750se.internal.greyrock.io
         - homeassistant.internal.greyrock.io
         - iotabase.internal.greyrock.io
         - iotagrge.internal.greyrock.io
