@@ -66,7 +66,7 @@ upgrade-k8s version:
 [doc('Upgrade Talos version on a node')]
 [script]
 upgrade-node node:
-    talosctl -n "{{ node }}" upgrade -i "$(just talos machine-image {{ node }})" -m powercycle --timeout=10m
+    talosctl -n "{{ node }}" upgrade -i "factory.talos.dev/metal-installer/$(just talos schematic-id):$(just talos talos-version)" -m powercycle --timeout=10m
 
 [doc('Download Talos machine image')]
 [script]
