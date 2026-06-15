@@ -9,6 +9,7 @@ resources:
   - ./namespace.yaml
   - ./context7-mcp/ks.yaml
   - ./ha-mcp/ks.yaml
+  - ./litellm/ks.yaml
   # - ./minimax-shim/ks.yaml
   - ./open-webui/ks.yaml
   - ./toolhive/ks.yaml
