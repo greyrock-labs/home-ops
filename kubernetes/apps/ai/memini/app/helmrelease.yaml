@@ -73,6 +73,16 @@ spec:
     serviceMonitor:
       main:
         enabled: true
+        endpoints:
+          - port: http
+            path: /metrics
+            interval: 30s
+            scrapeTimeout: 10s
+            authorization:
+              type: Bearer
+              credentials:
+                name: memini-secret
+                key: MEMINI_API_KEY
     grafanaDashboards:
       enabled: true
       folder: llm
