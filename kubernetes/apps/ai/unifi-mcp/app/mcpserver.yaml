@@ -16,7 +16,7 @@ spec:
       value: "443"
     - name: UNIFI_LOCAL_VERIFY_SSL
       value: "true"
-  image: ghcr.io/enuno/unifi-mcp-server:v0.2.6
+  image: ghcr.io/enuno/unifi-mcp-server:0.2.6
   secrets:
     - name: unifi-mcp-secret
       key: UNIFI_API_KEY
