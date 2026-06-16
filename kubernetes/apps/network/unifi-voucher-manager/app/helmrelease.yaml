@@ -61,6 +61,11 @@ spec:
               capabilities:
                 drop:
                   - ALL
+    persistence:
+      tmpfs:
+        type: emptyDir
+        globalMounts:
+          - path: /app/frontend/public
     route:
       app:
         hostnames:
