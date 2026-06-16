@@ -22,6 +22,15 @@ spec:
                 "namespace": "network",
                 "ips": ["192.168.23.2/24"]
               }]
+        initContainers:
+          seed-public:
+            image:
+              repository: etiennecollin/unifi-voucher-manager
+              tag: 1.4.3
+            command:
+              - sh
+              - -c
+              - cp -a /app/frontend/public/. /work/
         containers:
           app:
             image:
@@ -71,8 +80,12 @@ spec:
     persistence:
       tmpfs:
         type: emptyDir
-        globalMounts:
-          - path: /app/frontend/public
+        advancedMounts:
+          unifi-voucher-manager:
+            app:
+              - path: /app/frontend/public
+            seed-public:
+              - path: /work
     route:
       app:
         hostnames:
