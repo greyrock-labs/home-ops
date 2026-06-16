@@ -33,6 +33,10 @@ spec:
               UNIFI_CONTROLLER_URL: https://grey-rock-router.internal.greyrock.io
               UNIFI_HAS_VALID_CERT: "true"
               UNIFI_SITE_ID: default
+              WIFI_HIDDEN: "false"
+              WIFI_PASSWORD: ""
+              WIFI_SSID: Grey Rock Guest
+              WIFI_TYPE: nopass
             envFrom:
               - secretRef:
                   name: unifi-voucher-manager-secret
