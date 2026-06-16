@@ -20,11 +20,6 @@ spec:
               repository: etiennecollin/unifi-voucher-manager
               tag: 1.4.3
             env:
-              BACKEND_BIND_HOST: 127.0.0.1
-              BACKEND_BIND_PORT: 8080
-              FRONTEND_BIND_HOST: 0.0.0.0
-              FRONTEND_BIND_PORT: &port 3000
-              FRONTEND_TO_BACKEND_URL: http://127.0.0.1:8080
               GUEST_SUBNETWORK: 192.168.23.0/24
               TIMEZONE: UTC
               UNIFI_CONTROLLER_URL: https://grey-rock-router.internal.greyrock.io
@@ -77,4 +72,4 @@ spec:
       app:
         ports:
           http:
-            port: *port
+            port: 3000
