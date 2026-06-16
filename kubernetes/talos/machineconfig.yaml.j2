@@ -177,6 +177,13 @@ name: bond0.10
 vlanID: 10
 parent: bond0
 ---
+# Guest
+apiVersion: v1alpha1
+kind: VLANConfig
+name: bond0.4000
+vlanID: 4000
+parent: bond0
+---
 apiVersion: v1alpha1
 kind: WatchdogTimerConfig
 device: /dev/watchdog0
