@@ -1,0 +1,75 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: unifi-voucher-manager
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: unifi-voucher-manager
+  interval: 30m
+  values:
+    controllers:
+      unifi-voucher-manager:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: etiennecollin/unifi-voucher-manager
+              tag: 1.4.3
+            env:
+              BACKEND_BIND_HOST: 127.0.0.1
+              BACKEND_BIND_PORT: 8080
+              FRONTEND_BIND_HOST: 0.0.0.0
+              FRONTEND_BIND_PORT: &port 3000
+              FRONTEND_TO_BACKEND_URL: http://127.0.0.1:8080
+              GUEST_SUBNETWORK: 192.168.23.0/24
+              TIMEZONE: UTC
+              UNIFI_CONTROLLER_URL: https://grey-rock-router.internal.greyrock.io
+              UNIFI_HAS_VALID_CERT: "true"
+              UNIFI_SITE_ID: default
+            envFrom:
+              - secretRef:
+                  name: unifi-voucher-manager-secret
+            probes:
+              liveness:
+                enabled: true
+                spec:
+                  failureThreshold: 5
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+              readiness:
+                enabled: true
+                spec:
+                  failureThreshold: 5
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
+    route:
+      app:
+        hostnames:
+          - voucher.greyrock.io
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+    service:
+      app:
+        ports:
+          http:
+            port: *port
