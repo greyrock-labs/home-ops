@@ -1,0 +1,24 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpserver_v1beta1.json
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: unifi-mcp
+spec:
+  groupRef:
+    name: mcp-tools
+  env:
+    - name: UNIFI_API_TYPE
+      value: local
+    - name: UNIFI_LOCAL_HOST
+      value: grey-rock-router.internal.greyrock.io
+    - name: UNIFI_LOCAL_PORT
+      value: "443"
+    - name: UNIFI_LOCAL_VERIFY_SSL
+      value: "true"
+  image: ghcr.io/enuno/unifi-mcp-server:v0.2.6
+  secrets:
+    - name: unifi-mcp-secret
+      key: UNIFI_API_KEY
+      targetEnvName: UNIFI_API_KEY
+  transport: stdio
