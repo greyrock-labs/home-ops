@@ -31,14 +31,16 @@ spec:
                     key: MEMINI_API_KEY
               MEMINI_BACKEND: sqlite
               MEMINI_DEFAULT_NAMESPACE: "default"
-              MEMINI_LOG_FORMAT: json
+              MEMINI_DEMOTE_AFTER: 1440h
               MEMINI_EMBED_BASE_URL: http://text-embeddings-inference.ai.svc.cluster.local:8080/v1
               MEMINI_EMBED_DIMS: "384"
               MEMINI_EMBED_MODEL: sentence-transformers/all-MiniLM-L6-v2
+              MEMINI_LOG_FORMAT: json
               MEMINI_RERANK: http://qwen3-reranker-0-6b.ai.svc.cluster.local:8080/v1
-              MEMINI_RERANK_MODEL: qwen3-reranker-0.6b
-              MEMINI_RERANK_TOP_N: "20"
               MEMINI_RERANK_MAX_DOC_CHARS: "4000"
+              MEMINI_RERANK_MODEL: qwen3-reranker-0.6b
+              MEMINI_TOMBSTONE_TTL: 720h
+              MEMINI_WRITE_DEDUP_MIN_SCORE: "0.95"
             resources:
               requests:
                 cpu: 25m
@@ -55,6 +57,14 @@ spec:
         enabled: true
         cronjob:
           schedule: "0 5 * * *"
+        containers:
+          fsck:
+            env:
+              MEMINI_API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: memini-secret
+                    key: MEMINI_API_KEY
     persistence:
       data:
         existingClaim: memini
@@ -73,16 +83,6 @@ spec:
     serviceMonitor:
       main:
         enabled: true
-        endpoints:
-          - port: metrics
-            path: /metrics
-            interval: 30s
-            scrapeTimeout: 10s
-            authorization:
-              type: Bearer
-              credentials:
-                name: memini-secret
-                key: MEMINI_API_KEY
     grafanaDashboards:
       enabled: true
       folder: llm
