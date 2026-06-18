@@ -19,12 +19,13 @@ spec:
   outgoingAuth:
     source: discovered
   podTemplateSpec:
-    containers:
-      - name: vmcp
-        resources:
-          requests:
-            cpu: 100m
-            memory: 512Mi
-          limits:
-            cpu: 500m
-            memory: 2Gi
+    spec:
+      containers:
+        - name: vmcp
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 2Gi
