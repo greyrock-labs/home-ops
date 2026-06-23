@@ -15,4 +15,3 @@ resources:
   - ./minimax-shim/ks.yaml
   - ./open-webui/ks.yaml
   - ./toolhive/ks.yaml
-  - ./unifi-mcp/ks.yaml
