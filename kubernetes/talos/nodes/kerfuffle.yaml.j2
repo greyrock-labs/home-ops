@@ -14,3 +14,23 @@ kind: LinkAliasConfig
 name: net0
 selector:
     match: link.driver == "ixgbe" && mac(link.permanent_addr) == "98:b7:85:23:30:20"
+---
+apiVersion: v1alpha1
+kind: UserVolumeConfig
+name: nvr-0
+provisioning:
+  diskSelector:
+    match: disk.wwid == "naa.5000c500fd3037b8"
+  maxSize: 0
+filesystem:
+  type: xfs
+---
+apiVersion: v1alpha1
+kind: UserVolumeConfig
+name: nvr-1
+provisioning:
+  diskSelector:
+    match: disk.wwid == "naa.5000c500fd3a7e2a"
+  maxSize: 0
+filesystem:
+  type: xfs
