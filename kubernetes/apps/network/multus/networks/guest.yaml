@@ -1,0 +1,22 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/k8s.cni.cncf.io/networkattachmentdefinition_v1.json
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: multus-guest
+spec:
+  config: |-
+    {
+      "cniVersion": "1.1.0",
+      "name": "multus-guest",
+      "plugins": [
+        {
+          "type": "macvlan",
+          "master": "bond0.4000",
+          "mode": "bridge",
+          "ipam": {
+            "type": "static"
+          }
+        }
+      ]
+    }
