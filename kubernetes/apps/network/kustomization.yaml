@@ -12,3 +12,4 @@ resources:
   - ./envoy-gateway/ks.yaml
   - ./multus/ks.yaml
   - ./towonel-agent/ks.yaml
+  - ./unifi-voucher-manager/ks.yaml
