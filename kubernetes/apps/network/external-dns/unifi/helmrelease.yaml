@@ -3,54 +3,49 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: externaldns-firewalla
+  name: externaldns-unifi
 spec:
   chartRef:
     kind: OCIRepository
-    name: externaldns-firewalla
+    name: externaldns-unifi
   interval: 30m
   values:
-    fullnameOverride: externaldns-firewalla
+    fullnameOverride: externaldns-unifi
     logLevel: &logLevel info
     domainFilters:
       - greyrock.io
     podAnnotations:
-      secret.reloader.stakater.com/reload: externaldns-firewalla-secret
+      secret.reloader.stakater.com/reload: externaldns-unifi-secret
     policy: sync
     provider:
       name: webhook
       webhook:
         image:
-          repository: ghcr.io/theoutdoorprogrammer/external-dns-firewalla-webhook
-          tag: 1.1.0
+          repository: ghcr.io/home-operations/external-dns-unifi-webhook
+          tag: 0.10.6@sha256:b35a7aac743ddbf7edff3266d8b0b0ac108dc0d56d692b322e51ec99f57b34c5
         env:
           - name: LOG_LEVEL
             value: *logLevel
-          - name: FIREWALLA_HOST
-            value: 10.1.20.1
-          - name: FIREWALLA_PROVIDER_PORT
-            value: "8888"
-          - name: FIREWALLA_HEALTH_PORT
-            value: "8080"
-          - name: WEBHOOK_PORT
-            value: "8888"
-          - name: METRICS_PORT
-            value: "8080"
-          - name: SHARED_SECRET
+          - name: UNIFI_HOST
+            value: https://10.1.20.1
+          - name: UNIFI_API_KEY
             valueFrom:
               secretKeyRef:
-                name: externaldns-firewalla-secret
-                key: shared-secret
+                name: external-dns-unifi-secret
+                key: external_dns_api_key
+        extraArgs:
+          - --crd-source-apiversion=externaldns.k8s.io/v1alpha1
+          - --crd-source-kind=DNSEndpoint
         livenessProbe:
           httpGet:
-            path: /health
-            port: 8080
+            path: /healthz
+            port: http-webhook
           initialDelaySeconds: 10
           timeoutSeconds: 5
         readinessProbe:
           httpGet:
-            path: /ready
-            port: 8080
+            path: /readyz
+            port: http-webhook
           initialDelaySeconds: 10
           timeoutSeconds: 5
     resources:
@@ -61,11 +56,10 @@ spec:
         memory: 90M
     serviceMonitor:
       enabled: true
-    extraArgs:
-      - --gateway-name=envoy-internal
     sources:
+      - crd
       - gateway-httproute
       - service
     triggerLoopOnEvent: true
     txtOwnerId: main
-    txtPrefix: "k8s."
+    txtPrefix: k8s.main.%{record_type}-
