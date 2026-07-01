@@ -70,20 +70,6 @@ spec:
           scrypted:
             app:
               - path: /server/volume
-      nvr-0:
-        type: hostPath
-        hostPath: /var/mnt/nvr-0
-        advancedMounts:
-          scrypted:
-            app:
-              - path: /mnt/nvr-0
-      nvr-1:
-        type: hostPath
-        hostPath: /var/mnt/nvr-1
-        advancedMounts:
-          scrypted:
-            app:
-              - path: /mnt/nvr-1
     service:
       app:
         controller: scrypted
