@@ -11,6 +11,7 @@ spec:
   components:
     - ../../../../components/gpu
     - ../../../../components/volsync
+    - ../../../../components/kopiur
     - ../../../../components/zeroscaler
   dependsOn:
     - name: intel-gpu-resource-driver
@@ -22,8 +23,8 @@ spec:
   postBuild:
     substitute:
       APP: plex
-      VOLSYNC_CAPACITY: 50Gi
-      VOLSYNC_CLAIM: plex-config
+      KOPIUR_CAPACITY: 50Gi
+      KOPIUR_CLAIM: plex-config
   prune: true
   sourceRef:
     kind: GitRepository
