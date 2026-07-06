@@ -24,6 +24,7 @@ spec:
       KOPIUR_MOVER_UID: "0"
       KOPIUR_MOVER_GID: "0"
       KOPIUR_CAPACITY: 20Gi
+      VOLSYNC_CAPACITY: 20Gi
   prune: true
   sourceRef:
     kind: GitRepository
