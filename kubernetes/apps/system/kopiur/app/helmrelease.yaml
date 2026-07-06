@@ -10,36 +10,35 @@ spec:
     name: kopiur
   interval: 30m
   values:
-    controller:
-      extraVolumes:
-        - name: repo
-          nfs:
-            path: /mnt/user/backup/kopiur
-            server: codswallop.internal.greyrock.io
-      extraVolumeMounts:
-        - name: repo
-          mountPath: /repo
-      resources:
-        requests:
-          cpu: 100m
-        limits:
-          memory: 2Gi
-      streamingLists: true
+    extraVolumes:
+      - name: repo
+        nfs:
+          path: /mnt/user/backup/kopiur
+          server: codswallop.internal.greyrock.io
+    extraVolumeMounts:
+      - name: repo
+        mountPath: /repo
+    resources:
+      requests:
+        cpu: 100m
+      limits:
+        memory: 2Gi
+    streamingLists: true
     features:
       credentialProjection:
         enabled: true
-    grafanaDashboard:
-      enabled: true
-      grafanaOperator:
-        enabled: true
-        matchLabels:
-          dashboards: grafana
     installScope: cluster
-    metrics:
+    monitoring:
       serviceMonitor:
         enabled: true
       prometheusRule:
         enabled: true
+      dashboards:
+        enabled: true
+        grafanaOperator:
+          enabled: true
+          matchLabels:
+            dashboards: grafana
     podSecurityContext:
       runAsNonRoot: true
       runAsUser: 1000
