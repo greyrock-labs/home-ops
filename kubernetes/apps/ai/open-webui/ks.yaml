@@ -11,7 +11,7 @@ spec:
   components:
     - ../../../../components/dragonfly
     - ../../../../components/volsync
-    - ../../../../components/kopiur
+    - ../../../../components/kopiur/backup
   dependsOn:
     - name: volsync
       namespace: system
