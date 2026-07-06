@@ -96,7 +96,7 @@ spec:
             subPath: repository.config
       repository:
         type: nfs
-        path: /mnt/user/volsync
+        path: /mnt/user/backup/kopiur
         server: codswallop.internal.greyrock.io
         globalMounts:
           - path: /repository
