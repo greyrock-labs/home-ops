@@ -9,12 +9,11 @@ spec:
     labels:
       app.kubernetes.io/name: tautulli
   components:
-    - ../../../../components/volsync
     - ../../../../components/kopiur/backup
   dependsOn:
     - name: plex
       namespace: media
-    - name: volsync
+    - name: kopiur
       namespace: system
   interval: 1h
   path: "./kubernetes/apps/media/tautulli/app"

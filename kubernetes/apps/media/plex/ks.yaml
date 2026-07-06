@@ -10,13 +10,12 @@ spec:
       app.kubernetes.io/name: plex
   components:
     - ../../../../components/gpu
-    - ../../../../components/volsync
     - ../../../../components/kopiur/backup
     - ../../../../components/zeroscaler
   dependsOn:
     - name: intel-gpu-resource-driver
       namespace: kube-system
-    - name: volsync
+    - name: kopiur
       namespace: system
   interval: 1h
   path: "./kubernetes/apps/media/plex/app"

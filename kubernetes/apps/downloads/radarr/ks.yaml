@@ -9,19 +9,16 @@ spec:
     labels:
       app.kubernetes.io/name: radarr
   components:
-    - ../../../../components/volsync
     - ../../../../components/kopiur/backup
     - ../../../../components/zeroscaler
   dependsOn:
-    - name: volsync
+    - name: kopiur
       namespace: system
   interval: 1h
   path: "./kubernetes/apps/downloads/radarr/app"
   postBuild:
     substitute:
       APP: radarr
-      VOLSYNC_CLAIM: radarr-config
-      VOLSYNC_CAPACITY: 10Gi
       KOPIUR_CLAIM: radarr-config
       KOPIUR_CAPACITY: 10Gi
   prune: true
