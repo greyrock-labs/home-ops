@@ -9,6 +9,8 @@ spec:
     labels:
       app.kubernetes.io/name: unifi-voucher-manager
   interval: 1h
+  dependsOn:
+    - name: externaldns-unifi
   path: "./kubernetes/apps/network/unifi-voucher-manager/app"
   prune: true
   sourceRef:
