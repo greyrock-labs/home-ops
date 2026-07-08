@@ -7,3 +7,4 @@ Thumbs.db
 *.iso
 kubeconfig
 talosconfig
+.claude/settings.local.json
