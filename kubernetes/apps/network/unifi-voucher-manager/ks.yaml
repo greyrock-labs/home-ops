@@ -5,9 +5,6 @@ kind: Kustomization
 metadata:
   name: unifi-voucher-manager
 spec:
-  commonMetadata:
-    labels:
-      app.kubernetes.io/name: unifi-voucher-manager
   interval: 1h
   dependsOn:
     - name: externaldns-unifi
@@ -18,5 +15,3 @@ spec:
     name: flux-system
     namespace: flux-system
   targetNamespace: network
-  timeout: 5m
-  wait: false
