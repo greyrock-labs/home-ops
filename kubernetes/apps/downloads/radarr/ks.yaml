@@ -17,7 +17,7 @@ spec:
     substitute:
       APP: radarr
       KOPIUR_CLAIM: radarr-config
-      KOPIUR_CAPACITY: 2Gi
+      KOPIUR_CAPACITY: 10Gi
   prune: true
   sourceRef:
     kind: GitRepository
