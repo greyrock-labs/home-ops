@@ -11,7 +11,7 @@ spec:
   interval: 30m
   values:
     nodes:
-      delta:
+      kerfuffle:
         backend: zfs
         zfsDataset: data-pool/miroir
     storageClass:
