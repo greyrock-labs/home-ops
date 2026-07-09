@@ -1,0 +1,27 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: unifi-mcp-config
+data:
+  config.yaml: |
+    # yaml-language-server: $schema=https://agentgateway.dev/schema/config
+    # agentgateway config: serves claytono/go-unifi-mcp (stdio MCP) over HTTP on :8080.
+    # UNIFI_HOST and UNIFI_API_KEY are inherited from the workload's env block.
+    mcp:
+      port: 8080
+      policies:
+        cors:
+          allowOrigins:
+          - "*"
+          allowHeaders:
+          - mcp-protocol-version
+          - content-type
+          - cache-control
+          - mcp-session-id
+          exposeHeaders:
+          - "Mcp-Session-Id"
+      targets:
+      - name: unifi
+        stdio:
+          cmd: /usr/local/bin/go-unifi-mcp
