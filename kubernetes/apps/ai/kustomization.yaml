@@ -16,4 +16,3 @@ resources:
   - ./memini/ks.yaml
   - ./minimax-shim/ks.yaml
   - ./open-webui/ks.yaml
-  - ./unifi-mcp/ks.yaml
