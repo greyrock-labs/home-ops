@@ -51,7 +51,7 @@ reboot-node node:
 [script]
 reset-node node mode="reboot":
     gum confirm "Reset node {{ node }}?" &&
-      talosctl -n "{{ node }}" reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL --system-labels-to-wipe u-local-hostpath --graceful=false {{ if mode == "reboot" { "--reboot" } else { "" } }} || exit 0
+      talosctl -n "{{ node }}" reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL --graceful=false {{ if mode == "reboot" { "--reboot" } else { "" } }} || exit 0
 
 [doc('Reset all nodes in the cluster')]
 [script]
