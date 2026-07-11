@@ -86,7 +86,7 @@ spec:
               - path: /data/local
       nas:
         type: nfs
-        path: /mnt/user/apps/paperless
+        path: /mnt/tank/apps/paperless
         server: codswallop.internal.greyrock.io
         advancedMounts:
           paperless:

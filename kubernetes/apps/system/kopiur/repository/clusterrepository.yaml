@@ -12,7 +12,7 @@ spec:
       path: /repo
       volume:
         nfs:
-          path: /mnt/user/backup/kopiur
+          path: /mnt/drone/backup/kopiur
           server: codswallop.internal.greyrock.io
   credentialProjection:
     allowed: true

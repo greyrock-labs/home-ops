@@ -78,7 +78,7 @@ spec:
         existingClaim: radarr-config
       media:
         type: nfs
-        path: /mnt/user/data
+        path: /mnt/tank/media
         server: codswallop.internal.greyrock.io
         globalMounts:
           - path: /data/nas-media

@@ -13,7 +13,7 @@ spec:
     extraVolumes:
       - name: repo
         nfs:
-          path: /mnt/user/backup/kopiur
+          path: /mnt/drone/backup/kopiur
           server: codswallop.internal.greyrock.io
     extraVolumeMounts:
       - name: repo

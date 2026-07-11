@@ -81,7 +81,7 @@ spec:
               - path: /config
       downloads:
         type: nfs
-        path: /mnt/user/data
+        path: /mnt/tank/media
         server: codswallop.internal.greyrock.io
         globalMounts:
           - path: /data/nas-media/usenet
