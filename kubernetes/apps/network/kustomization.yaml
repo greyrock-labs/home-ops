@@ -7,6 +7,7 @@ components:
   - ../../components/flux-alerts
 resources:
   - ./namespace.yaml
+  - ./coolercontrol/ks.yaml
   - ./echo-server/ks.yaml
   - ./external-dns/ks.yaml
   - ./envoy-gateway/ks.yaml
