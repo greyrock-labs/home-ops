@@ -24,3 +24,12 @@ spec:
   identityDefaults:
     hostnameExpr: namespace
     usernameExpr: policyName
+  moverDefaults:
+    podSecurityContext:
+      # Every backend-writer (bootstrap connect/create Job + all snapshot/
+      # maintenance movers) joins the export's shared group so it can write the
+      # NFS-backed kopia repo regardless of its per-policy runAsUser. fsGroup is
+      # a no-op on NFS; supplemental GIDs are honored over AUTH_SYS. The export
+      # on codswallop must be `chown 3001:3001` + `chmod 2775` (setgid) so kopia
+      # creates the repo with group-accessible modes.
+      supplementalGroups: [3001]
