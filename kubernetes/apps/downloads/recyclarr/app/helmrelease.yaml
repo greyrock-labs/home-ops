@@ -51,17 +51,17 @@ spec:
                 drop:
                   - ALL
     persistence:
+      config:
+        type: emptyDir
+        advancedMounts:
+          recyclarr:
+            app:
+              - path: /config
       config-file:
         type: configMap
         name: recyclarr
         globalMounts:
           - path: /config/recyclarr.yml
             subPath: recyclarr.yml
-      state:
-        type: emptyDir
-        advancedMounts:
-          recyclarr:
-            app:
-              - path: /config/state
       tmp:
         type: emptyDir
