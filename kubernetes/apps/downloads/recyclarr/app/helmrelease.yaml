@@ -51,12 +51,6 @@ spec:
                 drop:
                   - ALL
     persistence:
-      config:
-        existingClaim: recyclarr-config
-        advancedMounts:
-          recyclarr:
-            app:
-              - path: /config
       config-file:
         type: configMap
         name: recyclarr
