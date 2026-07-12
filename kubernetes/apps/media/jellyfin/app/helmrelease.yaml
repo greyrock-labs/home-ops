@@ -89,7 +89,7 @@ spec:
           jellyfin:
             app:
               - path: /data/nas-media
-              # subPath: media
+                subPath: media
       tmpfs:
         type: emptyDir
         advancedMounts:
