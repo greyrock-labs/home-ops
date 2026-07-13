@@ -1,0 +1,14 @@
+---
+working_dir: ./docker/codswallop
+auto_discovery:
+  enabled: true
+  depth: 1
+  delete: true
+external_secrets:
+  DO_AUTH_TOKEN: op://Services/DigitalOcean/traefik-application-key
+  GARAGE_ADMIN_KEY: op://Services/Garage/admin_key
+  GARAGE_RPC_SECRET: op://Services/Garage/rpc_secret
+force_recreate: false
+reconciliation:
+  enabled: true
+  interval: 3600
