@@ -14,15 +14,13 @@ spec:
       kerfuffle:
         backend: zfs
         zfsDataset: data-pool/miroir
-    storageClass:
-      create: true
-      name: miroir-local
-      isDefault: true
-    replicatedStorageClass:
-      create: true
-      name: miroir-replicated
-      isDefault: false
-      quorum: last-man-standing
-    volumeSnapshotClass:
-      create: true
-      name: miroir-snap
+    storageClasses:
+      - name: miroir-local
+        isDefault: true
+        replicas: 1
+      - name: miroir-replicated
+        isDefault: false
+        replicas: 2
+        quorum: last-man-standing
+    volumeSnapshotClasses:
+      - name: miroir-snap
