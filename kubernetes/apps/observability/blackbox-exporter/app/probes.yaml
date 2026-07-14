@@ -24,7 +24,6 @@ spec:
         - time3.internal.greyrock.io
         - time4.internal.greyrock.io
         - tubeszb-efr32-mgm24-2023.internal.greyrock.io
-        - tubeszb-zw.internal.greyrock.io
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/probe_v1.json
 apiVersion: monitoring.coreos.com/v1
