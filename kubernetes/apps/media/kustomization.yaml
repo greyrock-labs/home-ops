@@ -16,5 +16,4 @@ resources:
   - ./plex/ks.yaml
   - ./plex-image-cleanup/ks.yaml
   - ./seerr/ks.yaml
-  - ./tautulli/ks.yaml
   - ./watchstate/ks.yaml
