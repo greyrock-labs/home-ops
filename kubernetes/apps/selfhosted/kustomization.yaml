@@ -18,4 +18,3 @@ resources:
   - ./paperless/ks.yaml
   - ./thelounge/ks.yaml
   - ./searxng/ks.yaml
-  - ./webhook/ks.yaml
