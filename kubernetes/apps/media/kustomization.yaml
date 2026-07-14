@@ -10,7 +10,6 @@ resources:
   - ./namespace.yaml
   - ./audiobookshelf/ks.yaml
   - ./bookboss/ks.yaml
-
   - ./jellyfin/ks.yaml
   - ./maintainerr/ks.yaml
   - ./plex/ks.yaml
