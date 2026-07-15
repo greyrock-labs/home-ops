@@ -12,8 +12,10 @@ spec:
   values:
     nodes:
       kerfuffle:
-        backend: zfs
-        zfsDataset: data-pool/miroir
+        pools:
+          default:
+            backend: zfs
+            zfsDataset: data-pool/miroir
     storageClasses:
       - name: miroir-local
         isDefault: true
