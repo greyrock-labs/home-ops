@@ -11,20 +11,3 @@ spec:
   interval: 30m
   upgrade:
     crds: CreateReplace
-  values:
-    nodes:
-      kerfuffle:
-        pools:
-          default:
-            backend: zfs
-            zfsDataset: data-pool/miroir
-    storageClasses:
-      - name: miroir-local
-        isDefault: true
-        replicas: 1
-      - name: miroir-replicated
-        isDefault: false
-        replicas: 2
-        quorum: last-man-standing
-    volumeSnapshotClasses:
-      - name: miroir-snap
