@@ -6,7 +6,7 @@ metadata:
   name: towonel-agent
 spec:
   dependsOn:
-    - name: externaldns-unifi
+    - name: externaldns-mikrotik
   interval: 1h
   path: "./kubernetes/apps/network/towonel-agent/app"
   prune: true
