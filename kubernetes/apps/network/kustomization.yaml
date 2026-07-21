@@ -5,6 +5,7 @@ kind: Kustomization
 namespace: network
 components:
   - ../../components/flux-alerts
+  - ../../components/kopiur/secret
 resources:
   - ./namespace.yaml
   - ./coolercontrol/ks.yaml
