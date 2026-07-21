@@ -21,5 +21,9 @@ spec:
       readOnlyRootFilesystem: true
       runAsNonRoot: true
       runAsUser: 65534
+    service:
+      ipFamilies:
+        - IPv4
+      ipFamilyPolicy: SingleStack
     servicemonitor:
       enabled: true
