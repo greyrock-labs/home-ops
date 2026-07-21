@@ -34,18 +34,6 @@ spec:
         securityContext:
           runAsUser: 65532
           runAsGroup: 65532
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 8888
-          initialDelaySeconds: 10
-          timeoutSeconds: 5
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 8888
-          initialDelaySeconds: 10
-          timeoutSeconds: 5
     resources:
       requests:
         cpu: 13m
