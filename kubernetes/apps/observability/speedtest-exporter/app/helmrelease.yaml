@@ -1,0 +1,25 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: speedtest-exporter
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: speedtest-exporter
+  interval: 30m
+  values:
+    config:
+      cache: 1h
+    fullnameOverride: speedtest-exporter
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 65534
+    servicemonitor:
+      enabled: true
