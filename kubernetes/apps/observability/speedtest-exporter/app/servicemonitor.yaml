@@ -10,7 +10,7 @@ metadata:
 spec:
   endpoints:
     - port: metrics
-      interval: 1h
+      interval: 15m
       scrapeTimeout: 1m
       relabelings:
         - action: replace

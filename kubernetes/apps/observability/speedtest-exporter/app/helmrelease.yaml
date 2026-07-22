@@ -11,7 +11,7 @@ spec:
   interval: 30m
   values:
     config:
-      cache: 1h
+      cache: 15m
     fullnameOverride: speedtest-exporter
     securityContext:
       allowPrivilegeEscalation: false
