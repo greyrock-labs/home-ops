@@ -11,9 +11,6 @@ concurrency:
   group: ${{ forgejo.workflow }}-${{ forgejo.event.number || forgejo.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-
 jobs:
   filter-changes:
     name: Filter changes
