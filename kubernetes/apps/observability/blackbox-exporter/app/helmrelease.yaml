@@ -24,6 +24,17 @@ spec:
               - HTTP/2.0
             follow_redirects: true
             preferred_ip_protocol: ip4
+        http_2xx_insecure_tls:
+          prober: http
+          timeout: 5s
+          http:
+            valid_http_versions:
+              - HTTP/1.1
+              - HTTP/2.0
+            follow_redirects: true
+            preferred_ip_protocol: ip4
+            tls_config:
+              insecure_skip_verify: true
         icmp:
           prober: icmp
           timeout: 5s
@@ -37,6 +48,14 @@ spec:
     prometheusRule:
       enabled: true
       rules:
+        - alert: BlackboxCertExpiringSoon
+          expr: probe_ssl_earliest_cert_expiry_seconds - time() < 45 * 86400
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: |-
+              The TLS certificate for {{ $labels.target }} expires in less than 45 days
         - alert: BlackboxProbeFailed
           expr: probe_success == 0
           for: 15m

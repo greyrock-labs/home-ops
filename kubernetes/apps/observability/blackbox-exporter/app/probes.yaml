@@ -39,3 +39,18 @@ spec:
     staticConfig:
       static:
         - codswallop.internal.greyrock.io:2049
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/probe_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: tls-certs
+spec:
+  jobName: tls_cert_probe
+  module: http_2xx_insecure_tls
+  prober:
+    url: blackbox-exporter.observability.svc.cluster.local:9115
+  targets:
+    staticConfig:
+      static:
+        - https://unleashed.internal.greyrock.io
