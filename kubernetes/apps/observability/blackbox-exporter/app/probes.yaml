@@ -22,7 +22,6 @@ spec:
         - homeassistant.internal.greyrock.io
         - iotabase.internal.greyrock.io
         - iotagrge.internal.greyrock.io
-        - k8s.internal.greyrock.io
         - kerfuffle.internal.greyrock.io
         - kvm-codswallop.internal.greyrock.io
         - kvm-homeassistant.internal.greyrock.io
