@@ -21,7 +21,7 @@ services:
     container_name: traefik
     environment:
       - DO_AUTH_TOKEN=${DO_AUTH_TOKEN}
-    image: traefik:v3.7.8
+    image: traefik:v3.7.9
     networks:
       - apps
     ports:
