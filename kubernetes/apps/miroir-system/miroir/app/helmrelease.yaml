@@ -19,3 +19,15 @@ spec:
           memory: 32Mi
         limits:
           memory: 256Mi
+    autoTieBreaker: false
+    monitoring:
+      dashboards:
+        enabled: true
+        grafanaOperator:
+          enabled: true
+          matchLabels:
+            dashboards: grafana
+      podMonitor:
+        enabled: true
+      prometheusRule:
+        enabled: true
