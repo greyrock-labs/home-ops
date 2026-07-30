@@ -67,7 +67,7 @@ spec:
     route:
       app:
         hostnames:
-          - requests.greyrock.io
+          - seerr.greyrock.io
         parentRefs:
           - name: envoy-external
             namespace: network
