@@ -13,5 +13,5 @@ spec:
     - gateway.envoyproxy.io/wss
   endpoints:
     - fqdn:
-        hostname: homeassistant.internal.greyrock.io
+        hostname: home.internal.greyrock.io
         port: 8123
