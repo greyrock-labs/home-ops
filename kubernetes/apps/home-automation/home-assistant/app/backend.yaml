@@ -14,4 +14,4 @@ spec:
   endpoints:
     - fqdn:
         hostname: home.internal.greyrock.io
-        port: 8123
+        port: 443
