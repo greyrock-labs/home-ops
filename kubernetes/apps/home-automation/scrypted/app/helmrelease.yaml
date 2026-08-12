@@ -22,6 +22,12 @@ spec:
                 "namespace": "network",
                 "ips": ["10.1.10.2/24"],
                 "mac": "2e:7e:33:e1:dd:ab"
+              },
+              {
+                "name":"multus-video",
+                "namespace": "network",
+                "ips": ["10.1.60.2/24"],
+                "mac": "2e:7e:33:e1:dd:60"
               }]
           securityContext:
             fsGroup: 0
