@@ -24,7 +24,7 @@ spec:
           main:
             image:
               repository: ghcr.io/searxng/searxng
-              tag: 2026.8.11-e8e710e42@sha256:7a39e9e2610fb6f332393d0f1c69534d5f1fd4e85cb4b204cd1b1768195b8ee9
+              tag: 2026.8.12-cdfdaa5a8@sha256:c2dc2d9e6b910653e8628361c23443222490e4cabbb9e02667b7847143db843b
             env:
               SEARXNG_BASE_URL: https://search.greyrock.io
               SEARXNG_PORT: &httpPort 8080
