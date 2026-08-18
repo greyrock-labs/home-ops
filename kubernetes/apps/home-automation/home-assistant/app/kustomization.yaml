@@ -5,4 +5,5 @@ kind: Kustomization
 resources:
   - ./backend.yaml
   - ./backendtlspolicy.yaml
+  - ./backendtrafficpolicy.yaml
   - ./httproute.yaml
