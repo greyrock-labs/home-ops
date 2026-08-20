@@ -4,7 +4,5 @@ apiVersion: snapshot.storage.k8s.io/v1
 kind: VolumeSnapshotClass
 metadata:
   name: miroir-snap
-  annotations:
-    helm.sh/resource-policy: keep
-deletionPolicy: Delete
 driver: miroir.home-operations.com
+deletionPolicy: Delete
