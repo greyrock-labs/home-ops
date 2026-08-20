@@ -32,3 +32,5 @@ spec:
       secretRef:
         name: renovate-secret
         key: RENOVATE_WEBHOOK_TOKEN
+    sync:
+      enabled: true
