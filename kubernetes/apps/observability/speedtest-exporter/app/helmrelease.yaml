@@ -10,6 +10,8 @@ spec:
     name: speedtest-exporter
   interval: 30m
   values:
+    cache:
+      storageClassName: miroir-local
     config:
       cache: 15m
     fullnameOverride: speedtest-exporter
