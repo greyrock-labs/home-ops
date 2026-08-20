@@ -56,7 +56,7 @@ reboot-node node:
 [script]
 reset-node node mode="reboot":
     gum confirm "Reset node {{ node }}?" &&
-      talosctl -n "{{ node }}" reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL --graceful=false {{ if mode == "reboot" { "--reboot" } else { "" } }} || exit 0
+      talosctl -n "{{ node }}" reset --system-labels-to-wipe STATE --system-labels-to-wipe EPHEMERAL --system-labels-to-wipe u-local-hostpath --graceful=false {{ if mode == "reboot" { "--reboot" } else { "" } }} || exit 0
 
 [doc('Reset all nodes in the cluster')]
 [script]
@@ -71,7 +71,7 @@ upgrade-k8s version:
 [doc('Upgrade Talos version on a node')]
 [script]
 upgrade-node node:
-    talosctl -n "{{ node }}" upgrade -i "factory.talos.dev/metal-installer/$(just talos schematic-id):$(just talos talos-version)" -m powercycle --timeout=10m
+    talosctl -n "{{ node }}" upgrade -i "$(just talos machine-image {{ node }})" -m powercycle --timeout=10m
 
 [doc('Download Talos machine image')]
 [script]

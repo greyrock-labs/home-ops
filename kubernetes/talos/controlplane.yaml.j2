@@ -35,7 +35,6 @@ image: registry.k8s.io/kube-apiserver:{{ ENV.K8S_VERSION }}
 extraArgs:
   enable-aggregator-routing: "true"
   feature-gates: HPAScaleToZero=true
-  runtime-config: admissionregistration.k8s.io/v1beta1=true
 certExtraSANs:
   - 127.0.0.1 # KubePrism
   - 10.1.25.2
