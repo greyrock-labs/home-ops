@@ -15,6 +15,13 @@ defaultInherit: default
 releases:
   - name: cilium
     namespace: kube-system
+    values:
+      - hubble:
+          enabled: false
+          relay:
+            enabled: false
+          ui:
+            enabled: false
     hooks:
       - # Wait for Cilium CRDs to be available
         command: kubectl
@@ -89,5 +96,6 @@ releases:
 
   - name: flux-instance
     namespace: flux-system
+    wait: false
     needs:
       - flux-system/flux-operator
