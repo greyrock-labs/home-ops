@@ -18,7 +18,7 @@ spec:
     timeout: 600
     fallbacks:
       # direct same-model failover
-      - opencode-go/minimax-m3: ["minimaxai/minimax-m3"]
+      - opencode-go/minimax-m3: ["minimax/MiniMax-M3"]
   litellmSettings:
     success_callback:
       - prometheus
