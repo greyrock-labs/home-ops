@@ -9,6 +9,8 @@ external_secrets:
   UNIFI_API_KEY: op://Automation/Unifi Controller/external_dns
   GARAGE_ADMIN_TOKEN: op://Services/Garage/admin_key
   GARAGE_RPC_SECRET: op://Services/Garage/rpc_secret
+  GARAGE_UI_OIDC_CLIENT_ID: op://Services/kanidm/garage_ui_client_id
+  GARAGE_UI_OIDC_CLIENT_SECRET: op://Services/kanidm/garage_ui_client_secret
 force_recreate: false
 reconciliation:
   enabled: true
