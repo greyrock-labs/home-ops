@@ -13,12 +13,6 @@ spec:
       static:
         - bambu-a1-printer.internal.greyrock.io
         - codswallop.internal.greyrock.io
-        - game-room-crs309.internal.greyrock.io
-        - game-room-icx-7150.internal.greyrock.io
-        - game-room-icx-8200.internal.greyrock.io
-        - garage-crs309.internal.greyrock.io
-        - garage-icx-7150.internal.greyrock.io
-        - garage-icx-8200.internal.greyrock.io
         - home.internal.greyrock.io
         - iotabase.internal.greyrock.io
         - iotagrge.internal.greyrock.io
@@ -26,14 +20,10 @@ spec:
         - kvm-codswallop.internal.greyrock.io
         - kvm-homeassistant.internal.greyrock.io
         - kvm-kerfuffle.internal.greyrock.io
-        - office-crs309.internal.greyrock.io
-        - office-icx-7150.internal.greyrock.io
-        - office-icx-8200.internal.greyrock.io
         - time1.internal.greyrock.io
         - time2.internal.greyrock.io
         - time3.internal.greyrock.io
         - time4.internal.greyrock.io
-        - unleashed.internal.greyrock.io
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/probe_v1.json
 apiVersion: monitoring.coreos.com/v1
@@ -64,4 +54,3 @@ spec:
     staticConfig:
       static:
         - https://home.internal.greyrock.io
-        - https://unleashed.internal.greyrock.io
