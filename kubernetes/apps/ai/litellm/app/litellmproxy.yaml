@@ -16,15 +16,9 @@ spec:
     redis_port: os.environ/REDIS_PORT
     num_retries: 3
     timeout: 600
-    context_window_fallbacks:
-      - minimax/MiniMax-M2-7: ["minimax/MiniMax-M3"]
-      - minimax/MiniMax-M2-7-anthropic: ["minimax/MiniMax-M3-anthropic"]
-      - opencode-go/deepseek-v4-flash: ["opencode-go/qwen3.6-plus", "opencode-go/glm-5.2"]
-      - opencode-go/kimi-k2.6: ["opencode-go/glm-5.2"]
-      - opencode-go/kimi-k2.7-code: ["opencode-go/glm-5.2"]
-      - opencode-go/mimo-v2.5: ["opencode-go/glm-5.2"]
-      - opencode-go/qwen3.6-plus: ["opencode-go/glm-5.2"]
-      - opencode-go/qwen3.7-max: ["opencode-go/glm-5.2"]
+    fallbacks:
+      # direct same-model failover
+      - opencode-go/minimax-m3: ["minimaxai/minimax-m3"]
   litellmSettings:
     success_callback:
       - prometheus
@@ -36,6 +30,7 @@ spec:
       port: os.environ/REDIS_PORT
     drop_params: true
     merge_reasoning_content_in_choices: true
+    set_verbose: false
   env:
     - name: LITELLM_LOG
       value: INFO
