@@ -1,0 +1,54 @@
+---
+apiVersion: kaniop.rs/v1beta1
+kind: Kanidm
+metadata:
+  name: kanidm
+spec:
+  domain: idm.greyrock.io
+  origin: https://idm.greyrock.io
+  replicaGroups:
+    - name: default
+      replicas: 1
+      primaryNode: true
+      resources:
+        requests:
+          cpu: 10m
+        limits:
+          memory: 1Gi
+  image: kanidm/server:1.11.1
+  logLevel: info
+  storage:
+    volumeClaimTemplate:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
+        storageClassName: miroir-local
+  tlsSecretName: idm-greyrock-io-tls
+  securityContext:
+    fsGroup: 2000
+    fsGroupChangePolicy: OnRootMismatch
+    runAsGroup: 2000
+    runAsNonRoot: true
+    runAsUser: 2000
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: kanidm
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+  gateway:
+    parentRefs:
+      - name: envoy-external
+        namespace: network
+    hostnames:
+      - idm.greyrock.io
+    backendTlsPolicy:
+      validation:
+        hostname: idm.greyrock.io
+        wellKnownCaCertificates: System

@@ -1,0 +1,29 @@
+---
+apiVersion: kaniop.rs/v1beta1
+kind: KanidmOAuth2Client
+metadata:
+  name: registry-ui
+spec:
+  kanidmRef:
+    name: kanidm
+  displayname: Registry UI
+  origin: https://registry.greyrock.io/
+  redirectUrl:
+    - https://registry.greyrock.io/oauth/callback
+  scopeMap:
+    - group: registry-ui-users@idm.greyrock.io
+      scopes:
+        - openid
+        - profile
+        - email
+        - groups
+  claimMap:
+    - name: registry_ui_groups
+      valuesMap:
+        - group: registry-ui-users@idm.greyrock.io
+          values:
+            - registry-ui-users
+          joinStrategy: array
+  strictRedirectUrl: true
+  allowInsecureClientDisablePkce: true
+  disableConsentPrompt: true
