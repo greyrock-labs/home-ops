@@ -13,11 +13,23 @@
         },
         "docker-hub/**": {
           "anonymousPolicy": ["read"],
-          "defaultPolicy": ["read"]
+          "defaultPolicy": ["read"],
+          "policies": [
+            {
+              "users": ["registry-ui"],
+              "actions": ["read", "delete"]
+            }
+          ]
         },
         "ghcr/**": {
           "anonymousPolicy": ["read"],
-          "defaultPolicy": ["read"]
+          "defaultPolicy": ["read"],
+          "policies": [
+            {
+              "users": ["registry-ui"],
+              "actions": ["read", "delete"]
+            }
+          ]
         }
       }
     },
