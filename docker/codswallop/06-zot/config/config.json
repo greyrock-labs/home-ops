@@ -2,32 +2,89 @@
   "distSpecVersion": "1.1.0",
   "storage": {
     "gc": true,
+    "gcDelay": "1h",
+    "gcInterval": "24h",
+    "retention": {
+      "dryRun": false,
+      "delay": "24h",
+      "policies": [
+        {
+          "repositories": [
+            "docker-hub/**",
+            "ghcr/**"
+          ],
+          "deleteReferrers": true,
+          "deleteUntagged": true,
+          "keepUntagged": {
+            "pulledWithin": "2920h"
+          },
+          "keepTags": [
+            {
+              "patterns": [".*"],
+              "pulledWithin": "4380h"
+            }
+          ]
+        },
+        {
+          "repositories": ["**"],
+          "deleteReferrers": true,
+          "deleteUntagged": true,
+          "keepTags": [
+            {
+              "patterns": [".*"]
+            }
+          ]
+        }
+      ]
+    },
     "rootDirectory": "/var/lib/registry"
   },
   "http": {
     "accessControl": {
       "repositories": {
         "**": {
-          "anonymousPolicy": ["read"],
-          "defaultPolicy": ["read"]
+          "anonymousPolicy": [
+            "read"
+          ],
+          "defaultPolicy": [
+            "read"
+          ]
         },
         "docker-hub/**": {
-          "anonymousPolicy": ["read"],
-          "defaultPolicy": ["read"],
+          "anonymousPolicy": [
+            "read"
+          ],
+          "defaultPolicy": [
+            "read"
+          ],
           "policies": [
             {
-              "users": ["registry-ui"],
-              "actions": ["read", "delete"]
+              "groups": [
+                "registry-ui-users"
+              ],
+              "actions": [
+                "read",
+                "delete"
+              ]
             }
           ]
         },
         "ghcr/**": {
-          "anonymousPolicy": ["read"],
-          "defaultPolicy": ["read"],
+          "anonymousPolicy": [
+            "read"
+          ],
+          "defaultPolicy": [
+            "read"
+          ],
           "policies": [
             {
-              "users": ["registry-ui"],
-              "actions": ["read", "delete"]
+              "groups": [
+                "registry-ui-users"
+              ],
+              "actions": [
+                "read",
+                "delete"
+              ]
             }
           ]
         }
@@ -35,10 +92,35 @@
     },
     "address": "0.0.0.0",
     "auth": {
+      "apikey": true,
       "htpasswd": {
         "path": "/etc/zot/htpasswd"
-      }
+      },
+      "openid": {
+        "callbackAllowOrigins": [
+          "https://registry.greyrock.io"
+        ],
+        "providers": {
+          "oidc": {
+            "name": "Kanidm",
+            "issuer": "https://idm.greyrock.io/oauth2/openid/zot",
+            "credentialsFile": "/etc/zot/openid-credentials.json",
+            "scopes": [
+              "openid",
+              "profile",
+              "email",
+              "groups"
+            ],
+            "claimMapping": {
+              "username": "preferred_username",
+              "groups": "zot_groups"
+            }
+          }
+        }
+      },
+      "sessionKeysFile": "/etc/zot/sessionKeys.json"
     },
+    "externalUrl": "https://registry.greyrock.io",
     "port": "5000"
   },
   "log": {
@@ -52,7 +134,9 @@
       "enable": true,
       "registries": [
         {
-          "urls": ["https://index.docker.io"],
+          "urls": [
+            "https://index.docker.io"
+          ],
           "onDemand": true,
           "tlsVerify": true,
           "maxRetries": 3,
@@ -65,7 +149,9 @@
           ]
         },
         {
-          "urls": ["https://ghcr.io"],
+          "urls": [
+            "https://ghcr.io"
+          ],
           "onDemand": true,
           "tlsVerify": true,
           "maxRetries": 3,
@@ -80,7 +166,7 @@
       ]
     },
     "ui": {
-      "enable": false
+      "enable": true
     }
   }
 }
