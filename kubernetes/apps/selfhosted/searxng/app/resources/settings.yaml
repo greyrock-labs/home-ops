@@ -19,7 +19,7 @@ search:
     - json
 
 general:
-  instance_name: BJW-S Search
+  instance_name: Grey Rock Search
 
 ui:
   default_theme: simple
