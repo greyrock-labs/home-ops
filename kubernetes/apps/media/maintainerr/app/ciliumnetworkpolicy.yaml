@@ -12,8 +12,6 @@ spec:
   egress:
     - toEndpoints:
         - matchLabels:
-            k8s:app.kubernetes.io/controller: jellyfin
-            k8s:app.kubernetes.io/instance: jellyfin
             k8s:app.kubernetes.io/name: jellyfin
       toPorts:
         - ports:
@@ -22,8 +20,6 @@ spec:
     - toEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: downloads
-            k8s:app.kubernetes.io/controller: radarr
-            k8s:app.kubernetes.io/instance: radarr
             k8s:app.kubernetes.io/name: radarr
       toPorts:
         - ports:
@@ -32,8 +28,6 @@ spec:
     - toEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: downloads
-            k8s:app.kubernetes.io/controller: sonarr
-            k8s:app.kubernetes.io/instance: sonarr
             k8s:app.kubernetes.io/name: sonarr
       toPorts:
         - ports:
