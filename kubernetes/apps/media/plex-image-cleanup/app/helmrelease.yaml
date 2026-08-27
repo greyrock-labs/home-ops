@@ -23,6 +23,8 @@ spec:
           failedJobsHistory: 1
           successfulJobsHistory: 0
         pod:
+          labels:
+            egress.policy.home.arpa/block-all: "true"
           affinity:
             podAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:

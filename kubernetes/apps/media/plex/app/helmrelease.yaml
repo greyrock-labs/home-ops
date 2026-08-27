@@ -13,6 +13,8 @@ spec:
     controllers:
       plex:
         pod:
+          labels:
+            egress.policy.home.arpa/internet: "true"
           resourceClaims:
             - name: gpu
               resourceClaimTemplateName: plex-gpu

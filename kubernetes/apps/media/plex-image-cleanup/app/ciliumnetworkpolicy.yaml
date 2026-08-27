@@ -1,0 +1,20 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/cilium.io/ciliumnetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: plex-image-cleanup
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: plex-image-cleanup
+      app.kubernetes.io/instance: plex-image-cleanup
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: media
+            app.kubernetes.io/name: plex
+      toPorts:
+        - ports:
+            - port: "32400"
+              protocol: TCP

@@ -3,28 +3,35 @@
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: searxng
+  name: watchstate
 spec:
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: searxng
-      app.kubernetes.io/instance: searxng
+      app.kubernetes.io/name: watchstate
+      app.kubernetes.io/instance: watchstate
   egress:
     - toEndpoints:
         - matchLabels:
-            k8s:app: searxng-dragonfly
+            k8s:app.kubernetes.io/controller: jellyfin
+            k8s:app.kubernetes.io/instance: jellyfin
+            k8s:app.kubernetes.io/name: jellyfin
       toPorts:
         - ports:
-            - port: "6379"
+            - port: "8096"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: media
+            app.kubernetes.io/name: plex
+      toPorts:
+        - ports:
+            - port: "32400"
               protocol: TCP
   ingress:
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: network
             gateway.networking.k8s.io/gateway-name: envoy-internal
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: ai
-            app.kubernetes.io/name: open-webui
       toPorts:
         - ports:
             - port: "8080"

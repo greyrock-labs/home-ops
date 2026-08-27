@@ -13,6 +13,8 @@ spec:
     controllers:
       seerr:
         pod:
+          labels:
+            egress.policy.home.arpa/internet: "true"
           securityContext:
             fsGroup: 2000
             fsGroupChangePolicy: OnRootMismatch
