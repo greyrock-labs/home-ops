@@ -1,18 +1,35 @@
 ---
+networks:
+  apps:
+    name: apps
+    external: true
 services:
-  coolercontrold:
-    container_name: coolercontrold
+  coolercontrol:
+    container_name: coolercontrol
     image: docker.io/coolercontrol/coolercontrold:4.3.1
-    ports:
-      - 11987:11987
+    labels:
+      dexd.enabled: 'true'
+      traefik.enable: 'true'
+      traefik.http.routers.coolercontrol.rule: Host(`coolercontrol.greyrock.io`)
+      traefik.http.services.coolercontrol.loadbalancer.server.port: '11987'
+    networks:
+      - apps
     privileged: true
     restart: unless-stopped
     volumes:
       - config:/etc/coolercontrol
+      - /usr/bin/ipmitool:/opt/ipmi/bin/ipmitool:ro
+      - /lib/x86_64-linux-gnu/libfreeipmi.so.17:/opt/ipmi/lib/libfreeipmi.so.17:ro
+      - /lib/x86_64-linux-gnu/libreadline.so.8:/opt/ipmi/lib/libreadline.so.8:ro
+      - /lib/x86_64-linux-gnu/libcrypto.so.3:/opt/ipmi/lib/libcrypto.so.3:ro
+      - /lib/x86_64-linux-gnu/libgcrypt.so.20:/opt/ipmi/lib/libgcrypt.so.20:ro
+      - /lib/x86_64-linux-gnu/libtinfo.so.6:/opt/ipmi/lib/libtinfo.so.6:ro
+      - /lib/x86_64-linux-gnu/libgpg-error.so.0:/opt/ipmi/lib/libgpg-error.so.0:ro
+      - ./fan:/usr/local/bin/fan:ro
 volumes:
   config:
     driver: local
     driver_opts:
-      device: /mnt/drone/apps/coolercontrol/config
+      device: /mnt/tank/apps/coolercontrol/config
       o: bind
       type: none

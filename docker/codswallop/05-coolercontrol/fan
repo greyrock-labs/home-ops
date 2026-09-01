@@ -1,0 +1,121 @@
+#!/bin/sh
+# Drive ASRock Rack X570D4U-2L2T fans through the BMC.
+#
+#   fan rpm  N      RPM of FANN
+#   fan duty N      current duty percent of FANN
+#   fan set  N PCT  set FANN duty, leaving the other channels untouched
+#
+# The BMC only accepts duty as one 16-byte block (0x3a 0xda read, 0x3a 0xd6
+# write), slot N-1 per fan, so a single-channel change means rewriting all of
+# them. Every fan must be in Manual mode in the BMC or writes are ignored.
+#
+# CoolerControl runs each channel as its own process and only writes a channel
+# when that channel's target changes. Deriving the block from a fresh BMC read
+# therefore loses writes two ways: concurrent siblings overwrite each other, and
+# once hardware drifts from what CoolerControl believes it set, nothing ever
+# corrects it. So the desired duties are held in a file, every write re-asserts
+# all sixteen bytes from it, and the whole thing is serialised.
+#
+# Reads are cached because CoolerControl polls every channel every second while
+# `sdr type fan` takes ~6.5s; uncached it trips the poller's failsafe.
+set -eu
+
+IPMITOOL=/opt/ipmi/bin/ipmitool
+LD_LIBRARY_PATH=/opt/ipmi/lib
+export LD_LIBRARY_PATH
+
+CACHE=/tmp/.fan-cache
+DESIRED="$CACHE/desired"
+LOCK="$CACHE/write.lock"
+DUTY_TTL=2
+RPM_TTL=15
+LOCK_STALE=15
+
+usage() { echo "usage: fan rpm N | fan duty N | fan set N PCT" >&2; exit 2; }
+
+age() { echo $(( $(date +%s) - $(stat -c %Y "$1" 2>/dev/null || echo 0) )); }
+
+lock_acquire() {
+    while ! mkdir "$LOCK" 2>/dev/null; do
+        if [ "$(age "$LOCK")" -gt "$LOCK_STALE" ]; then
+            rmdir "$LOCK" 2>/dev/null || true
+        else
+            sleep 0.05
+        fi
+    done
+}
+lock_release() { rmdir "$LOCK" 2>/dev/null || true; }
+
+# cached NAME TTL COMMAND... - serve a fresh file, else refresh, else serve
+# stale rather than stampeding the BMC.
+cached() {
+    name=$1
+    ttl=$2
+    shift 2
+    file="$CACHE/$name"
+    if [ -f "$file" ] && [ "$(age "$file")" -lt "$ttl" ]; then
+        cat "$file"
+        return 0
+    fi
+    if "$@" >"$file.new" 2>/dev/null; then
+        mv "$file.new" "$file"
+    else
+        rm -f "$file.new"
+    fi
+    [ -f "$file" ] && cat "$file" || true
+}
+
+mkdir -p "$CACHE"
+
+[ $# -ge 2 ] || usage
+action=$1
+n=$2
+case "$n" in 1|2|3|4|5|6) ;; *) usage ;; esac
+
+case "$action" in
+    rpm)
+        id=$(printf "%02x" $((0x5f + n)))
+        cached sdr "$RPM_TTL" "$IPMITOOL" sdr type fan |
+            awk -F"|" -v id="${id}h" '$2 ~ id { r = $5; gsub(/[^0-9]/, "", r); print (r == "" ? 0 : r); exit }'
+        ;;
+    duty)
+        set -- $(cached duty "$DUTY_TTL" "$IPMITOOL" raw 0x3a 0xda)
+        eval "byte=\${$n:-00}"
+        printf "%d\n" $((0x$byte))
+        ;;
+    set)
+        [ $# -ge 3 ] || usage
+        pct=$3
+        { [ "$pct" -ge 0 ] && [ "$pct" -le 100 ]; } 2>/dev/null || usage
+
+        lock_acquire
+
+        # Seed the desired state from the BMC the first time only; from then on
+        # it is authoritative, so a clobbered write is corrected by the next one.
+        if [ ! -s "$DESIRED" ]; then
+            "$IPMITOOL" raw 0x3a 0xda 2>/dev/null >"$DESIRED" || true
+        fi
+        if [ ! -s "$DESIRED" ]; then
+            lock_release
+            exit 1
+        fi
+
+        out=
+        new=
+        i=1
+        for byte in $(cat "$DESIRED"); do
+            if [ "$i" -eq "$n" ]; then
+                byte=$(printf "%02x" "$pct")
+            fi
+            out="$out 0x$byte"
+            new="$new $byte"
+            i=$((i + 1))
+        done
+
+        printf "%s\n" "$new" >"$DESIRED"
+        "$IPMITOOL" raw 0x3a 0xd6 $out >/dev/null 2>&1
+        rm -f "$CACHE/duty"
+        lock_release
+        ;;
+    *) usage ;;
+esac

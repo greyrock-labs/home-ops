@@ -1,0 +1,61 @@
+{
+  "devices": [
+    {
+      "id": "bmc",
+      "label": "BMC Fans",
+      "channels": [
+        {
+          "id": "fan1",
+          "label": "Chassis FAN1",
+          "commands": {
+            "get_rpm": "/usr/local/bin/fan rpm 1",
+            "get_duty": "/usr/local/bin/fan duty 1",
+            "set_duty": "/usr/local/bin/fan set 1 {duty}",
+            "reset": "/usr/local/bin/fan set 1 50"
+          }
+        },
+        {
+          "id": "fan3",
+          "label": "CPU (FAN3)",
+          "commands": {
+            "get_rpm": "/usr/local/bin/fan rpm 3",
+            "get_duty": "/usr/local/bin/fan duty 3",
+            "set_duty": "/usr/local/bin/fan set 3 {duty}",
+            "reset": "/usr/local/bin/fan set 3 50"
+          }
+        },
+        {
+          "id": "fan4",
+          "label": "Chassis FAN4",
+          "commands": {
+            "get_rpm": "/usr/local/bin/fan rpm 4",
+            "get_duty": "/usr/local/bin/fan duty 4",
+            "set_duty": "/usr/local/bin/fan set 4 {duty}",
+            "reset": "/usr/local/bin/fan set 4 50"
+          }
+        },
+        {
+          "id": "fan5",
+          "label": "Chassis FAN5",
+          "commands": {
+            "get_rpm": "/usr/local/bin/fan rpm 5",
+            "get_duty": "/usr/local/bin/fan duty 5",
+            "set_duty": "/usr/local/bin/fan set 5 {duty}",
+            "reset": "/usr/local/bin/fan set 5 50"
+          }
+        },
+        {
+          "id": "fan6",
+          "label": "Chassis FAN6",
+          "commands": {
+            "get_rpm": "/usr/local/bin/fan rpm 6",
+            "get_duty": "/usr/local/bin/fan duty 6",
+            "set_duty": "/usr/local/bin/fan set 6 {duty}",
+            "reset": "/usr/local/bin/fan set 6 50"
+          }
+        }
+      ],
+      "temps": []
+    }
+  ]
+}
