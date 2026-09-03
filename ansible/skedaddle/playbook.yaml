@@ -310,12 +310,28 @@
             dest: /etc/apt/keyrings/crowdsec.asc
             mode: "0644"
 
+        # deb822_repository writes crowdsec.sources, so the one-line file from
+        # the old apt_repository task has to go or apt sees the repo twice.
+        - name: crowdsec | Remove the legacy one-line repository file
+          ansible.builtin.file:
+            path: /etc/apt/sources.list.d/crowdsec.list
+            state: absent
+
         - name: crowdsec | Add apt repository
-          ansible.builtin.apt_repository:
-            repo: "deb [signed-by=/etc/apt/keyrings/crowdsec.asc] https://packagecloud.io/crowdsec/crowdsec/any any main"
-            filename: crowdsec
+          ansible.builtin.deb822_repository:
+            name: crowdsec
+            types: deb
+            uris: https://packagecloud.io/crowdsec/crowdsec/any
+            suites: any
+            components: main
+            signed_by: /etc/apt/keyrings/crowdsec.asc
             state: present
+          register: crowdsec_repo
+
+        - name: crowdsec | Update apt cache
+          ansible.builtin.apt:
             update_cache: true
+          when: crowdsec_repo is changed
 
         - name: crowdsec | Install host firewall bouncer
           ansible.builtin.apt:
