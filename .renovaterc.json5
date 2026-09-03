@@ -9,6 +9,7 @@
     "local>greyrock-labs/home-ops//.renovate/autoMerge.json5",
     "local>greyrock-labs/home-ops//.renovate/apps/actual.json5",
     "local>greyrock-labs/home-ops//.renovate/apps/bambuddy.json5",
+    "local>greyrock-labs/home-ops//.renovate/apps/cert-manager-webhook-cloudns.json5",
     "local>greyrock-labs/home-ops//.renovate/apps/scrypted.json5",
   ]
 }

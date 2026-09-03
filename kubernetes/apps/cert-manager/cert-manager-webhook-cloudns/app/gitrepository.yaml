@@ -7,5 +7,6 @@ metadata:
 spec:
   interval: 1h
   ref:
+    # renovate: datasource=git-refs depName=https://github.com/mschirrmeister/cert-manager-webhook-cloudns branch=master
     commit: 8930362d427bd29e8a049cf14337578b5bc3f8f6
   url: https://github.com/mschirrmeister/cert-manager-webhook-cloudns

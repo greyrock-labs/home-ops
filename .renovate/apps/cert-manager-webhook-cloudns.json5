@@ -1,0 +1,24 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  customManagers: [
+    {
+      customType: "regex",
+      description: "Track the cert-manager ClouDNS webhook chart, which is published only as a git branch",
+      managerFilePatterns: [
+        "**/cert-manager-webhook-cloudns/app/gitrepository.yaml",
+      ],
+      matchStrings: [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+) branch=(?<currentValue>\\S+)\\s+commit: (?<currentDigest>[0-9a-f]{40})",
+      ],
+    },
+  ],
+  packageRules: [
+    {
+      description: "cert-manager ClouDNS webhook chart has no releases, so follow master",
+      matchDatasources: ["git-refs"],
+      matchPackageNames: ["https://github.com/mschirrmeister/cert-manager-webhook-cloudns"],
+      commitMessageTopic: "cert-manager-webhook-cloudns chart",
+      automerge: false,
+    },
+  ],
+}
