@@ -31,4 +31,17 @@ apiVersion: v1alpha1
 kind: LinkAliasConfig
 name: net0
 selector:
-    match: link.driver == "ixgbe" && mac(link.permanent_addr) == "98:b7:85:23:30:20"
+    match: link.driver == "ixgbe" && mac(link.permanent_addr) == "9c:6b:00:d2:9f:c9"
+---
+apiVersion: v1alpha1
+kind: LinkAliasConfig
+name: net1
+selector:
+    match: link.driver == "ixgbe" && mac(link.permanent_addr) == "9c:6b:00:d2:a1:d5"
+---
+# Pinned so the bond does not inherit whichever slave comes up first, which
+# would change the MAC UniFi keys the DHCP reservation on.
+apiVersion: v1alpha1
+kind: BondConfig
+name: bond0
+hardwareAddr: 9c:6b:00:d2:9f:c9
