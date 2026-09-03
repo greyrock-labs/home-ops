@@ -68,6 +68,6 @@ volumes:
   meta:
     driver: local
     driver_opts:
-      device: /mnt/tank/apps/garage/meta
+      device: /mnt/drone/apps/garage/meta
       o: bind
       type: none
