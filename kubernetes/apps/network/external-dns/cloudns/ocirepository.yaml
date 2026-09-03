@@ -3,7 +3,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
-  name: externaldns-digitalocean
+  name: externaldns-cloudns
 spec:
   interval: 15m
   layerSelector:

@@ -3,7 +3,7 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: externaldns-digitalocean
+  name: externaldns-cloudns
 spec:
   endpoints:
     - path: /metrics
@@ -14,5 +14,5 @@ spec:
       - network
   selector:
     matchLabels:
-      app.kubernetes.io/instance: externaldns-digitalocean
+      app.kubernetes.io/instance: externaldns-cloudns
       app.kubernetes.io/name: external-dns

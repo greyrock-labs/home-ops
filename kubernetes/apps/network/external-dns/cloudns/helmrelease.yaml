@@ -3,47 +3,54 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: externaldns-digitalocean
+  name: externaldns-cloudns
 spec:
   chartRef:
     kind: OCIRepository
-    name: externaldns-digitalocean
+    name: externaldns-cloudns
   interval: 30m
   values:
-    fullnameOverride: externaldns-digitalocean
+    fullnameOverride: externaldns-cloudns
     logLevel: &logLevel info
     domainFilters:
       - greyrock.io
     podAnnotations:
-      secret.reloader.stakater.com/reload: externaldns-digitalocean-secret
+      secret.reloader.stakater.com/reload: externaldns-cloudns-secret
     policy: sync
     provider:
       name: webhook
       webhook:
         image:
-          repository: ghcr.io/amoniacou/external-dns-digitalocean-webhook
-          tag: 1.0.2
+          repository: ghcr.io/rwunderer/external-dns-cloudns-webhook
+          tag: v0.4.10@sha256:b8a16baa5e53fc90dc6a885b5e7e48d98613465818662b2752dd3cd0132c49a4
         env:
           - name: LOG_LEVEL
             value: *logLevel
-          - name: DO_TOKEN
+          - name: CLOUDNS_AUTH_ID_TYPE
+            value: auth-id
+          - name: CLOUDNS_AUTH_ID
             valueFrom:
               secretKeyRef:
-                name: externaldns-digitalocean-secret
-                key: api_token
+                name: externaldns-cloudns-secret
+                key: auth_id
+          - name: CLOUDNS_AUTH_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: externaldns-cloudns-secret
+                key: auth_password
         securityContext:
           runAsUser: 65532
           runAsGroup: 65532
         livenessProbe:
           httpGet:
-            path: /healthz
-            port: 8888
+            path: /health
+            port: http-webhook
           initialDelaySeconds: 10
           timeoutSeconds: 5
         readinessProbe:
           httpGet:
-            path: /healthz
-            port: 8888
+            path: /ready
+            port: http-webhook
           initialDelaySeconds: 10
           timeoutSeconds: 5
     resources:
@@ -58,7 +65,7 @@ spec:
       - --crd-source-apiversion=externaldns.k8s.io/v1alpha1
       - --crd-source-kind=DNSEndpoint
       - --gateway-name=envoy-external
-      - --webhook-provider-url=http://localhost:8080
+      - --webhook-provider-url=http://localhost:8888
     sources:
       - crd
       - gateway-httproute
