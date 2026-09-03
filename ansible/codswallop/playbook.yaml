@@ -22,6 +22,10 @@
           var: doco_api_secret
         - key: Automation/doco-cd/webhook_secret
           var: doco_webhook_secret
+        - key: Services/ClouDNS/codswallop-acme-auth-id
+          var: cloudns_auth_id
+        - key: Services/ClouDNS/codswallop-acme-auth-password
+          var: cloudns_auth_password
       check_mode: false
       changed_when: false
       no_log: true
@@ -32,6 +36,8 @@
         doco_1pw_sa_token: "{{ secrets_raw.results[0].stdout }}"
         doco_api_secret: "{{ secrets_raw.results[1].stdout }}"
         doco_webhook_secret: "{{ secrets_raw.results[2].stdout }}"
+        cloudns_auth_id: "{{ secrets_raw.results[3].stdout }}"
+        cloudns_auth_password: "{{ secrets_raw.results[4].stdout }}"
       no_log: true
 
     - name: doco-cd
@@ -89,3 +95,37 @@
           retries: 30
           delay: 10
           when: not ansible_check_mode
+
+    - name: ClouDNS ACME authenticator
+      vars:
+        acme_dir: /mnt/tank/apps/acme
+        acme_user: nobody
+      block:
+        - name: acme | Create directory
+          ansible.builtin.file:
+            path: "{{ acme_dir }}"
+            state: directory
+            owner: root
+            group: root
+            mode: "0755"
+
+        - name: acme | Copy ClouDNS authenticator script
+          ansible.builtin.copy:
+            src: files/cloudns-authenticator.py
+            dest: "{{ acme_dir }}/cloudns-authenticator.py"
+            owner: root
+            group: root
+            mode: "0755"
+
+        # Read by the script as the unprivileged user middleware runs it as, so
+        # it is owned by that user rather than root.
+        - name: acme | Create ClouDNS credentials
+          ansible.builtin.copy:
+            dest: "{{ acme_dir }}/cloudns.ini"
+            content: |
+              auth-id = {{ cloudns_auth_id }}
+              auth-password = {{ cloudns_auth_password }}
+            owner: "{{ acme_user }}"
+            group: nogroup
+            mode: "0400"
+          no_log: true
