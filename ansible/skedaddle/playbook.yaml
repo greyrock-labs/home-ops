@@ -8,6 +8,12 @@
     ansible_python_interpreter: auto_silent
     host_ssh_port: 22222
 
+  # A freshly built box is usually still running unattended-upgrades, which
+  # holds the dpkg lock well past the 60s default.
+  module_defaults:
+    ansible.builtin.apt:
+      lock_timeout: 300
+
   tasks:
     - name: Check host connectivity
       ansible.builtin.ping:
