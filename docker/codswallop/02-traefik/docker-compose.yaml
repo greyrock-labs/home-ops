@@ -7,7 +7,7 @@ services:
   traefik:
     command:
       - --certificatesresolvers.cf.acme.caserver=https://acme-v02.api.letsencrypt.org/directory
-      - --certificatesresolvers.cf.acme.dnsChallenge.provider=digitalocean
+      - --certificatesresolvers.cf.acme.dnsChallenge.provider=cloudns
       - --certificatesresolvers.cf.acme.dnsChallenge.resolvers=1.1.1.1:53,8.8.8.8:53
       - --certificatesresolvers.cf.acme.storage=/certs/acme.json
       - --entryPoints.web.address=:80
@@ -21,7 +21,8 @@ services:
       - --providers.docker.exposedByDefault=false
     container_name: traefik
     environment:
-      - DO_AUTH_TOKEN=${DO_AUTH_TOKEN}
+      - CLOUDNS_AUTH_ID=${CLOUDNS_AUTH_ID}
+      - CLOUDNS_AUTH_PASSWORD=${CLOUDNS_AUTH_PASSWORD}
     image: traefik:v3.7.12
     networks:
       - apps
