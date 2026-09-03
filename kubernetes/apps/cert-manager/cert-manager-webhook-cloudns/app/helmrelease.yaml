@@ -1,0 +1,35 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.greyrock.io/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cert-manager-webhook-cloudns
+spec:
+  chart:
+    spec:
+      chart: deploy/cert-manager-webhook-cloudns
+      reconcileStrategy: Revision
+      sourceRef:
+        kind: GitRepository
+        name: cert-manager-webhook-cloudns
+  interval: 30m
+  values:
+    certManager:
+      namespace: cert-manager
+      serviceAccountName: cert-manager
+    clouDNS:
+      authIdType: auth-id
+      credentialsDir: /creds
+    groupName: acme.ixon.cloud
+    image:
+      repository: mschirrmeister/cert-manager-webhook-cloudns
+      tag: 1.2.1@sha256:e4f893b1c4a96c39bc572f70cf02708eaa4152b974af163c48fde2c654b5a87f
+    podAnnotations:
+      secret.reloader.stakater.com/reload: cert-manager-webhook-cloudns-api-secret
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32M
+      limits:
+        memory: 64M
+    secretName: cert-manager-webhook-cloudns-api-secret

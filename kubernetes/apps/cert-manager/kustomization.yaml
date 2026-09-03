@@ -8,3 +8,4 @@ components:
   - ../../components/namespace
 resources:
   - ./cert-manager/ks.yaml
+  - ./cert-manager-webhook-cloudns/ks.yaml

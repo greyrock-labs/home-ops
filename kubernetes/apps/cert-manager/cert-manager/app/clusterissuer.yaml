@@ -12,7 +12,6 @@ spec:
       name: letsencrypt-production
     solvers:
       - dns01:
-          digitalocean:
-            tokenSecretRef:
-              name: cert-manager-digitalocean-secret
-              key: api-token
+          webhook:
+            groupName: acme.ixon.cloud
+            solverName: cloudns

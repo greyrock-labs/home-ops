@@ -1,0 +1,11 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.greyrock.io/source.toolkit.fluxcd.io/gitrepository_v1.json
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: cert-manager-webhook-cloudns
+spec:
+  interval: 1h
+  ref:
+    commit: 8930362d427bd29e8a049cf14337578b5bc3f8f6
+  url: https://github.com/mschirrmeister/cert-manager-webhook-cloudns
