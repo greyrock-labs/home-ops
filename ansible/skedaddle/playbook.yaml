@@ -4,7 +4,7 @@
   become: true
   gather_facts: false
   vars:
-    ansible_user: ubuntu
+    ansible_user: "{{ bootstrap_user | default('todd') }}"
     ansible_python_interpreter: auto_silent
     host_ssh_port: 22222
 
@@ -32,7 +32,7 @@
         - key: Automation/crowdsec/api_token
           var: crowdsec_api_key
         - key: Private/Personal SSH Key/public key
-          var: ubuntu_ssh_public_key
+          var: todd_ssh_public_key
       check_mode: false
       changed_when: false
       no_log: true
@@ -44,7 +44,7 @@
         doco_api_secret: "{{ secrets_raw.results[1].stdout }}"
         doco_webhook_secret: "{{ secrets_raw.results[2].stdout }}"
         crowdsec_api_key: "{{ secrets_raw.results[3].stdout }}"
-        ubuntu_ssh_public_key: "{{ secrets_raw.results[4].stdout }}"
+        todd_ssh_public_key: "{{ secrets_raw.results[4].stdout }}"
       no_log: true
 
     - name: packages
@@ -69,13 +69,38 @@
             state: present
             update_cache: false
 
-    - name: ssh | Authorize SSH key for ubuntu user
+    # RackNerd images ship root-only with password auth enabled, so the
+    # unprivileged user has to exist before sshd is hardened below.
+    - name: users
+      tags:
+        - bootstrap
+        - users
+      block:
+        - name: users | Create todd user
+          ansible.builtin.user:
+            name: todd
+            groups: sudo
+            append: true
+            shell: /bin/bash
+            state: present
+
+        - name: users | Grant passwordless sudo
+          ansible.builtin.copy:
+            dest: /etc/sudoers.d/todd
+            content: "todd ALL=(ALL) NOPASSWD:ALL\n"
+            owner: root
+            group: root
+            mode: "0440"
+            validate: visudo -cf %s
+
+    - name: ssh | Authorize SSH key for todd user
       tags:
         - ssh
+        - users
       ansible.posix.authorized_key:
-        user: ubuntu
+        user: todd
         state: present
-        key: "{{ ubuntu_ssh_public_key }}"
+        key: "{{ todd_ssh_public_key }}"
 
     - name: ssh
       tags:
@@ -178,16 +203,16 @@
           ansible.builtin.file:
             path: "{{ dococd_config_dir }}"
             state: directory
-            owner: ubuntu
-            group: ubuntu
+            owner: todd
+            group: todd
             mode: "0755"
 
         - name: doco-cd | Copy docker-compose app file
           ansible.builtin.copy:
             src: ../../docker/skedaddle/.doco-cd/docker-compose.app.yaml
             dest: "{{ dococd_config_dir }}/docker-compose.yaml"
-            owner: ubuntu
-            group: ubuntu
+            owner: todd
+            group: todd
             mode: "0644"
           register: compose_file
 
@@ -196,8 +221,8 @@
             dest: "{{ dococd_config_dir }}/{{ item.name }}"
             content: |
               {{ item.content }}
-            owner: ubuntu
-            group: ubuntu
+            owner: todd
+            group: todd
             mode: "0600"
           no_log: true
           loop:
