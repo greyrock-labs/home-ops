@@ -9,7 +9,7 @@ spec:
     - dnsName: ingress-ext.greyrock.io
       recordType: A
       targets:
-        - &vps_ip 161.35.252.109
+        - &vps_ip 104.168.59.58
     - dnsName: twnl.greyrock.io
       recordType: A
       targets:
