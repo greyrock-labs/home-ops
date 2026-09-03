@@ -139,7 +139,7 @@
             content: |
               [Socket]
               ListenStream=
-              ListenStream={{ host_ssh_port }}
+              ListenStream=0.0.0.0:{{ host_ssh_port }}
             owner: root
             group: root
             mode: "0644"
