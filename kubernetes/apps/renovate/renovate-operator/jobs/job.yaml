@@ -7,7 +7,7 @@ metadata:
   namespace: renovate
 spec:
   discoveryFilters:
-    - greyrock-labs/*
+    - todd/*
   extraEnv:
     - name: LOG_LEVEL
       value: debug
