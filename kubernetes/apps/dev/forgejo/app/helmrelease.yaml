@@ -95,7 +95,7 @@ spec:
         - name: kanidm
           adminGroup: forgejo_admins@idm.greyrock.io
           autoDiscoverUrl: https://idm.greyrock.io/oauth2/openid/forgejo/.well-known/openid-configuration
-          existingSecret: forgejo-kanidm-oidc
+          existingSecret: forgejo-kanidm-oauth2-credentials
           groupClaimName: groups
           provider: openidConnect
           scopes: profile email groups
