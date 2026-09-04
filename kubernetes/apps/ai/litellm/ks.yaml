@@ -8,6 +8,8 @@ spec:
   components:
     - ../../../../components/dragonfly
   dependsOn:
+    - name: miroir
+      namespace: miroir-system
     - name: dragonfly-operator
       namespace: database
     - name: litellm-operator
