@@ -50,7 +50,7 @@ kubeconfig lb="cilium":
 [private]
 base: api-ready nodes-ready
     just log info "Running stage..." "stage" "{{ recipe_name() }}"
-    if ! kustomize build {{ source_directory() }}/kustomize | just template - | kubectl apply --server-side --force-conflicts -f -; then
+    if ! kustomize build {{ source_directory() }}/kustomize | just template - | yq '(select(has("stringData")) | .stringData.[] | select(tag == "!!map")) |= tojson' | kubectl apply --server-side --force-conflicts -f -; then
        just log fatal "Failed to apply manifests" "stage" "{{ recipe_name() }}"
     fi
     if ! helmfile -f "{{ source_directory() }}/helmfile/crds.yaml" template -q | yq ea -r -e 'select(.kind == "CustomResourceDefinition")' | kubectl apply --server-side --force-conflicts -f -; then
