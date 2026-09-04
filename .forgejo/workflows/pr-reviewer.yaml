@@ -67,6 +67,6 @@ jobs:
           tool_planning_timeout_sec: "60"
           tool_planning_max_context_bytes: "30000"
           tool_planning_max_tokens: "8000"
-          tool_allowed_gh_api_repos: "greyrock-labs/home-ops"
+          tool_allowed_gh_api_repos: "todd/home-ops"
           tool_enable_for_forks: "false"
           tool_mcp_servers: "konflate=http://konflate.flux-system.svc.cluster.local:8080/mcp"
