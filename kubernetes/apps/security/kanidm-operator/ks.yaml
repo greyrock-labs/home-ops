@@ -28,6 +28,8 @@ spec:
   components:
     - ../../../../components/kopiur/backup
   dependsOn:
+    - name: miroir
+      namespace: miroir-system
     - name: kanidm-operator
       namespace: security
   healthChecks:

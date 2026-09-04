@@ -5,6 +5,9 @@ kind: Kustomization
 metadata:
   name: speedtest-exporter
 spec:
+  dependsOn:
+    - name: miroir
+      namespace: miroir-system
   interval: 1h
   path: "./kubernetes/apps/observability/speedtest-exporter/app"
   prune: true

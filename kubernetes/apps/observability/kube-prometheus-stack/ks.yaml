@@ -5,6 +5,9 @@ kind: Kustomization
 metadata:
   name: kube-prometheus-stack
 spec:
+  dependsOn:
+    - name: miroir
+      namespace: miroir-system
   interval: 1h
   path: "./kubernetes/apps/observability/kube-prometheus-stack/app"
   prune: true

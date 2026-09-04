@@ -8,6 +8,8 @@ spec:
   components:
     - ../../../../components/kopiur/backup
   dependsOn:
+    - name: miroir
+      namespace: miroir-system
     - name: multus-networks
       namespace: network
   interval: 1h

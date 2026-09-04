@@ -10,6 +10,8 @@ spec:
     - ../../../../components/kopiur/backup
     - ../../../../components/zeroscaler
   dependsOn:
+    - name: miroir
+      namespace: miroir-system
     - name: intel-gpu-resource-driver
       namespace: kube-system
   interval: 1h

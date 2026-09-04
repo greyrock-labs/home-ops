@@ -10,6 +10,8 @@ spec:
     - ../../../../components/dragonfly
     - ../../../../components/kopiur/backup
   dependsOn:
+    - name: miroir
+      namespace: miroir-system
     - name: dragonfly-operator
       namespace: database
     - name: kanidm-instance

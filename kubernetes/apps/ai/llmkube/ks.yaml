@@ -10,6 +10,9 @@ spec:
       kind: HelmRelease
       name: llmkube
       namespace: ai
+  dependsOn:
+    - name: miroir
+      namespace: miroir-system
   interval: 1h
   path: "./kubernetes/apps/ai/llmkube/app"
   prune: true
