@@ -6,7 +6,6 @@ metadata:
   name: "greyrock-io"
 spec:
   dnsNames:
-    - "greyrock.io"
     - "*.greyrock.io"
   duration: 160h
   issuerRef:
