@@ -41,7 +41,7 @@ jobs:
           persist-credentials: false
 
       - name: Install flate
-        uses: https://github.com/home-operations/flate/action@83b2308bc71043482a2f4e849a74b0a53cc1e014 # v0.6.1
+        uses: https://github.com/home-operations/flate/action@631b76b69c4e58c6f4d1cb01e23616fa61aebafa # v0.6.5
         with:
           token: ""
 
