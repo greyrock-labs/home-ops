@@ -23,7 +23,7 @@ services:
     environment:
       - CLOUDNS_AUTH_ID=${CLOUDNS_AUTH_ID}
       - CLOUDNS_AUTH_PASSWORD=${CLOUDNS_AUTH_PASSWORD}
-    image: traefik:v3.7.12
+    image: traefik:v3.7.13
     networks:
       - apps
     ports:
