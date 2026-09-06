@@ -9,6 +9,7 @@
         "ghcr.io/home-operations",
         "ghcr.io/bjw-s",
         "ghcr.io/bjw-s-labs",
+        "ghcr.io/greyrock-labs",
       ],
       automerge: true,
       automergeType: "pr",
