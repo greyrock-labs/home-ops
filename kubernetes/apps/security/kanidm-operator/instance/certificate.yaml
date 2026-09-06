@@ -7,7 +7,6 @@ metadata:
 spec:
   dnsNames:
     - idm.greyrock.io
-  duration: 160h
   issuerRef:
     kind: ClusterIssuer
     name: letsencrypt-production

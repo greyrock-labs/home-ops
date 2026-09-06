@@ -8,6 +8,7 @@ spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
     email: acme@greyrock.io
+    profile: shortlived
     privateKeySecretRef:
       name: letsencrypt-production
     solvers:
@@ -25,6 +26,7 @@ spec:
   acme:
     server: https://acme-staging-v02.api.letsencrypt.org/directory
     email: acme@greyrock.io
+    profile: shortlived
     privateKeySecretRef:
       name: letsencrypt-staging
     solvers:
