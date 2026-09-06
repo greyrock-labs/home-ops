@@ -6,7 +6,7 @@ networks:
 services:
   coolercontrol:
     container_name: coolercontrol
-    image: docker.io/coolercontrol/coolercontrold:4.3.1
+    image: docker.io/coolercontrol/coolercontrold:5.0.0
     labels:
       dexd.enabled: 'true'
       traefik.enable: 'true'
