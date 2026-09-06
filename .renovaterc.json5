@@ -9,7 +9,6 @@
     "local>todd/home-ops//.renovate/autoMerge.json5",
     "local>todd/home-ops//.renovate/apps/actual.json5",
     "local>todd/home-ops//.renovate/apps/bambuddy.json5",
-    "local>todd/home-ops//.renovate/apps/cert-manager-webhook-cloudns.json5",
     "local>todd/home-ops//.renovate/apps/scrypted.json5",
   ]
 }
