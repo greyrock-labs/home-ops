@@ -58,10 +58,15 @@ releases:
     needs:
       - kube-system/coredns
 
+  - name: cert-manager-webhook-cloudns
+    namespace: cert-manager
+    needs:
+      - cert-manager/cert-manager
+
   - name: external-secrets
     namespace: external-secrets
     needs:
-      - cert-manager/cert-manager
+      - cert-manager/cert-manager-webhook-cloudns
 
   - name: onepassword-connect
     namespace: external-secrets
