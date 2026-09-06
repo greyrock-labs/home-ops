@@ -5,15 +5,17 @@ upstream, not improvement of it.
 
 ## The rule
 
-- **Bring changes over AS-IS.** Reproduce the upstream diff verbatim. The ported
-  files should be byte-identical to the upstream version unless a change below is
-  genuinely required.
+- **Bring changes over AS-IS.** Reproduce the upstream diff verbatim by default.
+  The ported files should be byte-identical to the upstream version unless an
+  adaptation below is genuinely required.
 
-- **Only adapt fork-specific values, and only when needed:**
+- **Adapt only deployment-environment values.** Things that legitimately differ
+  because of where, who, or how this fork runs — e.g.:
   - Hostnames and domains (e.g. `*.greyrock.io`).
-  - Paths.
+  - Paths (NFS mounts, claim names, on-disk locations).
   - Secret references — 1Password item/field names, `ExternalSecret` keys, and
     the `existingSecret`/`secretKeyRef` names they resolve to.
+  - Region/locale settings (e.g. `timezone: America/New_York`).
 
 - **Do NOT rewrite values to match what you think is correct.** In particular:
   - Do NOT "fix" apparent upstream inconsistencies. If upstream sets a value that
@@ -21,8 +23,12 @@ upstream, not improvement of it.
     actually runs here), **leave it as upstream has it.**
   - Do NOT re-order, rename, restyle, or "clean up" beyond the required
     adaptations above.
-  - Do NOT diverge on your own judgment. Divergence from upstream is a defect, not
-    an enhancement.
+
+- **Divergences need approval and land as their own commit.** If during a port
+  you find a real bug in the upstream diff, or a value that genuinely needs to
+  differ from upstream for this fork, flag it and ask before changing anything.
+  Once approved, land it as its own follow-up commit — do not bundle it into the
+  port. **Never name the source repo in that follow-up's commit message.**
 
 ## Verifying a port
 
@@ -34,7 +40,7 @@ git fetch upstream
 diff <(git show <upstream-sha>:<path>) <path>
 ```
 
-If the diff shows anything other than the hostname/path/secret adaptations you
+If the diff shows anything other than the deployment-environment adaptations you
 deliberately made, revert it to match upstream.
 
 ## Commit messages
