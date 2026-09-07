@@ -37,6 +37,18 @@ radarr:
           - name: Remux + WEB 2160p
             score: -10000
 
+      # 5) MULTi in the release title. Blocks 1-3 are LanguageSpecification and
+      #    can only match once MediaInfo has read the downloaded file, so a
+      #    dual-audio release tagged MULTi rather than GERMAN scores 0 at grab
+      #    time, passes min_format_score, and is only revealed as German/French
+      #    after ~61GB has landed. This is the only spec that matches on the
+      #    title, so it is the only one that can reject before the download.
+      - trash_ids:
+          - 4b900e171accbfb172729b63323ea8ca  # MULTi (release title)
+        assign_scores_to:
+          - name: Remux + WEB 2160p
+            score: -10000
+
     quality_profiles:
       # MAIN strict profile
       - name: Remux + WEB 2160p
