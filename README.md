@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="https://github.com/doonga/doonga/blob/main/_assets/images/logo.jpg?raw=true" width="144px" height="144px"/>
+
 ## My Home Operations repository
 
 _... managed by Flux, Renovate and GitHub Actions_ :robot:
