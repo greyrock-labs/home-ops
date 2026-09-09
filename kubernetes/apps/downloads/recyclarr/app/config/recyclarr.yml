@@ -62,6 +62,25 @@ radarr:
           - name: Remux + WEB 2160p
             score: -10000
 
+      # 7) Known-good release groups, scored positively by the guide (1600-1950).
+      #    Paired with min_format_score below this inverts the policy: instead of
+      #    enumerating bad groups forever, a release must come from a group TRaSH
+      #    recognises. Anything unrecognised stays at 0 and is rejected, which
+      #    covers d3g, W32 and BEN without naming any of them. No score is set
+      #    here on purpose so each tier keeps the guide's own value.
+      - trash_ids:
+          - 3a3ff47579026e76d6504ebea39390de  # Remux Tier 01
+          - 9f98181fe5a3fbeb0cc29340da2a468a  # Remux Tier 02
+          - 8baaf0b3142bf4d94c42a724f034e27a  # Remux Tier 03
+          - 4d74ac4c4db0b64bff6ce0cffef99bf0  # UHD Bluray Tier 01
+          - a58f517a70193f8e578056642178419d  # UHD Bluray Tier 02
+          - e71939fae578037e7aed3ee219bbe7c1  # UHD Bluray Tier 03
+          - c20f169ef63c5f40c2def54abaf4438e  # WEB Tier 01
+          - 403816d65392c79236dcb6dd591aeda4  # WEB Tier 02
+          - af94e0fe497124d1f9ce732069ec8c3b  # WEB Tier 03
+        assign_scores_to:
+          - name: Remux + WEB 2160p
+
     quality_profiles:
       # MAIN strict profile
       - name: Remux + WEB 2160p
@@ -70,6 +89,10 @@ radarr:
         upgrade:
           allowed: true
           until_quality: Remux-2160p
+        # Require a positive score, i.e. a release group in one of the tiers
+        # above. Deliberately left below until_score (still 0) so files already
+        # on disk still count as satisfied and the library is not re-downloaded.
+        min_format_score: 1
         qualities:
           - name: Remux-2160p
           - name: WEB 2160p
