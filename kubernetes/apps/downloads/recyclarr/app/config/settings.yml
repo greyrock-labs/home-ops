@@ -1,0 +1,11 @@
+---
+# yaml-language-server: $schema=https://schemas.recyclarr.dev/latest/settings-schema.json
+
+# Custom formats defined in-repo, loaded alongside the TRaSH guides rather than
+# replacing them. Used for release groups TRaSH's "Bad Dual Groups" does not
+# cover; keeping them separate means that format keeps tracking upstream.
+resource_providers:
+  - name: local-custom-formats
+    type: custom-formats
+    service: radarr
+    path: /config/custom-formats

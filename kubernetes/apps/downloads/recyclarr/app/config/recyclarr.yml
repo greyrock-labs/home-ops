@@ -49,6 +49,19 @@ radarr:
           - name: Remux + WEB 2160p
             score: -10000
 
+      # 6) Release groups that post multi-audio remuxes with no language marker
+      #    in the release title. Indexers disagree about these: NZBgeek reports
+      #    the full language list so the German blocks fire, while DrunkenSlug
+      #    reports English only, so the same file passes and imports at -10000.
+      #    The release group is the only token present on every listing, so it
+      #    is the only thing that can be matched reliably. Defined locally in
+      #    config/custom-formats -- TRaSH's Bad Dual Groups does not list d3g.
+      - trash_ids:
+          - 5f4fef41c91240387d5dfa174d9ca7ff  # Multi-Audio Groups (local)
+        assign_scores_to:
+          - name: Remux + WEB 2160p
+            score: -10000
+
     quality_profiles:
       # MAIN strict profile
       - name: Remux + WEB 2160p

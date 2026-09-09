@@ -1,0 +1,16 @@
+{
+  "trash_id": "5f4fef41c91240387d5dfa174d9ca7ff",
+  "name": "Multi-Audio Groups (local)",
+  "includeCustomFormatWhenRenaming": false,
+  "specifications": [
+    {
+      "name": "d3g",
+      "implementation": "ReleaseGroupSpecification",
+      "negate": false,
+      "required": false,
+      "fields": {
+        "value": "^(d3g)$"
+      }
+    }
+  ]
+}

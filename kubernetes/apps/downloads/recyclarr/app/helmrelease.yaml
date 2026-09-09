@@ -63,5 +63,12 @@ spec:
         globalMounts:
           - path: /config/recyclarr.yml
             subPath: recyclarr.yml
+          - path: /config/settings.yml
+            subPath: settings.yml
+      custom-formats:
+        type: configMap
+        name: recyclarr-custom-formats
+        globalMounts:
+          - path: /config/custom-formats
       tmp:
         type: emptyDir

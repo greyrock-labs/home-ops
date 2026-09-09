@@ -10,6 +10,10 @@ configMapGenerator:
   - name: recyclarr
     files:
       - config/recyclarr.yml
+      - config/settings.yml
+  - name: recyclarr-custom-formats
+    files:
+      - config/custom-formats/multi-audio-groups.json
 generatorOptions:
   disableNameSuffixHash: true
   annotations:
