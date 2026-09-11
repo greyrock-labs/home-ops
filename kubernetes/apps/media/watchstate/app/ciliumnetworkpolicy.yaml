@@ -34,3 +34,11 @@ spec:
         - ports:
             - port: "8080"
               protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: media
+            app.kubernetes.io/name: jellyfin
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
