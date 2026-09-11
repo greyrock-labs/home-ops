@@ -9,6 +9,15 @@ spec:
     matchLabels:
       app.kubernetes.io/name: plex
       app.kubernetes.io/instance: plex
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: network
+            gateway.networking.k8s.io/gateway-name: envoy-internal
+      toPorts:
+        - ports:
+            - port: "10443"
+              protocol: TCP
   ingress:
     - fromEndpoints:
         - matchLabels:
