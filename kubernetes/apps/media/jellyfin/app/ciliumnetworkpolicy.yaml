@@ -33,3 +33,12 @@ spec:
         - ports:
             - port: "8096"
               protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: media
+            app.kubernetes.io/name: watchstate
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
