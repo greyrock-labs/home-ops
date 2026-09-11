@@ -6,6 +6,7 @@ metadata:
   name: envoy-internal
   annotations:
     external-dns.alpha.kubernetes.io/target: &hostname ingress-int.greyrock.io
+    external-dns.kubernetes.io/target: *hostname
     gatus.home-operations.com/endpoint: |-
       group: internal
       guarded: true
@@ -17,6 +18,7 @@ spec:
   infrastructure:
     annotations:
       external-dns.alpha.kubernetes.io/hostname: *hostname
+      external-dns.kubernetes.io/hostname: *hostname
       lbipam.cilium.io/ips: 10.1.25.42
   listeners:
     - name: http
