@@ -14,6 +14,14 @@ spec:
     - name: RENOVATE_ALLOWED_COMMANDS
       value: |-
         ["pnpm run bundle"]
+    - name: RENOVATE_HOST_RULES
+      value: >-
+        [
+          {
+            "matchHost": "https://git.greyrock.io",
+            "allowInternal": true
+          }
+        ]
   image: ghcr.io/renovatebot/renovate:44.84.0
   parallelism: 5
   provider:
