@@ -6,38 +6,38 @@ pulling it and reading the serial; the OS only auto-resolved 16 of 24 bays
 via sysfs (`sesutil` isn't installed on this box), so the rest were confirmed
 by hand.
 
-Scope: **`tank` only** (2x 12-wide raidz3, all 24 bays). `drone` (4x Intel SSD
-raidz1) and `boot-pool` (2x NVMe mirror) live on internal enclosures, not
-this front backplane — not inventoried here yet.
+Scope: **`tank` only** (2x 12-wide raidz2, all 24 bays). `drone` (4x Intel SSD
+raidz1) and `boot-pool` (1x NVMe, single disk) live on internal enclosures,
+not this front backplane — not inventoried here yet.
 
-Recorded 2026-07-14.
+Recorded 2026-09-15.
 
 | Position | Device | Serial   | Model                 | Vdev     | ZFS GUID             | Partition UUID                       |
 |----------|--------|----------|-----------------------|----------|----------------------|--------------------------------------|
-| 1,1      | sdq    | 6AGDBBDS | WDC WD142KFGX-68AFPN0 | raidz3-1 | 5162615688432952545  | d7c73976-d026-402e-97c5-f18829d95ac5 |
-| 1,2      | sdr    | 9LK5GHUG | WDC WD140EFGX-68B0GN0 | raidz3-1 | 9528986425796206229  | 5a039922-43fb-436c-8ad2-71d294bdd6bb |
-| 1,3      | sds    | 6AGB6RPU | WDC WD142KFGX-68AFPN0 | raidz3-1 | 15905671514926340770 | 12e0575a-7504-4576-9fac-68f80625a9d8 |
-| 1,4      | sdt    | 9LK8EP0G | WDC WD140EFGX-68B0GN0 | raidz3-1 | 17250043149489576665 | e529d12f-49de-4717-9c4a-e9700bfcb697 |
-| 2,1      | sdu    | 9LKLU6HG | WDC WD140EFGX-68B0GN0 | raidz3-1 | 11387212443691640167 | 3cf2ba41-201e-48ab-bb6e-b19b7bab1682 |
-| 2,2      | sdv    | 9MJ914SU | WDC WD140EFGX-68B0GN0 | raidz3-1 | 16522563479827833131 | 428cd886-b33f-4ecf-8cbd-5397eddda0eb |
-| 2,3      | sdw    | 9MJ918XU | WDC WD140EFGX-68B0GN0 | raidz3-1 | 11353330790961211453 | 37012fdb-4531-47dd-ab20-133c76f2eb3c |
-| 2,4      | sdx    | 9LHZ4GAG | WDC WD140EFGX-68B0GN0 | raidz3-1 | 5296665786233597708  | fa8dc73a-7ec7-4017-bc7c-f3d5f0aa310e |
-| 3,1      | sdy    | PLG1TMRP | WDC WD142KFGX-68CLHN0 | raidz3-1 | 6253536332998937008  | 6865dcb7-98fb-4269-bf39-3a2c0b1458ec |
-| 3,2      | sdz    | 9LKTEV9G | WDC WD140EFGX-68B0GN0 | raidz3-1 | 6561326338586955311  | 2f833b0c-1fd1-43dd-8313-5ca93696818a |
-| 3,3      | sdaa   | 6AGDBHTS | WDC WD142KFGX-68AFPN0 | raidz3-1 | 15796717330663993579 | 19f514f2-79c2-4f22-9d0a-c0f59e860045 |
-| 3,4      | sdab   | 6AGD4P2S | WDC WD142KFGX-68AFPN0 | raidz3-1 | 3575075254959833515  | 0fee9394-7e3f-478a-9cc0-a262ba2fb3b6 |
-| 4,1      | sdf    | 6AGDBWVS | WDC WD142KFGX-68AFPN0 | raidz3-0 | 7279227783266938190  | 8fac89d1-f619-4b49-a186-6dbcb4193b39 |
-| 4,2      | sde    | 9LK8HS5G | WDC WD140EFGX-68B0GN0 | raidz3-0 | 2790247225639904021  | eb36f679-44d0-47c9-936a-7f0823a93a06 |
-| 4,3      | sdj    | 6AGD42AS | WDC WD142KFGX-68AFPN0 | raidz3-0 | 8561160802317281249  | 704940ca-4a94-4686-b0ad-22a455821d88 |
-| 4,4      | sdk    | ZTM0D5KT | ST14000NE0008-2JK101  | raidz3-0 | 1373118605235796625  | 4233d5e5-8621-4546-9b81-cdf3b85a7deb |
-| 5,1      | sdd    | PLG1UTSP | WDC WD142KFGX-68CLHN0 | raidz3-0 | 18214958049010716377 | fa5ce3f0-7cba-48a5-a60f-5736407ea901 |
-| 5,2      | sdb    | PLG1TSKP | WDC WD142KFGX-68CLHN0 | raidz3-0 | 7644125228107865196  | 3cfcc4bb-fed3-4750-b39e-07ad4692145f |
-| 5,3      | sdg    | PLG1LVBP | WDC WD142KFGX-68CLHN0 | raidz3-0 | 7273252243872584608  | bd186a9a-7593-4b0b-9fec-55bfdd1eb22a |
-| 5,4      | sdl    | 9MHV93NU | WDC WD140EFGX-68B0GN0 | raidz3-0 | 6333609613364432246  | fc98786c-55af-4455-97ba-3ed544630096 |
-| 6,1      | sdc    | QGKAHABT | WDC WD140EFGX-68B0GN0 | raidz3-0 | 12506996590400224400 | dbe3b781-e8ba-4fa2-b7fa-de618c98a28e |
-| 6,2      | sda    | 9KG6W51L | WUH721414ALE601       | raidz3-0 | 11048458018417045731 | fcfd35f3-fab2-4255-976e-07eaf3f84825 |
-| 6,3      | sdh    | 9JHBWSDT | WUH721414ALE601       | raidz3-0 | 16491632110637475743 | 82d28bf7-849a-48d9-8770-b6c81d9a4cd7 |
-| 6,4      | sdi    | 9KGU7W8L | WUH721414ALE601       | raidz3-0 | 12278606832133043911 | 7a380586-67e6-4912-b24a-57defd713e99 |
+| 1,1      | sdi    | 6AGDBBDS | WDC WD142KFGX-68AFPN0 | raidz2-0 | 11573725303957118005 | a5cf8548-cfb8-41ec-a9a5-0e0e6c3c6a5c |
+| 1,2      | sdb    | 9LK5GHUG | WDC WD140EFGX-68B0GN0 | raidz2-0 | 15302533131966421756 | 273c1402-c81b-4b6a-93e2-94fb98b6b46f |
+| 1,3      | sdp    | 6AGB6RPU | WDC WD142KFGX-68AFPN0 | raidz2-0 | 15252783339504975017 | 2ed988b6-6100-48e4-86ca-b844b484658a |
+| 1,4      | sdr    | 9LK8EP0G | WDC WD140EFGX-68B0GN0 | raidz2-0 | 5965305877860834517  | cdb9e14d-2c48-4bdc-baad-9c8bcd34fe45 |
+| 2,1      | sdg    | 9LKLU6HG | WDC WD140EFGX-68B0GN0 | raidz2-0 | 3252754355801828365  | c750ca3d-abc7-48fe-ba30-b3ac6865cb64 |
+| 2,2      | sdd    | 9MJ914SU | WDC WD140EFGX-68B0GN0 | raidz2-0 | 13870048604698521727 | 9cf91805-4b86-4b02-a8c9-bdbb7e7ff5fc |
+| 2,3      | sda    | 9MJ918XU | WDC WD140EFGX-68B0GN0 | raidz2-0 | 11869712381185075245 | 8f0e0698-8ec5-4d8d-8ae1-ccbfa2dd9cf5 |
+| 2,4      | sdk    | 9LHZ4GAG | WDC WD140EFGX-68B0GN0 | raidz2-0 | 5974922910722647439  | 68a31fe4-9a90-492c-814b-955b78023ceb |
+| 3,1      | sdu    | PLG1TMRP | WDC WD142KFGX-68CLHN0 | raidz2-0 | 12751548228389663964 | ce15fee5-06b9-4123-81e3-7efef320546c |
+| 3,2      | sde    | 9LKTEV9G | WDC WD140EFGX-68B0GN0 | raidz2-0 | 13009132313636805983 | 6ba28acd-cb8c-4c36-bec5-bb3844151970 |
+| 3,3      | sdo    | 6AGDBHTS | WDC WD142KFGX-68AFPN0 | raidz2-0 | 4411833743416322512  | 4ced15da-1548-4507-995a-a454ec91c47b |
+| 3,4      | sdn    | 6AGD4P2S | WDC WD142KFGX-68AFPN0 | raidz2-0 | 3361414942688335505  | 5ded8128-beaa-4dd4-bfc4-7175e551315b |
+| 4,1      | sdv    | 6AGDBWVS | WDC WD142KFGX-68AFPN0 | raidz2-1 | 17439994999811862571 | cc115509-653c-408f-b6cf-d27ec668a94c |
+| 4,2      | sdc    | 9LK8HS5G | WDC WD140EFGX-68B0GN0 | raidz2-1 | 8628572730111718233  | 2db4ba89-7b85-427b-90f4-ddeb2d744475 |
+| 4,3      | sdq    | 6AGD42AS | WDC WD142KFGX-68AFPN0 | raidz2-1 | 12715093042916516245 | b0199de5-8c8f-4038-84e5-e65ab36ea37e |
+| 4,4      | sdm    | ZTM0D5KT | ST14000NE0008-2JK101  | raidz2-1 | 9449097917545363331  | 6addf02b-3c77-4c50-8a7d-b4e363cfcddf |
+| 5,1      | sdx    | PLG1UTSP | WDC WD142KFGX-68CLHN0 | raidz2-1 | 11667562915456248080 | c5c23879-8f4c-4adb-8303-f02cbf79e4d6 |
+| 5,2      | sdf    | PLG1TSKP | WDC WD142KFGX-68CLHN0 | raidz2-1 | 1136047250647759730  | 77f2ac00-98ee-4239-84e8-39e687865cfc |
+| 5,3      | sdt    | PLG1LVBP | WDC WD142KFGX-68CLHN0 | raidz2-1 | 13666632890011672468 | bbf43d36-4982-453d-bf58-3536e0974f0e |
+| 5,4      | sdj    | 9MHV93NU | WDC WD140EFGX-68B0GN0 | raidz2-1 | 14678972897263928436 | 9ac4dcc7-45b2-4427-83d2-b00a94544839 |
+| 6,1      | sdw    | QGKAHABT | WDC WD140EFGX-68B0GN0 | raidz2-1 | 605610797044666230   | ba0e86fa-8982-4bb9-a3de-3a71a8fdf034 |
+| 6,2      | sdh    | 9KG6W51L | WUH721414ALE601       | raidz2-1 | 3222350650259822650  | 95ee36e9-d765-4360-ae09-b3cce0bd33d6 |
+| 6,3      | sds    | 9JHBWSDT | WUH721414ALE601       | raidz2-1 | 1921930286618653090  | 138de46b-a29d-466d-bb50-f86feec349d3 |
+| 6,4      | sdl    | 9KGU7W8L | WUH721414ALE601       | raidz2-1 | 1851352836767153139  | 12cc557c-fc79-4e9f-8c1a-6690da30a5c6 |
 
 ## How this was built
 
