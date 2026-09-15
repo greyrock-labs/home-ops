@@ -1,7 +1,7 @@
 # BMC Certificate Updater — Design
 
 - **Date:** 2026-09-15
-- **Status:** Approved design, pending implementation plan
+- **Status:** Implemented and verified in cluster — LE certificate pushed to both BMCs (served sha256-prefix `9773f88ba8ad`), daily CronJob will skip until the cert actually changes
 - **Scope:** Flux-managed automation that keeps a valid Let's Encrypt certificate on the
   BMC web UIs of both ASRock Rack X570D4U-2L2T boards
 
