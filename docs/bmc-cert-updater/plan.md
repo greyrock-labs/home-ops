@@ -327,15 +327,27 @@ push_one() {
     password=$(password_for "$name")
 
     # Login: form-encoded credentials, JSON response carries the CSRF token.
+    # Two MegaRAC quirks to handle:
+    #   1. The response writes JSON keys with a space after the colon
+    #      ("CSRFToken": "value"), not "CSRFToken":"value" — the regex
+    #      tolerates [[:space:]] around the colon.
+    #   2. The BMC often returns "ok": 0 while still issuing a usable
+    #      CSRFToken + session cookie, so we accept the issued token
+    #      regardless of ok and only fail when the token is genuinely
+    #      absent (real auth failure).
     # shellcheck disable=SC2086
     response=$($CURL --cookie-jar "$jar" \
         --data-urlencode "username=$username" \
         --data-urlencode "password=$password" \
         "$base/api/session") || { echo "$name: login request failed"; return 1; }
-    token=$(printf '%s' "$response" | sed -n 's/.*"CSRFToken":"\([^"]*\)".*/\1/p')
+    token=$(printf '%s' "$response" | sed -n 's/.*"CSRFToken"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
+    ok=$(printf '%s' "$response" | sed -n 's/.*"ok"[[:space:]]*:[[:space:]]*\([01]\).*/\1/p' | head -1)
     if [ -z "$token" ]; then
         echo "$name: login failed (no CSRFToken in response)"
         return 1
+    fi
+    if [ "$ok" = "0" ]; then
+        echo "$name: BMC returned ok=0; proceeding with issued CSRFToken"
     fi
 
     desired=$(desired_leaf)
@@ -398,9 +410,10 @@ EOF
     [ "$(printf '%s\n' "$leaf" | sed -n '2p')" = "LEAFAAABBBCCC" ] || { echo "self-test FAIL: leaf extraction picked wrong block"; return 1; }
     [ "$(printf '%s\n' "$leaf" | sed -n '3p')" = "-----END CERTIFICATE-----" ] || { echo "self-test FAIL: leaf block not terminated"; return 1; }
 
-    # Fixture 2: CSRF token parse.
-    parsed=$(printf '{"ok":true,"CSRFToken":"a1b2c3","privilege":4}' |
-        sed -n 's/.*"CSRFToken":"\([^"]*\)".*/\1/p')
+    # Fixture 2: CSRF token parse against the BMC's actual JSON shape
+    # (note the space after the colon — MegaRAC writes "CSRFToken": "value").
+    parsed=$(printf '{"ok": 0, "CSRFToken": "a1b2c3", "privilege": 4}' |
+        sed -n 's/.*"CSRFToken"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
     [ "$parsed" = "a1b2c3" ] || { echo "self-test FAIL: CSRFToken parse returned '$parsed'"; return 1; }
 
     # Fixture 3: CRLF from curl %{certs} must compare equal after tr -d '\r'.
