@@ -404,8 +404,8 @@ EOF
     [ "$parsed" = "a1b2c3" ] || { echo "self-test FAIL: CSRFToken parse returned '$parsed'"; return 1; }
 
     # Fixture 3: CRLF from curl %{certs} must compare equal after tr -d '\r'.
-    a=$(printf '-----BEGIN CERTIFICATE-----\r\nX\r\n-----END CERTIFICATE-----\r\n' | tr -d '\r')
-    b=$(printf '-----BEGIN CERTIFICATE-----\nX\n-----END CERTIFICATE-----\n')
+    a=$(printf -- '-----BEGIN CERTIFICATE-----\r\nX\r\n-----END CERTIFICATE-----\r\n' | tr -d '\r')
+    b=$(printf -- '-----BEGIN CERTIFICATE-----\nX\n-----END CERTIFICATE-----\n')
     [ "$a" = "$b" ] || { echo "self-test FAIL: CRLF normalization"; return 1; }
 
     rm -rf "$tmp"
