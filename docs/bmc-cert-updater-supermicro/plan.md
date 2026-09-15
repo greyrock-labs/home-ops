@@ -423,13 +423,14 @@ push_one() {
     username="${UPDATER_USERNAME:?UPDATER_USERNAME not set}"
     password="${HOMEASSISTANT_PASSWORD:?HOMEASSISTANT_PASSWORD not set}"
 
-    # Login (X11 firmware: name/pwd base64-encoded, plus check=00).
+    # Login (X10-form raw name/pwd, no check field — confirmed against
+    # this BMC's MegaRAC IPMI 03.95 firmware; base64+check=00 was rejected
+    # by the firmware on actual probes).
     rm -f "$jar"
     # shellcheck disable=SC2086
     $CURL -c "$jar" --fail \
-        --data-urlencode "name=$(b64 "$username")" \
-        --data-urlencode "pwd=$(b64 "$password")" \
-        --data-urlencode "check=00" \
+        --data-urlencode "name=$username" \
+        --data-urlencode "pwd=$password" \
         "$LOGIN_URL" >/dev/null || { echo "$name: login request failed"; rm -f "$jar"; return 1; }
 
     # Auth detection: the X11 firmware always issues at least the SID
@@ -439,26 +440,32 @@ push_one() {
         rm -f "$jar"; return 1
     fi
 
+    # Merge the BMC's mandatory langSetFlag/language cookies. Without these,
+    # the cert page returns a JS language-loader stub instead of the full
+    # HTML containing SmcCsrfInsert(...), so CSRF extraction would return
+    # empty and the upload would 403 with "Token Value is not matched".
+    add_lang_cookies "$jar"
+    jar_full="${jar}.full"
+
     # Pull CSRF from the cert page.
-    csrf=$(extract_csrf "$CERT_PAGE_URL" "$jar")
+    csrf=$(extract_csrf "$CERT_PAGE_URL" "$jar_full")
     if [ -z "$csrf" ]; then
         echo "$name: csrf token absent on cert page"
-        rm -f "$jar"; return 1
+        rm -f "$jar" "$jar_full"; return 1
     fi
 
     # Compare served leaf vs desired leaf.
     desired=$(desired_leaf)
-    current=$(served_leaf "$base") || { echo "$name: could not fetch served certificate"; rm -f "$jar"; return 1; }
+    current=$(served_leaf "$base") || { echo "$name: could not fetch served certificate"; rm -f "$jar" "$jar_full"; return 1; }
     if [ "$current" = "$desired" ]; then
         echo "$name: certificate unchanged, skipping"
-        rm -f "$jar"; return 0
+        rm -f "$jar" "$jar_full"; return 0
     fi
 
     # Upload: send CSRF as both an HTTP header and a multipart form field
-    # (the X11 firmware accepts either, the community script sends both
-    # for safety). Origin and Referer must match.
+    # (the X11 firmware accepts either; sending both is the safe path).
     # shellcheck disable=SC2086
-    $CURL -b "$jar" --fail \
+    $CURL -b "$jar_full" --fail \
         -H "Origin: $base" \
         -H "Referer: $CERT_PAGE_URL" \
         -H "CSRF_TOKEN: $csrf" \
@@ -467,22 +474,33 @@ push_one() {
         -F "CSRF_TOKEN=$csrf" \
         "$UPLOAD_URL" >/dev/null || {
         echo "$name: certificate upload failed"
-        rm -f "$jar"; return 1
+        rm -f "$jar" "$jar_full"; return 1
     }
-    rm -f "$jar"
 
-    # Verify after BMC web server restart.
+    # The SuperMicro X11 firmware writes the cert to disk but does NOT
+    # auto-restart its web server. Trigger main_bmcreset so the running
+    # server reloads the new cert on boot.
+    rh=$(trigger_reset "$jar_full" "$csrf")
+    rm -f "$jar" "$jar_full"
+    if [ "$rh" != "200" ]; then
+        echo "$name: BMC reset returned $rh (cert uploaded; manual reboot required)"
+        return 1
+    fi
+
+    # Verify after BMC web server restart (BMC goes down ~30-90s).
     verified=""
     i=1
-    while [ "$i" -le 6 ]; do
+    while [ "$i" -le 12 ]; do
         sleep 5
+        code=$(curl -k -sS --connect-timeout 4 -o /dev/null -w '%{http_code}' "$base/" 2>/dev/null || echo down)
+        [ "$code" != "200" ] && { i=$((i + 1)); continue; }
         if current=$(served_leaf "$base"); then
             [ "$current" = "$desired" ] && verified=1 && break
         fi
         i=$((i + 1))
     done
     if [ -z "$verified" ]; then
-        echo "$name: uploaded but served certificate does not match"
+        echo "$name: reset triggered but served certificate still does not match"
         return 1
     fi
     echo "$name: certificate updated and verified"

@@ -1,9 +1,10 @@
 #!/bin/sh
 # Pushes the *.internal.greyrock.io certificate to the SuperMicro IPMI BMC
 # at kvm-homeassistant.internal.greyrock.io via the BMC web API:
-# login (raw name/pwd form-encoded) -> fetch cert page -> parse CSRF
-# (SmcCsrfInsert("CSRF_TOKEN", "...")) -> upload cert+key with
-# Origin/Referer/CSRF_TOKEN headers -> verify-after-BMC-restart.
+# login (raw name/pwd) -> mandatory lang cookies -> cert page -> extract CSRF
+# (SmcCsrfInsert("CSRF_TOKEN", "...")) -> upload cert+key -> trigger
+# main_bmcreset (BMC web server doesn't auto-restart on cert load) ->
+# verify-after-restart.
 # Offline self-test: push-certs-supermicro.sh --self-test
 
 set -eu
@@ -16,6 +17,7 @@ TARGET="homeassistant|kvm-homeassistant.internal.greyrock.io"
 LOGIN_URL="${LOGIN_URL:-https://${TARGET#*|}/cgi/login.cgi}"
 CERT_PAGE_URL="${CERT_PAGE_URL:-https://${TARGET#*|}/cgi/url_redirect.cgi?url_name=config_ssl}"
 UPLOAD_URL="${UPLOAD_URL:-https://${TARGET#*|}/cgi/upload_ssl.cgi}"
+RESET_URL="${RESET_URL:-https://${TARGET#*|}/cgi/BMCReset.cgi}"
 
 CURL="curl -k -sS --connect-timeout 10 --max-time 60"
 
@@ -47,16 +49,40 @@ extract_csrf() {
     body=$(mktemp)
     # shellcheck disable=SC2086
     $CURL -b "$jar" -o "$body" "$page" 2>/dev/null || { echo ""; rm -f "$body"; return; }
-    awk '
-        match($0, /SmcCsrfInsert[[:space:]]*\([[:space:]]*"CSRF_TOKEN"[[:space:]]*,[[:space:]]*"[^"]*"/) {
-            m = substr($0, RSTART, RLENGTH)
-            sub(/.*"CSRF_TOKEN"[[:space:]]*,[[:space:]]*"/, "", m)
-            sub(/".*/, "", m)
-            print m
-            exit
-        }
-    ' "$body"
+    csrf=$(grep -oE 'SmcCsrfInsert \("CSRF_TOKEN", "([^"]+)"' "$body" | head -1 | sed -E 's/.*"([^"]+)"$/\1/')
     rm -f "$body"
+    printf '%s' "$csrf"
+}
+
+# Trigger the BMC's main_bmcreset op (the X11 firmware's reboot endpoint).
+# The cert is written to disk by /cgi/upload_ssl.cgi but the running web
+# server doesn't reload it until restart; this op triggers the reload.
+trigger_reset() {
+    jar="$1"
+    csrf="$2"
+    ts=$(date -u '+%a %d %b %Y %H:%M:%S GMT')
+    # shellcheck disable=SC2086
+    body=$(mktemp)
+    http=$($CURL -b "$jar" -w '%{http_code}' -o "$body" \
+        -H "Origin: https://kvm-homeassistant.internal.greyrock.io" \
+        -H "Referer: $CERT_PAGE_URL" \
+        -H "X-Requested-With: XMLHttpRequest" \
+        -H "CSRF_TOKEN: $csrf" \
+        --data "time_stamp=$ts" --data "_=" \
+        "$RESET_URL" 2>/dev/null || echo 000)
+    rm -f "$body"
+    printf '%s' "$http"
+}
+
+# Add the BMC's mandatory lang cookies (langSetFlag=0, language=English) to
+# the cookie jar so the cert page returns the full HTML with SmcCsrfInsert
+# rather than the lang-loader stub.
+add_lang_cookies() {
+    jar="$1"
+    tmp=$(mktemp -p "$(dirname "$jar")" lang.cookies.XXXXXX)
+    printf '127.0.0.1\tFALSE\t/\tFALSE\t0\tlangSetFlag\t0\n127.0.0.1\tFALSE\t/\tFALSE\t0\tlanguage\tEnglish\n' > "$tmp"
+    cat "$jar" "$tmp" > "${jar}.full"
+    rm -f "$tmp"
 }
 
 push_one() {
@@ -84,26 +110,31 @@ push_one() {
         rm -f "$jar"; return 1
     fi
 
+    # Merge mandatory lang cookies. Without these, the cert page returns
+    # the lang-loader stub and CSRF extraction returns empty.
+    add_lang_cookies "$jar"
+    jar_full="${jar}.full"
+
     # Pull CSRF from the cert page.
-    csrf=$(extract_csrf "$CERT_PAGE_URL" "$jar")
+    csrf=$(extract_csrf "$CERT_PAGE_URL" "$jar_full")
     if [ -z "$csrf" ]; then
         echo "$name: csrf token absent on cert page"
-        rm -f "$jar"; return 1
+        rm -f "$jar" "$jar_full"; return 1
     fi
 
     # Compare served leaf vs desired leaf.
     desired=$(desired_leaf)
-    current=$(served_leaf "$base") || { echo "$name: could not fetch served certificate"; rm -f "$jar"; return 1; }
+    current=$(served_leaf "$base") || { echo "$name: could not fetch served certificate"; rm -f "$jar" "$jar_full"; return 1; }
     if [ "$current" = "$desired" ]; then
         echo "$name: certificate unchanged, skipping"
-        rm -f "$jar"; return 0
+        rm -f "$jar" "$jar_full"; return 0
     fi
 
     # Upload: send CSRF as both an HTTP header and a multipart form field
     # (the X11 firmware accepts either, the community script sends both
     # for safety). Origin and Referer must match.
     # shellcheck disable=SC2086
-    $CURL -b "$jar" --fail \
+    $CURL -b "$jar_full" --fail \
         -H "Origin: $base" \
         -H "Referer: $CERT_PAGE_URL" \
         -H "CSRF_TOKEN: $csrf" \
@@ -112,22 +143,31 @@ push_one() {
         -F "CSRF_TOKEN=$csrf" \
         "$UPLOAD_URL" >/dev/null || {
         echo "$name: certificate upload failed"
-        rm -f "$jar"; return 1
+        rm -f "$jar" "$jar_full"; return 1
     }
-    rm -f "$jar"
 
-    # Verify after BMC web server restart.
+    # BMC web server doesn't auto-restart on cert load — trigger main_bmcreset.
+    rh=$(trigger_reset "$jar_full" "$csrf")
+    rm -f "$jar" "$jar_full"
+    if [ "$rh" != "200" ]; then
+        echo "$name: BMC reset request returned $rh (cert uploaded; manual reboot required)"
+        return 1
+    fi
+
+    # Verify after BMC web server restart (BMC was down ~30s).
     verified=""
     i=1
-    while [ "$i" -le 6 ]; do
+    while [ "$i" -le 12 ]; do
         sleep 5
+        code=$(curl -k -sS --connect-timeout 4 -o /dev/null -w '%{http_code}' "$base/" 2>/dev/null || echo down)
+        [ "$code" != "200" ] && { i=$((i + 1)); continue; }
         if current=$(served_leaf "$base"); then
             [ "$current" = "$desired" ] && verified=1 && break
         fi
         i=$((i + 1))
     done
     if [ -z "$verified" ]; then
-        echo "$name: uploaded but served certificate does not match"
+        echo "$name: reset triggered but served certificate still does not match"
         return 1
     fi
     echo "$name: certificate updated and verified"
