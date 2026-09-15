@@ -1,7 +1,7 @@
 # BMC Certificate Updater — SuperMicro — Design
 
 - **Date:** 2026-09-15
-- **Status:** Approved design, pending implementation plan
+- **Status:** Implemented and verified — LE cert active on kvm-homeassistant.internal.greyrock.io (subject CN=*.internal.greyrock.io, issuer Let's Encrypt), daily CronJob will keep it that way
 - **Scope:** Flux-managed CronJob that pushes the `*.internal.greyrock.io` Let's Encrypt certificate to one SuperMicro IPMI BMC (`kvm-homeassistant.internal.greyrock.io`, 10.1.20.14).
 
 ## Goal
