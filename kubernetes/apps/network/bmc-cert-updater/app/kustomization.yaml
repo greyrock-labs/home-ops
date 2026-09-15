@@ -6,3 +6,11 @@ resources:
   - ./certificate.yaml
   - ./externalsecret.yaml
   - ./ocirepository.yaml
+configMapGenerator:
+  - name: bmc-cert-updater
+    files:
+      - config/push-certs.sh
+generatorOptions:
+  disableNameSuffixHash: true
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled
