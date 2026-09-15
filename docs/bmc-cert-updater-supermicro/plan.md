@@ -352,8 +352,10 @@ The script below uses the field names **as captured in Task 1's recon.md**. If r
 ```sh
 #!/bin/sh
 # Pushes the *.internal.greyrock.io certificate to the SuperMicro IPMI BMC
-# at kvm-homeassistant.internal.greyrock.io via the BMC web API
-# (login -> fetch cert page -> parse CSRF -> upload cert+key).
+# at kvm-homeassistant.internal.greyrock.io via the BMC web API:
+# login (X11 firmware: base64 username/password + check=00) -> fetch cert
+# page -> parse CSRF (SmcCsrfInsert("CSRF_TOKEN", "...")) -> upload cert+key
+# with Origin/Referer/CSRF_TOKEN headers -> verify-after-BMC-restart.
 # Offline self-test: push-certs-supermicro.sh --self-test
 
 set -eu
@@ -362,17 +364,10 @@ CERT_FILE="${CERT_FILE:-/certs/tls.crt}"
 KEY_FILE="${KEY_FILE:-/certs/tls.key}"
 TARGET="homeassistant|kvm-homeassistant.internal.greyrock.io"
 
-# Field names confirmed by Task 1 (recon.md). Edit here only.
+# URLs captured by Task 1 (recon.md). Edit only if recon finds different values.
 LOGIN_URL="${LOGIN_URL:-https://${TARGET#*|}/cgi/login.cgi}"
-CERT_PAGE_URL="${CERT_PAGE_URL:-https://${TARGET#*|}/cgi/url_redirect.cgi?url_name=ssl_cert_upload}"
+CERT_PAGE_URL="${CERT_PAGE_URL:-https://${TARGET#*|}/cgi/url_redirect.cgi?url_name=config_ssl}"
 UPLOAD_URL="${UPLOAD_URL:-https://${TARGET#*|}/cgi/upload_ssl.cgi}"
-# A whitespace-separated list of candidate form-field names; each will be
-# tried against the cert page's first non-empty input value in order.
-CSRF_FIELD_NAMES="${CSRF_FIELD_NAMES:-_csrf_token csrf_token TOKEN csrftoken}"
-LOGIN_USER_FIELD="${LOGIN_USER_FIELD:-name}"
-LOGIN_PASS_FIELD="${LOGIN_PASS_FIELD:-pwd}"
-UPLOAD_CERT_FIELD="${UPLOAD_CERT_FIELD:-cert_file}"
-UPLOAD_KEY_FIELD="${UPLOAD_KEY_FIELD:-key_file}"
 
 CURL="curl -k -sS --connect-timeout 10 --max-time 60"
 
@@ -395,21 +390,28 @@ desired_leaf() {
     first_leaf "$CERT_FILE" | tr -d '\r'
 }
 
-# Fetch the cert-upload page HTML and print the first non-empty value of
-# any form <input> whose `name` attribute is one of $CSRF_FIELD_NAMES.
-# The order in CSRF_FIELD_NAMES controls preference.
+# X11 firmware: login body fields are base64-encoded. `base64 | tr -d '\n'`
+# produces a single base64 string (macOS base64 lacks -w).
+b64() { printf '%s' "$1" | base64 | tr -d '\n'; }
+
+# Extract the CSRF token from the cert-upload page. The X11 firmware embeds
+# it via a JavaScript call SmcCsrfInsert("CSRF_TOKEN", "<token>"); we capture
+# the token value out of that line.
 extract_csrf() {
-    jar="$1"
-    page="$2"
+    page="$1"
+    jar="$2"
     body=$(mktemp)
     # shellcheck disable=SC2086
-    $CURL -b "$jar" -o "$body" "$page" || { echo ""; rm -f "$body"; return; }
-    for name in $CSRF_FIELD_NAMES; do
-        v=$(awk -v n="$name" '
-            tolower($0) ~ "<input[^>]*" { if (match($0, "name=\"" n "\"")) { p=1 } else if (match($0, "name=\"")) { p=0 } if (p && match($0, "value=\"[^\"]*\"")) { gsub(/.*value="/,""); gsub(/\".*/,""); print; exit } }
-        ' "$body")
-        [ -n "$v" ] && { rm -f "$body"; printf '%s' "$v"; return; }
-    done
+    $CURL -b "$jar" -o "$body" "$page" 2>/dev/null || { echo ""; rm -f "$body"; return; }
+    awk '
+        match($0, /SmcCsrfInsert[[:space:]]*\([[:space:]]*"CSRF_TOKEN"[[:space:]]*,[[:space:]]*"[^"]*"/) {
+            m = substr($0, RSTART, RLENGTH)
+            sub(/.*"CSRF_TOKEN"[[:space:]]*,[[:space:]]*"/, "", m)
+            sub(/".*/, "", m)
+            print m
+            exit
+        }
+    ' "$body"
     rm -f "$body"
 }
 
@@ -421,23 +423,26 @@ push_one() {
     username="${UPDATER_USERNAME:?UPDATER_USERNAME not set}"
     password="${HOMEASSISTANT_PASSWORD:?HOMEASSISTANT_PASSWORD not set}"
 
-    # Login.
+    # Login (X11 firmware: name/pwd base64-encoded, plus check=00).
     rm -f "$jar"
     # shellcheck disable=SC2086
-    $CURL -c "$jar" \
-        --data-urlencode "$LOGIN_USER_FIELD=$username" \
-        --data-urlencode "$LOGIN_PASS_FIELD=$password" \
-        "$base/cgi/login.cgi" >/dev/null 2>&1 || true
+    $CURL -c "$jar" --fail \
+        --data-urlencode "name=$(b64 "$username")" \
+        --data-urlencode "pwd=$(b64 "$password")" \
+        --data-urlencode "check=00" \
+        "$LOGIN_URL" >/dev/null || { echo "$name: login request failed"; rm -f "$jar"; return 1; }
+
+    # Auth detection: the X11 firmware always issues at least the SID
+    # cookie via Set-Cookie on successful login.
     if ! grep -q . "$jar" 2>/dev/null; then
         echo "$name: login failed (no session cookie issued)"
         rm -f "$jar"; return 1
     fi
 
-    # Pull CSRF for the cert page.
-    cert_page="$base/cgi/url_redirect.cgi?url_name=ssl_cert_upload"
-    csrf=$(extract_csrf "$jar" "$cert_page")
+    # Pull CSRF from the cert page.
+    csrf=$(extract_csrf "$CERT_PAGE_URL" "$jar")
     if [ -z "$csrf" ]; then
-        echo "$name: login might have failed or csrf token absent in cert page"
+        echo "$name: csrf token absent on cert page"
         rm -f "$jar"; return 1
     fi
 
@@ -449,13 +454,18 @@ push_one() {
         rm -f "$jar"; return 0
     fi
 
-    # Upload cert + key + csrf.
+    # Upload: send CSRF as both an HTTP header and a multipart form field
+    # (the X11 firmware accepts either, the community script sends both
+    # for safety). Origin and Referer must match.
     # shellcheck disable=SC2086
     $CURL -b "$jar" --fail \
-        -F "$UPLOAD_CERT_FIELD=@$CERT_FILE" \
-        -F "$UPLOAD_KEY_FIELD=@$KEY_FILE" \
-        -F "${CSRF_FIELD_NAMES%% *}=$csrf" \
-        "$base/cgi/upload_ssl.cgi" >/dev/null || {
+        -H "Origin: $base" \
+        -H "Referer: $CERT_PAGE_URL" \
+        -H "CSRF_TOKEN: $csrf" \
+        -F "cert_file=@$CERT_FILE" \
+        -F "key_file=@$KEY_FILE" \
+        -F "CSRF_TOKEN=$csrf" \
+        "$UPLOAD_URL" >/dev/null || {
         echo "$name: certificate upload failed"
         rm -f "$jar"; return 1
     }
@@ -496,17 +506,24 @@ EOF
     [ "$(printf '%s\n' "$leaf" | sed -n '2p')" = "LEAFAAABBBCCC" ] || { echo "self-test FAIL: leaf extraction picked wrong block"; rm -rf "$tmp"; return 1; }
     [ "$(printf '%s\n' "$leaf" | sed -n '3p')" = "-----END CERTIFICATE-----" ] || { echo "self-test FAIL: leaf block not terminated"; rm -rf "$tmp"; return 1; }
 
-    # Fixture 2: CSRF extraction from a cert-upload page HTML fixture.
+    # Fixture 2: CSRF extraction against the X11 SmcCsrfInsert script block.
     cat >"$tmp/page.html" <<'EOF'
-<html><body><form action="/cgi/upload_ssl.cgi" method="POST">
-  <input type="hidden" name="_csrf_token" value="abc12345TOKEN"/>
+<html><head><script>
+SmcCsrfInsert("CSRF_TOKEN", "abc12345TOKEN");
+</script></head><body>
+<form action="/cgi/upload_ssl.cgi" method="POST" enctype="multipart/form-data">
   <input type="file" name="cert_file"/>
   <input type="file" name="key_file"/>
 </form></body></html>
 EOF
-    csrf=$(awk -v n="_csrf_token" '
-        /<input/ { p=0; if (index($0, "name=\"" n "\"") > 0) p=1 }
-        p && /value="/ { gsub(/.*value="/,""); gsub(/\".*/,""); print; exit }
+    csrf=$(awk '
+        match($0, /SmcCsrfInsert[[:space:]]*\([[:space:]]*"CSRF_TOKEN"[[:space:]]*,[[:space:]]*"[^"]*"/) {
+            m = substr($0, RSTART, RLENGTH)
+            sub(/.*"CSRF_TOKEN"[[:space:]]*,[[:space:]]*"/, "", m)
+            sub(/".*/, "", m)
+            print m
+            exit
+        }
     ' "$tmp/page.html")
     [ "$csrf" = "abc12345TOKEN" ] || { echo "self-test FAIL: csrf extract returned '$csrf'"; rm -rf "$tmp"; return 1; }
 
