@@ -5,3 +5,11 @@ kind: Kustomization
 resources:
   - ./externalsecret.yaml
   - ./ocirepository.yaml
+configMapGenerator:
+  - name: bmc-cert-updater-supermicro
+    files:
+      - config/push-certs-supermicro.sh
+generatorOptions:
+  disableNameSuffixHash: true
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled
