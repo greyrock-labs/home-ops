@@ -7,7 +7,9 @@ metadata:
 spec:
   dependsOn:
     - name: cert-manager
+      namespace: cert-manager
     - name: external-secrets
+      namespace: external-secrets
   interval: 1h
   path: "./kubernetes/apps/network/bmc-cert-updater/app"
   prune: true
