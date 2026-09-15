@@ -49,15 +49,23 @@ push_one() {
     password=$(password_for "$name")
 
     # Login: form-encoded credentials, JSON response carries the CSRF token.
+    # The ASRock Rack BMC writes JSON keys with a space after the colon
+    # ("CSRFToken": "value") and may return "ok": 0 while still issuing a
+    # usable CSRFToken + session cookie, so we treat presence of CSRFToken
+    # as success and only fail when the token is genuinely absent.
     # shellcheck disable=SC2086
     response=$($CURL --cookie-jar "$jar" \
         --data-urlencode "username=$username" \
         --data-urlencode "password=$password" \
         "$base/api/session") || { echo "$name: login request failed"; return 1; }
-    token=$(printf '%s' "$response" | sed -n 's/.*"CSRFToken":"\([^"]*\)".*/\1/p')
+    token=$(printf '%s' "$response" | sed -n 's/.*"CSRFToken"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
+    ok=$(printf '%s' "$response" | sed -n 's/.*"ok"[[:space:]]*:[[:space:]]*\([01]\).*/\1/p' | head -1)
     if [ -z "$token" ]; then
         echo "$name: login failed (no CSRFToken in response)"
         return 1
+    fi
+    if [ "$ok" = "0" ]; then
+        echo "$name: BMC returned ok=0; proceeding with issued CSRFToken"
     fi
 
     desired=$(desired_leaf)
