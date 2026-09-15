@@ -87,7 +87,7 @@ recyclarr/towonel-agent convention:
 ks.yaml                     # targetNamespace: network; dependsOn: [cert-manager, external-secrets]
 app/certificate.yaml
 app/ciliumnetworkpolicy.yaml
-app/configmap.yaml          # push script + BMC target list
+app/config/push-certs.sh    # push script (configMapGenerator -> ConfigMap bmc-cert-updater)
 app/externalsecret.yaml
 app/helmrelease.yaml
 app/kustomization.yaml
