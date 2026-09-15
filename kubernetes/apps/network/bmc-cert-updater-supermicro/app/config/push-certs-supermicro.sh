@@ -1,9 +1,9 @@
 #!/bin/sh
 # Pushes the *.internal.greyrock.io certificate to the SuperMicro IPMI BMC
 # at kvm-homeassistant.internal.greyrock.io via the BMC web API:
-# login (X11 firmware: base64 username/password + check=00) -> fetch cert
-# page -> parse CSRF (SmcCsrfInsert("CSRF_TOKEN", "...")) -> upload cert+key
-# with Origin/Referer/CSRF_TOKEN headers -> verify-after-BMC-restart.
+# login (raw name/pwd form-encoded) -> fetch cert page -> parse CSRF
+# (SmcCsrfInsert("CSRF_TOKEN", "...")) -> upload cert+key with
+# Origin/Referer/CSRF_TOKEN headers -> verify-after-BMC-restart.
 # Offline self-test: push-certs-supermicro.sh --self-test
 
 set -eu
@@ -38,10 +38,6 @@ desired_leaf() {
     first_leaf "$CERT_FILE" | tr -d '\r'
 }
 
-# X11 firmware: login body fields are base64-encoded. `base64 | tr -d '\n'`
-# produces a single base64 string (macOS base64 lacks -w).
-b64() { printf '%s' "$1" | base64 | tr -d '\n'; }
-
 # Extract the CSRF token from the cert-upload page. The X11 firmware embeds
 # it via a JavaScript call SmcCsrfInsert("CSRF_TOKEN", "<token>"); we capture
 # the token value out of that line.
@@ -71,13 +67,14 @@ push_one() {
     username="${UPDATER_USERNAME:?UPDATER_USERNAME not set}"
     password="${HOMEASSISTANT_PASSWORD:?HOMEASSISTANT_PASSWORD not set}"
 
-    # Login (X11 firmware: name/pwd base64-encoded, plus check=00).
+    # Login (raw form-encoded name/pwd, no check field — confirmed against
+    # this BMC's MegaRAC IPMI 03.95 firmware; base64+check=00 was rejected
+    # by the firmware on actual probes).
     rm -f "$jar"
     # shellcheck disable=SC2086
     $CURL -c "$jar" --fail \
-        --data-urlencode "name=$(b64 "$username")" \
-        --data-urlencode "pwd=$(b64 "$password")" \
-        --data-urlencode "check=00" \
+        --data-urlencode "name=$username" \
+        --data-urlencode "pwd=$password" \
         "$LOGIN_URL" >/dev/null || { echo "$name: login request failed"; rm -f "$jar"; return 1; }
 
     # Auth detection: the X11 firmware always issues at least the SID
