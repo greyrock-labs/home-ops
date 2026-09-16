@@ -27,6 +27,41 @@ spec:
             runAsGroup: 100
             runAsNonRoot: true
             runAsUser: 100
+        initContainers:
+          # The printer refuses a PKCS#12 that carries CA certificates, and it
+          # predates the AES/PBKDF2 defaults, so build a leaf-only bundle with
+          # the SHA-1/3DES algorithms its firmware understands. cert-manager's
+          # own keystore cannot be used: it always embeds the chain.
+          bundle:
+            image:
+              repository: docker.io/alpine/openssl
+              tag: 3.5.8@sha256:f6def4887e8413b228b66f314d0bcf5c25b128d918a258f3b0b9d66a0327edcb
+            command:
+              - /bin/sh
+              - -c
+              - |
+                set -eu
+                awk '/-----BEGIN CERTIFICATE-----/{f=1} f{print} f && /-----END CERTIFICATE-----/{exit}' \
+                  /certs/tls.crt > /work/leaf.crt
+                openssl pkcs12 -export -out /work/cert.p12 \
+                  -inkey /certs/tls.key -in /work/leaf.crt \
+                  -macalg sha1 -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES \
+                  -passout "pass:${BROTHER_P12_PASSWORD}"
+            envFrom:
+              - secretRef:
+                  name: printer-cert-updater-secret
+            resources:
+              requests:
+                cpu: 10m
+                memory: 16Mi
+              limits:
+                memory: 64Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              readOnlyRootFilesystem: true
         containers:
           app:
             image:
@@ -75,3 +110,7 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /tmp
+      work:
+        type: emptyDir
+        globalMounts:
+          - path: /work

@@ -4,7 +4,22 @@
 #
 # Flow mirrors justjanne/brother-client (Go): log in once and keep the session
 # cookie -> list certificates -> delete our previous copies -> import the
-# PKCS#12 that cert-manager writes into the TLS secret.
+# PKCS#12 that the initContainer builds from the TLS secret.
+#
+# Two things about this firmware are worth knowing, because neither is
+# discoverable from the HTML and both fail silently:
+#
+#   - Every POST must carry a Referer header. Without one the printer answers
+#     "Your request was rejected. Please try again." curl sends no Referer of
+#     its own, which is why this needs setting by hand.
+#
+#   - The bundle must contain the leaf certificate only. A PKCS#12 carrying the
+#     CA chain is refused, which is why the initContainer builds one rather than
+#     using cert-manager's keystore.
+#
+# The "Please wait" page the import returns is not a success signal -- it comes
+# back even for a request with no file attached at all. The certificate list is
+# the only thing worth believing.
 #
 # The HTTPS certificate slot is assigned ONCE by hand in the printer's web UI.
 # Brother reuses the lowest free slot index, so deleting our own certificate and
@@ -18,7 +33,7 @@
 set -eu
 
 CERT_FILE="${CERT_FILE:-/certs/tls.crt}"
-P12_FILE="${P12_FILE:-/certs/keystore.p12}"
+P12_FILE="${P12_FILE:-/work/cert.p12}"
 PRINTER_HOST="${PRINTER_HOST:-brother-printer.internal.greyrock.io}"
 BASE="https://${PRINTER_HOST}"
 WORK="${WORK:-/tmp}"
@@ -231,6 +246,7 @@ login() {
 
     # shellcheck disable=SC2086
     $CURL --cookie-jar "$JAR" \
+        --referer "$BASE/general/status.html" \
         --data-urlencode "B15bd=$password" \
         --data-urlencode "loginurl=/general/status.html" \
         -o /dev/null \
@@ -306,6 +322,7 @@ delete_cert() {
     url=$(form_url "$page" cert_delete "net/security/certificate/delete.html?idx=$idx")
     # shellcheck disable=SC2086
     $CURL --cookie "$JAR" --cookie-jar "$JAR" \
+        --referer "$BASE/net/security/certificate/delete.html?idx=$idx" \
         -H "Content-Type: application/x-www-form-urlencoded" \
         --data-binary "@$body" -o /dev/null \
         "$url" || {
@@ -341,6 +358,7 @@ import_p12() {
     url=$(form_url "$page" cert_import "net/security/certificate/import.html")
     # shellcheck disable=SC2086
     $CURL --cookie "$JAR" --cookie-jar "$JAR" \
+        --referer "$BASE/net/security/certificate/import.html" \
         -H "Content-Type: multipart/form-data; boundary=$boundary" \
         --data-binary "@$body" -o "$result" \
         "$url" || {

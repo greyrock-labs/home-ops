@@ -10,16 +10,6 @@ spec:
   issuerRef:
     kind: ClusterIssuer
     name: letsencrypt-production-classic
-  keystores:
-    # Brother's web UI imports a certificate + key only as a PKCS#12 bundle, and
-    # its firmware predates the AES/PBKDF2 defaults, so ask for the 3DES/SHA-1
-    # profile. cert-manager rejects an empty keystore password.
-    pkcs12:
-      create: true
-      passwordSecretRef:
-        name: internal-greyrock-io-p12-password
-        key: password
-      profile: LegacyDES
   privateKey:
     algorithm: RSA
     rotationPolicy: Always
