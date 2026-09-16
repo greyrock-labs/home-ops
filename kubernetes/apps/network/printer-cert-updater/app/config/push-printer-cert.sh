@@ -494,26 +494,38 @@ push_one() {
             echo "could not reload the import page" >&2
             return 1
         }
+        fetch "net/security/certificate/certificate.html" "$listpage" || {
+            echo "could not re-read the certificate list" >&2
+            return 1
+        }
     fi
+
+    # Record the slots in use right before importing. The new certificate is
+    # whichever slot appears afterwards -- matching on the name instead would
+    # only prove that some certificate with this CN is listed, which an older
+    # copy would satisfy just as well.
+    before=$(list_certs "$listpage" | cut -f1 | sort -n | tr '\n' ' ')
 
     echo "importing $cn"
     import_p12 "$importpage" || return 1
 
-    # Confirm the printer actually stored it.
+    # Wait for a slot that was not there before the import.
+    slot=""
     i=1
     while [ "$i" -le 12 ]; do
         sleep 5
         if fetch "net/security/certificate/certificate.html" "$listpage"; then
-            if list_certs "$listpage" | awk -F'\t' -v cn="$cn" '$2 == cn { found = 1 } END { exit !found }'; then
-                slot=$(list_certs "$listpage" | awk -F'\t' -v cn="$cn" '$2 == cn { print $1; exit }')
+            slot=$(list_certs "$listpage" | cut -f1 | awk -v before=" $before " '
+                index(before, " " $0 " ") == 0 { print; exit }')
+            if [ -n "$slot" ]; then
                 echo "imported $cn into slot $slot"
                 break
             fi
         fi
         i=$((i + 1))
     done
-    if [ "$i" -gt 12 ]; then
-        echo "import reported success but the certificate is not listed" >&2
+    if [ -z "$slot" ]; then
+        echo "import reported success but no new certificate appeared" >&2
         return 1
     fi
 
@@ -653,6 +665,19 @@ EOF
 EOF
     got=$(form_fields "$tmp/sel2.html" http_setting query "" B15e8)
     [ "$got" = "pageid=403" ] || { echo "FAIL: select skip: '$got'"; rc=1; }
+
+    # The new slot is the one absent from the pre-import set, whatever it is
+    # called. A stale copy sharing the CN must not satisfy it.
+    newslot() { cut -f1 | awk -v before=" $1 " 'index(before, " " $0 " ") == 0 { print; exit }'; }
+    got=$(printf '1\tx\n2\tx\n5\tx\n' | newslot "1 2")
+    [ "$got" = "5" ] || { echo "FAIL: new slot detection: '$got'"; rc=1; }
+    got=$(printf '2\tx\n' | newslot "1 2")
+    [ -z "$got" ] || { echo "FAIL: unchanged list must yield no slot: '$got'"; rc=1; }
+    got=$(printf '3\tx\n' | newslot "")
+    [ "$got" = "3" ] || { echo "FAIL: empty pre-import set: '$got'"; rc=1; }
+    # A slot whose number is a substring of another must not false-match.
+    got=$(printf '1\tx\n2\tx\n' | newslot "1 12")
+    [ "$got" = "2" ] || { echo "FAIL: substring slot match: '$got'"; rc=1; }
 
     # A missing form is an error, not silently empty output.
     form_fields "$tmp/scope.html" nosuchform query >/dev/null 2>&1 &&
