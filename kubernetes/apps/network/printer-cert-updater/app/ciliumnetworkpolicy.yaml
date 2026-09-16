@@ -10,12 +10,12 @@ spec:
       app.kubernetes.io/name: printer-cert-updater
       app.kubernetes.io/instance: printer-cert-updater
   egress:
+    # Cilium rejects a rule carrying both toCIDR and toEntities, and an invalid
+    # policy is never imported -- which leaves block-all-egress denying
+    # everything. The printer is a plain address outside the cluster, so the
+    # CIDR alone is what is needed. DNS comes from allow-dns-egress.
     - toCIDR:
         - 10.1.10.218/32
-      toEntities:
-        - host
-        - cluster
-        - world
       toPorts:
         - ports:
             - port: "443"
