@@ -1,0 +1,22 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/cilium.io/ciliumnetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: printer-cert-updater
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: printer-cert-updater
+      app.kubernetes.io/instance: printer-cert-updater
+  egress:
+    - toCIDR:
+        - 10.1.10.218/32
+      toEntities:
+        - host
+        - cluster
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
