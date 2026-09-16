@@ -6,6 +6,7 @@ resources:
   - ./certificate.yaml
   - ./ciliumnetworkpolicy.yaml
   - ./externalsecret.yaml
+  - ./externalsecret-keystore.yaml
   - ./helmrelease.yaml
   - ./ocirepository.yaml
 configMapGenerator:
