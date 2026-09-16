@@ -19,7 +19,7 @@ CERT_PAGE_URL="${CERT_PAGE_URL:-https://${TARGET#*|}/cgi/url_redirect.cgi?url_na
 UPLOAD_URL="${UPLOAD_URL:-https://${TARGET#*|}/cgi/upload_ssl.cgi}"
 RESET_URL="${RESET_URL:-https://${TARGET#*|}/cgi/BMCReset.cgi}"
 
-CURL="curl -k -sS --connect-timeout 10 --max-time 60"
+CURL="curl -k -sS --connect-timeout 15 --max-time 60"
 
 # Print only the first (leaf) certificate block of a PEM bundle on disk or stdin.
 first_leaf() {
@@ -95,13 +95,27 @@ push_one() {
 
     # Login (raw form-encoded name/pwd, no check field — confirmed against
     # this BMC's MegaRAC IPMI 03.95 firmware; base64+check=00 was rejected
-    # by the firmware on actual probes).
+    # by the firmware on actual probes). The BMC webserver takes ~10-15s
+    # to come up after main_bmcreset, so retry a few times with backoff
+    # before giving up — covers running this script immediately after a
+    # prior upload+reset on the same BMC.
     rm -f "$jar"
-    # shellcheck disable=SC2086
-    $CURL -c "$jar" --fail \
-        --data-urlencode "name=$username" \
-        --data-urlencode "pwd=$password" \
-        "$LOGIN_URL" >/dev/null || { echo "$name: login request failed"; rm -f "$jar"; return 1; }
+    login_ok=
+    for attempt in 1 2 3 4 5; do
+        # shellcheck disable=SC2086
+        if $CURL -c "$jar" --fail \
+            --data-urlencode "name=$username" \
+            --data-urlencode "pwd=$password" \
+            "$LOGIN_URL" >/dev/null 2>&1; then
+            login_ok=1; break
+        fi
+        echo "$name: login attempt $attempt failed, retrying in 8s" >&2
+        sleep 8
+    done
+    if [ -z "$login_ok" ]; then
+        echo "$name: login failed after 5 attempts"
+        rm -f "$jar"; return 1
+    fi
 
     # Auth detection: the X11 firmware always issues at least the SID
     # cookie via Set-Cookie on successful login.

@@ -21,6 +21,7 @@ spec:
           successfulJobsHistory: 1
           ttlSecondsAfterFinished: 3600
         pod:
+          hostNetwork: true
           labels:
             egress.policy.home.arpa/block-all: "true"
           securityContext:
