@@ -66,9 +66,16 @@ desired_leaf() {
 }
 
 # PEM of the leaf certificate currently served by $1 (URL).
+# The curl call is deliberately NOT part of a pipeline. A pipeline takes its
+# status from the last command, so "curl | first_leaf | tr" reports success even
+# when curl never connected, and an empty result compares unequal to the desired
+# certificate -- which reads as "the certificate changed" and triggers a needless
+# upload on nothing worse than a transient timeout.
 served_leaf() {
     # shellcheck disable=SC2086
-    $CURL -o /dev/null -w '%{certs}' "${1:?no url}" | first_leaf | tr -d '\r'
+    certs=$($CURL -o /dev/null -w '%{certs}' "${1:?no url}") || return 1
+    [ -n "$certs" ] || return 1
+    printf '%s\n' "$certs" | first_leaf | tr -d '\r'
 }
 
 
@@ -682,6 +689,10 @@ EOF
     # A missing form is an error, not silently empty output.
     form_fields "$tmp/scope.html" nosuchform query >/dev/null 2>&1 &&
         { echo "FAIL: missing form should fail"; rc=1; }
+
+    # An unreachable host must fail, not return empty output successfully.
+    CURL="curl -k -sS --connect-timeout 2 --max-time 3" served_leaf "https://192.0.2.1" >/dev/null 2>&1 &&
+        { echo "FAIL: served_leaf should succeed only when it really read a cert"; rc=1; }
 
     rm -rf "$tmp"
     [ "$rc" -eq 0 ] && echo "self-test: all fixtures passed"

@@ -31,9 +31,16 @@ first_leaf() {
 }
 
 # PEM of the leaf certificate currently served by $1 (URL).
+# The curl call is deliberately NOT part of a pipeline. A pipeline takes its
+# status from the last command, so "curl | first_leaf | tr" reports success even
+# when curl never connected, and an empty result compares unequal to the desired
+# certificate -- which reads as "the certificate changed" and triggers a needless
+# upload on nothing worse than a transient timeout.
 served_leaf() {
     # shellcheck disable=SC2086
-    $CURL -o /dev/null -w '%{certs}' "${1:?no url}" | first_leaf | tr -d '\r'
+    certs=$($CURL -o /dev/null -w '%{certs}' "${1:?no url}") || return 1
+    [ -n "$certs" ] || return 1
+    printf '%s\n' "$certs" | first_leaf | tr -d '\r'
 }
 
 desired_leaf() {
@@ -230,6 +237,13 @@ EOF
     a=$(printf -- '-----BEGIN CERTIFICATE-----\r\nX\r\n-----END CERTIFICATE-----\r\n' | tr -d '\r')
     b=$(printf -- '-----BEGIN CERTIFICATE-----\nX\n-----END CERTIFICATE-----\n')
     [ "$a" = "$b" ] || { echo "self-test FAIL: CRLF normalization"; rm -rf "$tmp"; return 1; }
+
+    # An unreachable host must FAIL, not return empty output successfully.
+    if CURL="curl -k -sS --connect-timeout 2 --max-time 3" served_leaf "https://192.0.2.1" >/dev/null 2>&1; then
+        echo "self-test FAIL: served_leaf reported success for an unreachable host"
+        rm -rf "$tmp"
+        return 1
+    fi
 
     rm -rf "$tmp"
     echo "self-test: all fixtures passed"
