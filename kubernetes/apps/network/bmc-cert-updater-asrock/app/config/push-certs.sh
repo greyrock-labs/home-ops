@@ -41,9 +41,14 @@ first_leaf() {
 # when curl never connected, and an empty result compares unequal to the desired
 # certificate -- which reads as "the certificate changed" and triggers a needless
 # upload on nothing worse than a transient timeout.
+# $2, when given, is a curl command to use in place of the default. The
+# skip-check passes the retrying one: kerfuffle drops a large share of
+# connections, and a probe that gives up on the first timeout now fails the run
+# rather than silently reporting "no certificate served".
 served_leaf() {
+    _curl="${2:-$CURL}"
     # shellcheck disable=SC2086
-    certs=$($CURL -o /dev/null -w '%{certs}' "${1:?no url}") || return 1
+    certs=$($_curl -o /dev/null -w '%{certs}' "${1:?no url}") || return 1
     [ -n "$certs" ] || return 1
     printf '%s\n' "$certs" | first_leaf | tr -d '\r'
 }
@@ -81,7 +86,7 @@ push_one() {
     fi
 
     desired=$(desired_leaf)
-    current=$(served_leaf "$base") || { echo "$name: could not fetch served certificate"; return 1; }
+    current=$(served_leaf "$base" "$CURL_RETRY") || { echo "$name: could not fetch served certificate"; return 1; }
 
     if [ "$current" = "$desired" ]; then
         echo "$name: certificate unchanged, skipping"
