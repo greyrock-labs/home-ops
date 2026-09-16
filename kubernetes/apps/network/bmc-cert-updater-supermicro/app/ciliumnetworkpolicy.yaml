@@ -10,12 +10,12 @@ spec:
       app.kubernetes.io/name: bmc-cert-updater-supermicro
       app.kubernetes.io/instance: bmc-cert-updater-supermicro
   egress:
+    # Cilium rejects a rule carrying both toCIDR and toEntities, and an invalid
+    # policy is never imported -- which leaves block-all-egress denying
+    # everything. The BMCs are plain addresses outside the cluster, so the CIDR
+    # alone is what is needed. DNS comes from allow-dns-egress.
     - toCIDR:
         - 10.1.20.14/32
-      toEntities:
-        - host
-        - cluster
-        - world
       toPorts:
         - ports:
             - port: "443"
