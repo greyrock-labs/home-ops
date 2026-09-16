@@ -13,6 +13,7 @@ resources:
   - ./echo-server/ks.yaml
   - ./envoy-gateway/ks.yaml
   - ./external-dns/ks.yaml
+  - ./internal-greyrock-io-cert/ks.yaml
   - ./multus/ks.yaml
   - ./printer-cert-updater-brother/ks.yaml
   - ./towonel-agent/ks.yaml

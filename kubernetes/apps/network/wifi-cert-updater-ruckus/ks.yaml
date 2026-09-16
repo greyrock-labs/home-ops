@@ -10,6 +10,7 @@ spec:
       namespace: cert-manager
     - name: external-secrets
       namespace: external-secrets
+    - name: internal-greyrock-io-cert
   interval: 1h
   path: "./kubernetes/apps/network/wifi-cert-updater-ruckus/app"
   prune: true
