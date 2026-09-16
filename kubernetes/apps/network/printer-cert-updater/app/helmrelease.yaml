@@ -14,7 +14,9 @@ spec:
       printer-cert-updater:
         type: cronjob
         cronjob:
-          schedule: "@daily"
+          # Activating a certificate restarts the printer's web server, so run
+          # this at midday rather than overnight.
+          schedule: "0 12 * * *"
           backoffLimit: 0
           concurrencyPolicy: Forbid
           failedJobsHistory: 1
