@@ -35,6 +35,10 @@ set -eu
 CERT_FILE="${CERT_FILE:-/certs/tls.crt}"
 P12_FILE="${P12_FILE:-/work/cert.p12}"
 PRINTER_HOST="${PRINTER_HOST:-brother-printer.internal.greyrock.io}"
+# The <select> on the HTTP settings page that picks the server certificate.
+# It is B15e8 on the MFC-L8900CDW; justjanne/brother-client hardcodes B12c9,
+# which is what the QL series calls the same field.
+CERT_SELECT_FIELD="${CERT_SELECT_FIELD:-B15e8}"
 BASE="https://${PRINTER_HOST}"
 WORK="${WORK:-/tmp}"
 
@@ -376,6 +380,62 @@ import_p12() {
     rm -f "$result"
 }
 
+# Point the HTTPS server at slot $1. Two steps, as the web UI does it: post the
+# settings form with the certificate selected, then commit with http_page_mode=5,
+# which restarts the printer's web server.
+#
+# Only inputs that are actually checked are sent back. That form carries every
+# protocol toggle on the page (IPP, Web Services, redirect-to-HTTPS), and
+# replaying the unchecked ones would quietly switch them on.
+activate_http_cert() {
+    idx="${1:?no idx}"
+    page="$WORK/http.html"
+    fetch "net/net/certificate/http.html" "$page" || {
+        echo "could not load the HTTP settings page" >&2
+        return 1
+    }
+    url=$(form_url "$page" http_setting "net/net/certificate/http.html")
+
+    body="$WORK/http.body"
+    {
+        form_fields "$page" http_setting query "" "$CERT_SELECT_FIELD" || exit 1
+        printf '&%s=%s' "$CERT_SELECT_FIELD" "$idx"
+    } >"$body" || {
+        echo "could not parse the http_setting form" >&2
+        return 1
+    }
+
+    selected="$WORK/http-selected.html"
+    # shellcheck disable=SC2086
+    $CURL --cookie "$JAR" --cookie-jar "$JAR" \
+        --referer "$BASE/net/net/certificate/http.html" \
+        -H "Content-Type: application/x-www-form-urlencoded" \
+        --data-binary "@$body" -o "$selected" "$url" || {
+        echo "selecting the certificate failed" >&2
+        return 1
+    }
+    if grep -q 'postError' "$selected" 2>/dev/null; then
+        echo "the printer rejected the certificate selection" >&2
+        return 1
+    fi
+
+    # Commit. The printer answers, then restarts its web server.
+    commit="$WORK/http-commit.body"
+    form_fields "$selected" http_setting query | tr '&' '\n' \
+        | grep -E '^(CSRFToken|pageid)=' | tr '\n' '&' >"$commit"
+    printf 'http_page_mode=5' >>"$commit"
+
+    # shellcheck disable=SC2086
+    $CURL --cookie "$JAR" --cookie-jar "$JAR" \
+        --referer "$BASE/net/net/certificate/http.html" \
+        -H "Content-Type: application/x-www-form-urlencoded" \
+        --data-binary "@$commit" -o /dev/null "$url" || {
+        echo "committing the certificate selection failed" >&2
+        return 1
+    }
+    rm -f "$page" "$body" "$selected" "$commit"
+}
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -456,10 +516,12 @@ push_one() {
         return 1
     fi
 
-    # The HTTPS slot assignment is made by hand once; re-importing into the same
-    # slot keeps it. Report, but do not fail, if the printer has not picked it up.
+    echo "pointing HTTPS at slot $slot"
+    activate_http_cert "$slot" || return 1
+
+    # The web server restarts, so give it a few tries.
     i=1
-    while [ "$i" -le 6 ]; do
+    while [ "$i" -le 12 ]; do
         sleep 5
         if current=$(served_leaf "$BASE") && [ "$current" = "$desired" ]; then
             echo "printer is serving the new certificate"
@@ -467,8 +529,8 @@ push_one() {
         fi
         i=$((i + 1))
     done
-    echo "certificate imported, but the printer is still serving the old one --"
-    echo "assign slot ${slot:-?} to HTTPS once under Network > Security > Certificate."
+    echo "certificate activated but the printer is still serving the old one" >&2
+    return 1
 }
 
 # ---------------------------------------------------------------------------
@@ -569,6 +631,27 @@ EOF
     [ "$(BASE=https://p form_url "$tmp/act.html" none general/status.html)" \
         = "https://p/general/status.html" ] ||
         { echo "FAIL: absent form action"; rc=1; }
+
+    # The activation commit sends only these three fields.
+    cat >"$tmp/commit.html" <<'EOF'
+<form id="http_setting"><input type="hidden" name="pageid" value="403"/>
+<input type="hidden" name="CSRFToken" value="tok"/>
+<input type="checkbox" name="B150a" value="1" checked="checked"/>
+<input type="hidden" name="http_page_mode" value="0"/></form>
+EOF
+    got=$(form_fields "$tmp/commit.html" http_setting query | tr '&' '\n' \
+        | grep -E '^(CSRFToken|pageid)=' | tr '\n' '&')
+    got="${got}http_page_mode=5"
+    [ "$got" = "pageid=403&CSRFToken=tok&http_page_mode=5" ] ||
+        { echo "FAIL: activation commit body: '$got'"; rc=1; }
+
+    # Overriding the certificate select drops the parsed value, not adds to it.
+    cat >"$tmp/sel2.html" <<'EOF'
+<form id="http_setting"><input type="hidden" name="pageid" value="403"/>
+<select name="B15e8"><option value="0">Preset</option><option value="1" selected="selected">old</option></select></form>
+EOF
+    got=$(form_fields "$tmp/sel2.html" http_setting query "" B15e8)
+    [ "$got" = "pageid=403" ] || { echo "FAIL: select skip: '$got'"; rc=1; }
 
     # A missing form is an error, not silently empty output.
     form_fields "$tmp/scope.html" nosuchform query >/dev/null 2>&1 &&
