@@ -21,12 +21,14 @@
 # back even for a request with no file attached at all. The certificate list is
 # the only thing worth believing.
 #
-# The HTTPS certificate slot is assigned ONCE by hand in the printer's web UI.
-# Brother reuses the lowest free slot index, so deleting our own certificate and
-# immediately re-importing lands in the same slot and keeps that assignment.
-# This script therefore never posts the http_setting form -- that form carries
-# every protocol checkbox on the page, and replaying it would silently enable
-# the ones that are currently off.
+# Importing does not put a certificate into service, so this also points the
+# HTTPS server at the new slot and verifies the result. That form carries every
+# protocol toggle on the page, so only inputs that are genuinely checked are
+# sent back -- replaying the unchecked ones would quietly switch them on.
+#
+# Do not assume slot numbering: deleting a certificate does not renumber the
+# ones left behind, so the new slot is read back from the list rather than
+# guessed, and the HTTPS selection is set explicitly every time.
 #
 # Offline self-test: push-printer-cert.sh --self-test
 
@@ -487,8 +489,7 @@ push_one() {
             echo "removing previous copy of $cn (slot $idx)"
             delete_cert "$idx" || return 1
         done
-        # Slot indices are handed out lowest-free-first, so re-fetch the import
-        # page to pick up a fresh CSRF token after the delete.
+        # Re-fetch the import page for a fresh CSRF token after the delete.
         fetch "net/security/certificate/import.html" "$importpage" || {
             echo "could not reload the import page" >&2
             return 1
