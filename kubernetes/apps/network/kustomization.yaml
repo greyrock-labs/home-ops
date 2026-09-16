@@ -8,7 +8,7 @@ components:
   - ../../components/kopiur/secret
   - ../../components/namespace
 resources:
-  - ./bmc-cert-updater/ks.yaml
+  - ./bmc-cert-updater-asrock/ks.yaml
   - ./bmc-cert-updater-supermicro/ks.yaml
   - ./echo-server/ks.yaml
   - ./envoy-gateway/ks.yaml

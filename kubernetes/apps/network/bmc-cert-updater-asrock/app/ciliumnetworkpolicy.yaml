@@ -3,12 +3,12 @@
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: bmc-cert-updater
+  name: bmc-cert-updater-asrock
 spec:
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: bmc-cert-updater
-      app.kubernetes.io/instance: bmc-cert-updater
+      app.kubernetes.io/name: bmc-cert-updater-asrock
+      app.kubernetes.io/instance: bmc-cert-updater-asrock
   egress:
     - toCIDR:
         - 10.1.20.13/32

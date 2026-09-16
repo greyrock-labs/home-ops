@@ -9,7 +9,7 @@ resources:
   - ./helmrelease.yaml
   - ./ocirepository.yaml
 configMapGenerator:
-  - name: bmc-cert-updater
+  - name: bmc-cert-updater-asrock
     files:
       - config/push-certs.sh
 generatorOptions:

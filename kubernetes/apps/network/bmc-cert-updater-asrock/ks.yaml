@@ -3,7 +3,7 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: bmc-cert-updater
+  name: bmc-cert-updater-asrock
 spec:
   dependsOn:
     - name: cert-manager
@@ -11,7 +11,7 @@ spec:
     - name: external-secrets
       namespace: external-secrets
   interval: 1h
-  path: "./kubernetes/apps/network/bmc-cert-updater/app"
+  path: "./kubernetes/apps/network/bmc-cert-updater-asrock/app"
   prune: true
   sourceRef:
     kind: GitRepository
