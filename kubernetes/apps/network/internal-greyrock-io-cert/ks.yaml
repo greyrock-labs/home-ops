@@ -1,0 +1,28 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: internal-greyrock-io-cert
+spec:
+  dependsOn:
+    - name: cert-manager
+      namespace: cert-manager
+  healthChecks:
+    - apiVersion: cert-manager.io/v1
+      kind: Certificate
+      name: internal-greyrock-io
+      namespace: network
+  healthCheckExprs:
+    - apiVersion: cert-manager.io/v1
+      kind: Certificate
+      failed: status.conditions.filter(e, e.type == 'Ready').all(e, e.status == 'False')
+      current: status.conditions.filter(e, e.type == 'Ready').all(e, e.status == 'True')
+  interval: 1h
+  path: "./kubernetes/apps/network/internal-greyrock-io-cert/app"
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: network
