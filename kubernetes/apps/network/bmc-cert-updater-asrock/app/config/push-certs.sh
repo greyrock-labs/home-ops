@@ -12,6 +12,11 @@ TARGETS="codswallop|kvm-codswallop.internal.greyrock.io kerfuffle|kvm-kerfuffle.
 
 # shellcheck disable=SC2086
 CURL="curl -k -sS --connect-timeout 10 --max-time 60"
+# The kerfuffle BMC intermittently refuses TCP connections -- roughly two in
+# five attempts never complete the handshake and hit the connect timeout, while
+# the rest connect in a few milliseconds. Retry the login rather than writing
+# the whole host off for the day.
+CURL_RETRY="$CURL --retry 4 --retry-delay 5 --retry-connrefused --retry-all-errors"
 
 password_for() {
     case "${1:?no bmc name}" in
@@ -54,7 +59,7 @@ push_one() {
     # usable CSRFToken + session cookie, so we treat presence of CSRFToken
     # as success and only fail when the token is genuinely absent.
     # shellcheck disable=SC2086
-    response=$($CURL --cookie-jar "$jar" \
+    response=$($CURL_RETRY --cookie-jar "$jar" \
         --data-urlencode "username=$username" \
         --data-urlencode "password=$password" \
         "$base/api/session") || { echo "$name: login request failed"; return 1; }
