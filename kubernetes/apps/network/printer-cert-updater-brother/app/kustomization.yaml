@@ -8,9 +8,9 @@ resources:
   - ./helmrelease.yaml
   - ./ocirepository.yaml
 configMapGenerator:
-  - name: printer-cert-updater
+  - name: printer-cert-updater-brother
     files:
-      - config/push-printer-cert.sh
+      - config/push-certs.sh
 generatorOptions:
   disableNameSuffixHash: true
   annotations:

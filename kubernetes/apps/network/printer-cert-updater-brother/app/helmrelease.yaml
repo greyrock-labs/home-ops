@@ -3,15 +3,15 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: printer-cert-updater
+  name: printer-cert-updater-brother
 spec:
   chartRef:
     kind: OCIRepository
-    name: printer-cert-updater
+    name: printer-cert-updater-brother
   interval: 30m
   values:
     controllers:
-      printer-cert-updater:
+      printer-cert-updater-brother:
         type: cronjob
         cronjob:
           # Activating a certificate restarts the printer's web server, so run
@@ -51,7 +51,7 @@ spec:
                   -passout "pass:${BROTHER_P12_PASSWORD}"
             envFrom:
               - secretRef:
-                  name: printer-cert-updater-secret
+                  name: printer-cert-updater-brother-secret
             resources:
               requests:
                 cpu: 10m
@@ -71,12 +71,12 @@ spec:
               tag: 8.22.0@sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777
             command:
               - /bin/sh
-              - /script/push-printer-cert.sh
+              - /script/push-certs.sh
             env:
               PRINTER_CERT_NAME: "*.internal.greyrock.io"
             envFrom:
               - secretRef:
-                  name: printer-cert-updater-secret
+                  name: printer-cert-updater-brother-secret
             probes:
               liveness:
                 enabled: false
@@ -104,10 +104,10 @@ spec:
           - path: /certs
       script:
         type: configMap
-        name: printer-cert-updater
+        name: printer-cert-updater-brother
         globalMounts:
-          - path: /script/push-printer-cert.sh
-            subPath: push-printer-cert.sh
+          - path: /script/push-certs.sh
+            subPath: push-certs.sh
       tmp:
         type: emptyDir
         globalMounts:

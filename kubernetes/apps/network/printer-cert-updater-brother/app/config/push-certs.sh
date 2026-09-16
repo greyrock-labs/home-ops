@@ -30,7 +30,7 @@
 # ones left behind, so the new slot is read back from the list rather than
 # guessed, and the HTTPS selection is set explicitly every time.
 #
-# Offline self-test: push-printer-cert.sh --self-test
+# Offline self-test: push-certs.sh --self-test
 
 set -eu
 

@@ -14,6 +14,6 @@ resources:
   - ./envoy-gateway/ks.yaml
   - ./external-dns/ks.yaml
   - ./multus/ks.yaml
-  - ./printer-cert-updater/ks.yaml
+  - ./printer-cert-updater-brother/ks.yaml
   - ./towonel-agent/ks.yaml
   - ./unifi-voucher-manager/ks.yaml

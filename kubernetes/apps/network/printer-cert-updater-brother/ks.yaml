@@ -3,7 +3,7 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: printer-cert-updater
+  name: printer-cert-updater-brother
 spec:
   dependsOn:
     - name: cert-manager
@@ -11,7 +11,7 @@ spec:
     - name: external-secrets
       namespace: external-secrets
   interval: 1h
-  path: "./kubernetes/apps/network/printer-cert-updater/app"
+  path: "./kubernetes/apps/network/printer-cert-updater-brother/app"
   prune: true
   sourceRef:
     kind: GitRepository
