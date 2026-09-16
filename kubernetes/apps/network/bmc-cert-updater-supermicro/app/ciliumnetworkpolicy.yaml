@@ -12,6 +12,10 @@ spec:
   egress:
     - toCIDR:
         - 10.1.20.14/32
+      toEntities:
+        - host
+        - cluster
+        - world
       toPorts:
         - ports:
             - port: "443"
