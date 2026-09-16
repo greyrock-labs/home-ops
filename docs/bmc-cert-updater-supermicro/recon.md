@@ -16,10 +16,11 @@ junk CSR, so the live fingerprint is unchanged across the run):
 - **notAfter:** `Oct 18 14:45:29 2027 GMT`
 - **sha256:** `15:D7:D9:85:EC:7A:E7:F4:71:A3:0A:FF:88:4B:98:7E:BC:F9:40:5C:20:1A:45:A8:B0:B0:C4:12:1E:67:14:4B`
 
-Worth surfacing: when this CronJob first runs and detects a leaf
-mismatch, it will overwrite today's manually-set cert with the
-cluster's `*.internal.greyrock.io` LE leaf. If that's not desired,
-reconcile before the CronJob's first scheduled run.
+This has since happened as described: the CronJob's first run detected
+the leaf mismatch and replaced the LocalCA cert above with the
+cluster's `*.internal.greyrock.io` LE leaf, which is what the BMC
+serves today. The fingerprint above is kept only as the "before"
+reading that the probe run was measured against.
 
 ## Login
 

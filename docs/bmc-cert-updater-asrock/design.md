@@ -2,6 +2,7 @@
 
 - **Date:** 2026-09-15
 - **Status:** Implemented and verified in cluster — LE certificate pushed to both BMCs (served sha256-prefix `9773f88ba8ad`), daily CronJob will skip until the cert actually changes
+- **Since implementation:** the app was renamed `bmc-cert-updater` → `bmc-cert-updater-asrock` when a second vendor was added, and the shared Certificate moved out to its own Kustomization (#215). Both are reflected below.
 - **Scope:** Flux-managed automation that keeps a valid Let's Encrypt certificate on the
   BMC web UIs of both ASRock Rack X570D4U-2L2T boards
 
@@ -54,18 +55,20 @@ public ClouDNS zone — normal for DNS-01; exposes no host IPs.
 
 ### 2. Certificate `internal-greyrock-io`
 
-`kubernetes/apps/network/bmc-cert-updater/app/certificate.yaml`:
+`kubernetes/apps/network/internal-greyrock-io-cert/app/certificate.yaml` — shared
+infrastructure in its own Flux Kustomization, mounted by all four cert-updater apps
+(both BMCs, the Brother printer and the Ruckus controller):
 
 - `dnsNames: ["*.internal.greyrock.io"]`
 - `issuerRef: ClusterIssuer/letsencrypt-production-classic`
 - `privateKey: algorithm RSA, size 2048, rotationPolicy: Always`
 - `secretName: internal-greyrock-io-tls` (in the `network` namespace)
 
-### 3. ExternalSecret `bmc-cert-updater`
+### 3. ExternalSecret `bmc-cert-updater-asrock`
 
 Follows the house pattern (`refreshInterval: 12h`, ClusterSecretStore
 `onepassword-connect`, `creationPolicy: Owner`), targeting Secret
-`bmc-cert-updater-secret` from a single 1Password item **`BMC Certs`** (must live in one
+`bmc-cert-updater-asrock-secret` from a single 1Password item **`BMC Certs`** (must live in one
 of the ClusterSecretStore vaults: Kubernetes / Automation / Services):
 
 | secretKey (env var name) | 1Password item | property (field) |
@@ -78,16 +81,15 @@ Note: the 1Password field names keep their hyphens; the Secret keys use undersco
 because `envFrom` requires valid environment-variable names. A single shared
 `updater` admin account is used on both BMCs, with a per-BMC password.
 
-### 4. App `bmc-cert-updater` (app-template CronJob)
+### 4. App `bmc-cert-updater-asrock` (app-template CronJob)
 
-Directory layout `kubernetes/apps/network/bmc-cert-updater/` mirrors the
+Directory layout `kubernetes/apps/network/bmc-cert-updater-asrock/` mirrors the
 recyclarr/towonel-agent convention:
 
 ```
-ks.yaml                     # targetNamespace: network; dependsOn: [cert-manager, external-secrets]
-app/certificate.yaml
+ks.yaml                     # targetNamespace: network; dependsOn: [cert-manager, external-secrets, internal-greyrock-io-cert]
 app/ciliumnetworkpolicy.yaml
-app/config/push-certs.sh    # push script (configMapGenerator -> ConfigMap bmc-cert-updater)
+app/config/push-certs.sh    # push script (configMapGenerator -> ConfigMap bmc-cert-updater-asrock)
 app/externalsecret.yaml
 app/helmrelease.yaml
 app/kustomization.yaml
@@ -97,7 +99,8 @@ app/ocirepository.yaml      # oci://ghcr.io/bjw-s-labs/helm/app-template (tag pe
 HelmRelease values:
 
 - Controller `type: cronjob`, `schedule: "@daily"`, `backoffLimit: 0`,
-  `concurrencyPolicy: Forbid`, `failedJobsHistory: 1`, `successfulJobsHistory: 0`
+  `concurrencyPolicy: Forbid`, `failedJobsHistory: 1`, `successfulJobsHistory: 1`,
+  `ttlSecondsAfterFinished: 86400`
 - Container image `curlimages/curl` pinned `tag@sha256` (repo image-pinning convention;
   Renovate keeps the digest fresh)
 - Pod hardening like recyclarr, adjusted for the curl image user (uid/gid 100,
@@ -107,15 +110,18 @@ HelmRelease values:
   plex-image-cleanup)
 - Persistence: `certs` (type secret, `internal-greyrock-io-tls`, mounted at `/certs`),
   `script` (type configMap, mounted at `/script`), `tmp` (emptyDir — cookie jar)
-- `envFrom: secretRef: bmc-cert-updater-secret`
+- `envFrom: secretRef: bmc-cert-updater-asrock-secret`
 
 ### 5. CiliumNetworkPolicy
 
 Egress-only, selecting the app pods:
 
-1. `toEndpoints` kube-dns (`kube-system`, `k8s-app: kube-dns`), UDP+TCP 53 — the script
-   resolves the two BMC hostnames
-2. `toCIDR` `10.1.20.13/32` and `10.1.20.11/32`, TCP 443
+`toCIDR` `10.1.20.13/32` and `10.1.20.11/32`, TCP 443 — and nothing else.
+
+DNS is **not** listed here. It comes from the cluster-wide `allow-dns-egress` policy.
+An earlier version carried a `toEndpoints` kube-dns rule alongside `toCIDR`, which
+Cilium rejects: a rule may not combine `toCIDR` and `toEntities`, and an invalid policy
+is never imported at all — leaving `block-all-egress` denying everything for these pods.
 
 ## Push script behavior
 
@@ -167,7 +173,7 @@ receives automatic rapid retries.
 
 1. Rollout via Flux (commit triggers webhook reconcile; no manual `flux reconcile`)
 2. Manual first-run gate: `kubectl create job -n network bmc-cert-updater-manual
-   --from=cronjob/bmc-cert-updater` (a one-off Job creation, not a Flux reconcile)
+   --from=cronjob/bmc-cert-updater-asrock` (a one-off Job creation, not a Flux reconcile)
 3. In a browser: both BMC UIs show a valid Let's Encrypt cert, SAN
    `*.internal.greyrock.io`, correct dates, no warnings
 4. Trigger a second manual run — both BMCs log "unchanged, skipping" (proves the

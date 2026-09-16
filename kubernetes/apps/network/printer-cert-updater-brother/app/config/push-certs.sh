@@ -445,7 +445,7 @@ activate_http_cert() {
 push_one() {
     [ -f "$CERT_FILE" ] || { echo "missing $CERT_FILE" >&2; return 1; }
     [ -f "$P12_FILE" ] || {
-        echo "missing $P12_FILE -- is keystores.pkcs12 enabled on the Certificate?" >&2
+        echo "missing $P12_FILE -- did the bundle initContainer run?" >&2
         return 1
     }
 
