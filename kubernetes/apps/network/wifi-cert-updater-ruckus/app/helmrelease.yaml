@@ -1,0 +1,80 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: wifi-cert-updater-ruckus
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: wifi-cert-updater-ruckus
+  interval: 30m
+  values:
+    controllers:
+      wifi-cert-updater-ruckus:
+        type: cronjob
+        cronjob:
+          # Applying a certificate reboots the controller and drops every
+          # wireless client, so check overnight. A run only reboots when the
+          # served certificate actually changed -- about once per renewal.
+          schedule: "0 3 * * *"
+          backoffLimit: 0
+          concurrencyPolicy: Forbid
+          failedJobsHistory: 1
+          successfulJobsHistory: 1
+          ttlSecondsAfterFinished: 86400
+        pod:
+          labels:
+            egress.policy.home.arpa/block-all: "true"
+          securityContext:
+            runAsGroup: 100
+            runAsNonRoot: true
+            runAsUser: 100
+        containers:
+          app:
+            image:
+              repository: docker.io/curlimages/curl
+              tag: 8.22.0@sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777
+            command:
+              - /bin/sh
+              - /script/push-certs.sh
+            env:
+              RUCKUS_HOST: unleashed.internal.greyrock.io
+            envFrom:
+              - secretRef:
+                  name: wifi-cert-updater-ruckus-secret
+            probes:
+              liveness:
+                enabled: false
+              readiness:
+                enabled: false
+              startup:
+                enabled: false
+            resources:
+              requests:
+                cpu: 10m
+                memory: 16Mi
+              limits:
+                memory: 64Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              readOnlyRootFilesystem: true
+    persistence:
+      certs:
+        type: secret
+        name: internal-greyrock-io-tls
+        globalMounts:
+          - path: /certs
+      script:
+        type: configMap
+        name: wifi-cert-updater-ruckus
+        globalMounts:
+          - path: /script/push-certs.sh
+            subPath: push-certs.sh
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp

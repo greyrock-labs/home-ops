@@ -17,3 +17,4 @@ resources:
   - ./printer-cert-updater-brother/ks.yaml
   - ./towonel-agent/ks.yaml
   - ./unifi-voucher-manager/ks.yaml
+  - ./wifi-cert-updater-ruckus/ks.yaml
