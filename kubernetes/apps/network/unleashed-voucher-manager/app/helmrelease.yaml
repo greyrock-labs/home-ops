@@ -1,0 +1,45 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: unleashed-voucher-manager
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: unleashed-voucher-manager
+  interval: 30m
+  values:
+    config:
+      TIMEZONE: America/New_York
+      UNLEASHED_SSID: Grey Rock Guest
+      UNLEASHED_URL: https://unleashed.internal.greyrock.io
+      WIFI_SSID: Grey Rock Guest
+    existingSecret: unleashed-voucher-manager-secret
+    podAnnotations:
+      reloader.stakater.com/auto: "true"
+    podSecurityContext:
+      runAsGroup: 1001
+      runAsNonRoot: true
+      runAsUser: 1001
+    # The chart owns the writable mounts this needs (public, next-cache,
+    # tmp) plus the init container that reseeds the image's baked-in assets
+    # over the empty volume. Setting readOnlyRootFilesystem under
+    # securityContext instead would fail the render.
+    readOnlyRootFilesystem:
+      enabled: true
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+    service:
+      port: 3000
+    # The guest network is open, so the QR needs a deliberately empty
+    # WIFI_PASSWORD rather than an unset one. Mutually exclusive with
+    # config.WIFI_PASSWORD.
+    wifiOpenNetwork: true
