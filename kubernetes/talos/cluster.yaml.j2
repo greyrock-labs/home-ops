@@ -21,13 +21,7 @@ kind: BondConfig
 name: bond0
 links:
   - net0
-  - net1
-bondMode: 802.3ad
-lacpRate: fast
-xmitHashPolicy: layer3+4
-miimon: 100
-updelay: 200
-downdelay: 200
+bondMode: active-backup
 mtu: 9000
 ---
 apiVersion: v1alpha1
