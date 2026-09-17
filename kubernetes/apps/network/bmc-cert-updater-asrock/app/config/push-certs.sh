@@ -57,6 +57,21 @@ desired_leaf() {
     first_leaf "$CERT_FILE" | tr -d '\r'
 }
 
+# Ends the BMC session. The BMC holds one session per login, only expires them
+# after 30 minutes idle, and caps how many exist at once (148 on this firmware).
+# A job that logs in daily and never logs out eventually exhausts the pool, and
+# from then on every login fails -- which looks nothing like its real cause.
+end_session() {
+    if [ -n "${token:-}" ]; then
+        # shellcheck disable=SC2086
+        $CURL -X DELETE --cookie "${jar:-}" -H "X-CSRFTOKEN: $token" \
+            "$base/api/session" >/dev/null 2>&1 || true
+    fi
+    token=""
+    rm -f "${jar:-}"
+    return 0
+}
+
 push_one() {
     name="${1:?no bmc name}"
     host="${2:?no bmc host}"
@@ -74,11 +89,12 @@ push_one() {
     response=$($CURL_RETRY --cookie-jar "$jar" \
         --data-urlencode "username=$username" \
         --data-urlencode "password=$password" \
-        "$base/api/session") || { echo "$name: login request failed"; return 1; }
+        "$base/api/session") || { echo "$name: login request failed"; end_session; return 1; }
     token=$(printf '%s' "$response" | sed -n 's/.*"CSRFToken"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
     ok=$(printf '%s' "$response" | sed -n 's/.*"ok"[[:space:]]*:[[:space:]]*\([01]\).*/\1/p' | head -1)
     if [ -z "$token" ]; then
         echo "$name: login failed (no CSRFToken in response)"
+        end_session
         return 1
     fi
     if [ "$ok" = "0" ]; then
@@ -86,11 +102,11 @@ push_one() {
     fi
 
     desired=$(desired_leaf)
-    current=$(served_leaf "$base" "$CURL_RETRY") || { echo "$name: could not fetch served certificate"; return 1; }
+    current=$(served_leaf "$base" "$CURL_RETRY") || { echo "$name: could not fetch served certificate"; end_session; return 1; }
 
     if [ "$current" = "$desired" ]; then
         echo "$name: certificate unchanged, skipping"
-        rm -f "$jar"
+        end_session
         return 0
     fi
 
@@ -102,10 +118,12 @@ push_one() {
         -F "new_private_key=@$KEY_FILE" \
         "$base/api/settings/ssl/certificate" >/dev/null || {
         echo "$name: certificate upload failed"
-        rm -f "$jar"
+        end_session
         return 1
     }
-    rm -f "$jar"
+    # Release the session before the verification wait; the BMC is about to
+    # restart its web server, so this is the last moment it can be handed back.
+    end_session
 
     # The BMC restarts its web server to apply the new cert; verify with retries.
     verified=""

@@ -92,6 +92,22 @@ add_lang_cookies() {
     rm -f "$tmp"
 }
 
+# Ends the BMC session. The BMC holds one session per login and expires them
+# only after an idle timeout, with a cap on how many exist at once; a job that
+# logs in daily and never logs out eventually exhausts the pool, after which
+# every login fails in a way that looks unrelated to its real cause.
+#
+# The POST needs a body: without one the firmware answers 411 Length Required
+# and leaves the session open.
+end_session() {
+    if [ -n "${jar:-}" ] && [ -s "${jar:-}" ]; then
+        # shellcheck disable=SC2086
+        $CURL -b "$jar" --data "" "$base/cgi/logout.cgi" >/dev/null 2>&1 || true
+    fi
+    rm -f "${jar:-}" "${jar_full:-}"
+    return 0
+}
+
 push_one() {
     name="${1:?no bmc name}"
     host="${2:?no bmc host}"
@@ -121,14 +137,14 @@ push_one() {
     done
     if [ -z "$login_ok" ]; then
         echo "$name: login failed after 5 attempts"
-        rm -f "$jar"; return 1
+        end_session; return 1
     fi
 
     # Auth detection: the X11 firmware always issues at least the SID
     # cookie via Set-Cookie on successful login.
     if ! grep -q . "$jar" 2>/dev/null; then
         echo "$name: login failed (no session cookie issued)"
-        rm -f "$jar"; return 1
+        end_session; return 1
     fi
 
     # Merge mandatory lang cookies. Without these, the cert page returns
@@ -140,15 +156,15 @@ push_one() {
     csrf=$(extract_csrf "$CERT_PAGE_URL" "$jar_full")
     if [ -z "$csrf" ]; then
         echo "$name: csrf token absent on cert page"
-        rm -f "$jar" "$jar_full"; return 1
+        end_session; return 1
     fi
 
     # Compare served leaf vs desired leaf.
     desired=$(desired_leaf)
-    current=$(served_leaf "$base") || { echo "$name: could not fetch served certificate"; rm -f "$jar" "$jar_full"; return 1; }
+    current=$(served_leaf "$base") || { echo "$name: could not fetch served certificate"; end_session; return 1; }
     if [ "$current" = "$desired" ]; then
         echo "$name: certificate unchanged, skipping"
-        rm -f "$jar" "$jar_full"; return 0
+        end_session; return 0
     fi
 
     # Upload: send CSRF as both an HTTP header and a multipart form field
@@ -164,12 +180,14 @@ push_one() {
         -F "CSRF_TOKEN=$csrf" \
         "$UPLOAD_URL" >/dev/null || {
         echo "$name: certificate upload failed"
-        rm -f "$jar" "$jar_full"; return 1
+        end_session; return 1
     }
 
     # BMC web server doesn't auto-restart on cert load — trigger main_bmcreset.
     rh=$(trigger_reset "$jar_full" "$csrf")
-    rm -f "$jar" "$jar_full"
+    # Hand the session back before the reset wait; the BMC is about to restart
+    # its web server, so this is the last moment it can be released.
+    end_session
     if [ "$rh" != "200" ]; then
         echo "$name: BMC reset request returned $rh (cert uploaded; manual reboot required)"
         return 1
