@@ -6,12 +6,14 @@ networks:
 services:
   coolercontrol:
     container_name: coolercontrol
-    image: docker.io/coolercontrol/coolercontrold:5.0.0
+    image: docker.io/coolercontrol/coolercontrold:5.0.1
     labels:
       dexd.enabled: 'true'
       traefik.enable: 'true'
       traefik.http.routers.coolercontrol.rule: Host(`coolercontrol.greyrock.io`)
       traefik.http.services.coolercontrol.loadbalancer.server.port: '11987'
+    environment:
+      CC_RUNTIME_DRIVER: epoll
     networks:
       - apps
     privileged: true
