@@ -1,0 +1,26 @@
+[env]
+JUST_UNSTABLE = "1"
+FLATE_PATH = '{{config_root}}/kubernetes/flux/cluster'
+KUBECONFIG = '{{config_root}}/kubeconfig'
+MINIJINJA_CONFIG_FILE = "{{config_root}}/.minijinja.toml"
+TALOSCONFIG = '{{config_root}}/talosconfig'
+
+[settings]
+pipx.uvx = true
+
+[tools]
+actionlint = "latest"
+ansible = "latest"
+ansible-core = "latest"
+helmfile = "latest"
+talosctl = "1.14.1"
+uv = "latest"
+yamlfmt = "latest"
+
+"aqua:cilium/hubble" = "latest"
+"aqua:mitsuhiko/minijinja" = "latest"
+"github:home-operations/flate" = "latest"
+"github:kguardian-dev/kguardian" = { version = "latest", version_prefix = "advisor/v", exe = "advisor", bin = "kubectl-kguardian" }
+
+[hooks]
+postinstall = "ansible-galaxy install -r {{config_root}}/ansible/requirements.yaml"
