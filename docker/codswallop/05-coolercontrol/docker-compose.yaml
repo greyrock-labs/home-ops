@@ -12,8 +12,6 @@ services:
       traefik.enable: 'true'
       traefik.http.routers.coolercontrol.rule: Host(`coolercontrol.greyrock.io`)
       traefik.http.services.coolercontrol.loadbalancer.server.port: '11987'
-    environment:
-      CC_RUNTIME_DRIVER: epoll
     networks:
       - apps
     privileged: true
