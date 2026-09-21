@@ -7,7 +7,6 @@ auto_discovery:
 external_secrets:
   CLOUDNS_AUTH_ID: op://Services/ClouDNS/traefik-auth-id
   CLOUDNS_AUTH_PASSWORD: op://Services/ClouDNS/traefik-auth-password
-  UNIFI_API_KEY: op://Automation/Unifi Controller/external_dns
   GARAGE_ADMIN_TOKEN: op://Services/Garage/admin_key
   GARAGE_RPC_SECRET: op://Services/Garage/rpc_secret
   GARAGE_UI_OIDC_CLIENT_ID: op://Automation/kanidm/garage_ui_client_id
