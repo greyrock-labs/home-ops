@@ -20,7 +20,7 @@ schedule, uploading only when the certificate changes.
 | codswallop (TrueNAS NAS) | `https://kvm-codswallop.internal.greyrock.io` | 10.1.20.13 |
 | kerfuffle (Talos controlplane host) | `https://kvm-kerfuffle.internal.greyrock.io` | 10.1.20.11 |
 
-The hostnames already resolve (Unifi DNS) to the BMC IPs and are covered by the
+The hostnames already resolve to the BMC IPs and are covered by the
 `*.internal.greyrock.io` wildcard SAN. No DNS records are created by this work.
 
 ## Non-goals

@@ -396,15 +396,11 @@ power - one of these logged `rebooted without proper shutdown, probably power ou
 - **`ip mtu 9198` is set on `garage-icx8200` only.** The other five ICX still have `ve 1`
   at 1500. That only affects traffic the switch itself originates or terminates, not
   transit, which is why jumbo proved out end to end anyway - but it is inconsistent.
-- **codswallop's BGP session does not establish.** `docker/codswallop/00-frr/config/frr.conf`
-  has `neighbor 10.1.20.1`, which was the old router. The RB5009 peers from 10.1.0.1, so
-  FRR drops the OPEN from an address it has no neighbor statement for. Fix belongs in
-  frr.conf, not on the router. kerfuffle is unaffected - `CiliumBGPClusterConfig` already
-  points every k8s node at 10.1.0.1.
 
 Resolved since the bench build: `ctrld` is running on VLAN 30, the `netinstall` package
-and its three listeners are in place, and the kerfuffle BGP session is established with
-five prefixes.
+and its three listeners are in place, and both BGP sessions are established - kerfuffle
+advertising five prefixes, and codswallop advertising 10.1.25.21/32 once
+`docker/codswallop/00-frr/config/frr.conf` peered with 10.1.0.1.
 
 ## Netinstall from a RouterOS device
 
