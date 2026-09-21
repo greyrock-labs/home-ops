@@ -414,9 +414,32 @@ workaround - see *FastIron 10.0 gotchas*.
 stacking/uplink ports. The existing C08ZP is 8x 2.5GbE PoE++ with 2x 10 GbE SFP+. Both
 have the same uplink speed; the access ports are what differ.
 
-For the Garage stack, the SFP+ ports are also the stacking ports. A single stack link
-leaves one SFP+ per unit free for the uplink; a redundant stack link consumes both and
-leaves none.
+### Garage stack
+
+The SFP+ ports are also the stacking ports, but a two-unit stack only consumes one per
+unit. Confirmed in the FastIron 10.0.20 Stacking Configuration Guide, Table 16 and the
+ICX 8200 Configuration Notes:
+
+- The valid-stack-port set for C08PF / C08ZP / C08PFV is `(x/2/1, x/2/2, 1)`. The third
+  number is the maximum ports in a stacking trunk; `1` means a single stack-port only.
+- "Unused stacking ports can be used as data ports. For example, you can elect to use only
+  one valid-stack-port as a stacking port and the other valid-stack-port as a data port."
+- "To maintain stacking functionality, ensure that only one valid stacking port is used for
+  stacking while the other can be utilized as a data port."
+
+So each Garage unit uses one SFP+ for the stack link and keeps the other as a 10G uplink.
+No stack-trunk is supported on these models, with one exception - a two-unit
+linear-topology trunk, `stack-trunk x/2/1 to x/2/2`. That doubles stack bandwidth to 20G
+and consumes both ports, leaving no 10G uplink. **Do not use it here**; the Garage sits at
+the end of the daisy chain and needs its uplink.
+
+**Module 2 must be clean before stacking is enabled.** From the same notes: "Stacking
+cannot be enabled on an ICX 8200 device containing configuration for Module 2, including
+port speed. The configuration must be removed before stacking is enabled." The existing
+C08ZP carries inert default `stack-port` lines on both SFP+ (see *Office ICX8200
+as-built*), so expect the same on a new unit and clear Module 2 first.
+
+C08PF supports 10-Gbps stacking only, which is moot here - the ports are 10G.
 
 ### Naming
 
@@ -433,6 +456,20 @@ distinguishes anything. This matches the shape the CRS309s already use.
 The stacked Garage pair takes **one** name for both units. The three CRS309 names do not
 change. Addressing slots carry over unchanged: `.11`/`.21`/`.31` stay with the C08ZPs, and
 `.12`/`.22`/`.32` move from the 7150s to the C08PFs.
+
+### Install sequence
+
+1. Configure each new switch standalone against the baseline in *Conventions* - VLANs,
+   trunk, RSTP priority 32768, IGMP/MLD passive, jumbo, NTP, time zone, DNS, mgmt address.
+2. For the Garage pair, clear Module 2 config, then enable stacking with a single
+   stack-port per unit, leaving the second SFP+ for the uplink.
+3. Move the ports off the 7150 being replaced, per its as-built table.
+4. Swap the uplink to the room's CRS309.
+5. Rename, in one cut - see below.
+6. Enable MLD snooping properly now that the 7150 limitation is gone: `ipv6 multicast
+   flood-unregistered` works on the 8200, so these boxes can run MLD passive with
+   flooding rather than MLD disabled.
+7. Retire the 7150.
 
 ### Everything that has to change
 
