@@ -43,7 +43,7 @@ app/ocirepository.yaml
 
 ## Components
 
-- `app/externalsecret.yaml` — item `BMC Certs` → Secret `wifi-cert-updater-ruckus-secret`:
+- `app/externalsecret.yaml` — item `Cert Updater` → Secret `wifi-cert-updater-ruckus-secret`:
   `UPDATER_USERNAME` ← `updater-username` (shared `certupdater` account),
   `RUCKUS_PASSWORD` ← `ruckus-password`
 - `app/helmrelease.yaml` — app-template cronjob, `schedule: "0 3 * * *"`,

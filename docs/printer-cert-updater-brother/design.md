@@ -39,7 +39,7 @@ app/ocirepository.yaml
 
 ## Components
 
-- `app/externalsecret.yaml` — item `BMC Certs` → Secret `printer-cert-updater-brother-secret`:
+- `app/externalsecret.yaml` — item `Cert Updater` → Secret `printer-cert-updater-brother-secret`:
   `BROTHER_PASSWORD` ← `brother-password`, `BROTHER_P12_PASSWORD` ← `printer-p12-password`
 - `app/helmrelease.yaml` — app-template cronjob, `schedule: "0 12 * * *"`,
   `backoffLimit: 0`, `concurrencyPolicy: Forbid`, `ttlSecondsAfterFinished: 86400`
@@ -93,7 +93,7 @@ may not. Verified 2026-09-16: served chain length 1.
 | Failure | Detection | Recovery |
 |---|---|---|
 | Import rejected (wrong p12 shape) | Job logs the certificate list unchanged | Rebuild the p12 leaf-only; check the initContainer's openssl flags |
-| Login rejected | Job fails at login | Check `brother-password` in `BMC Certs` |
+| Login rejected | Job fails at login | Check `brother-password` in `Cert Updater` |
 | Web server does not come back after activation | Verification poll fails | Power-cycle the printer; the previous certificate is still installed |
 
 ## Verification

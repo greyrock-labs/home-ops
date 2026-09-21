@@ -68,14 +68,14 @@ infrastructure in its own Flux Kustomization, mounted by all four cert-updater a
 
 Follows the house pattern (`refreshInterval: 12h`, ClusterSecretStore
 `onepassword-connect`, `creationPolicy: Owner`), targeting Secret
-`bmc-cert-updater-asrock-secret` from a single 1Password item **`BMC Certs`** (must live in one
+`bmc-cert-updater-asrock-secret` from a single 1Password item **`Cert Updater`** (must live in one
 of the ClusterSecretStore vaults: Kubernetes / Automation / Services):
 
 | secretKey (env var name) | 1Password item | property (field) |
 |---|---|---|
-| `UPDATER_USERNAME` | BMC Certs | `updater-username` |
-| `CODSWALLOP_PASSWORD` | BMC Certs | `codswallop-password` |
-| `KERFUFFLE_PASSWORD` | BMC Certs | `kerfuffle-password` |
+| `UPDATER_USERNAME` | Cert Updater | `updater-username` |
+| `CODSWALLOP_PASSWORD` | Cert Updater | `codswallop-password` |
+| `KERFUFFLE_PASSWORD` | Cert Updater | `kerfuffle-password` |
 
 Note: the 1Password field names keep their hyphens; the Secret keys use underscores
 because `envFrom` requires valid environment-variable names. A single shared
@@ -152,7 +152,7 @@ first successful push). No openssl/jq dependency — string handling only.
 ## Prerequisites (user actions, one-time)
 
 - Dedicated `updater` admin account exists on **both** BMC web UIs: same username,
-  per-BMC passwords, matching the `BMC Certs` 1Password item exactly
+  per-BMC passwords, matching the `Cert Updater` 1Password item exactly
 - BMC firmware: both boards on a reasonably current X570D4U-2L2T BMC firmware (any
   version exposing the `/api/` web endpoints; current firmware family is fine)
 
@@ -161,7 +161,7 @@ first successful push). No openssl/jq dependency — string handling only.
 | Failure | Detection | Recovery |
 |---|---|---|
 | Upload wedges BMC web UI (known X570D4U-2L2T firmware bug) | Web UI unreachable after a push | `ipmitool mc reset cold` — local on codswallop (fan duty reverts until CoolerControl re-applies it; expect a brief fan ramp), over-LAN from codswallop for kerfuffle |
-| Login failure (locked account / password drift) | Job fails at login step | Fix the account or the `BMC Certs` item; ExternalSecret refreshes within 12h |
+| Login failure (locked account / password drift) | Job fails at login step | Fix the account or the `Cert Updater` item; ExternalSecret refreshes within 12h |
 | Cert Secret missing / not yet issued | Pod mount or file check fails | `dependsOn` ordering makes this a first-rollout edge only; next run self-heals |
 | BMC unreachable | curl timeout, job fails | Investigate BMC/network manually |
 
