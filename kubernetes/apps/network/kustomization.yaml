@@ -10,6 +10,7 @@ components:
 resources:
   - ./bmc-cert-updater-asrock/ks.yaml
   - ./bmc-cert-updater-supermicro/ks.yaml
+  - ./doorbell-cert-updater-reolink/ks.yaml
   - ./echo-server/ks.yaml
   - ./envoy-gateway/ks.yaml
   - ./external-dns/ks.yaml
