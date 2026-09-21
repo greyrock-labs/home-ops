@@ -29,12 +29,17 @@ than being rebuilt each time. Procedure is in `switch-baseline.md`.
 
 `LAN` holds `bridge`, `vlan10`, `vlan20`, `vlan30`, `vlan50`. `WAN` is `ether1`.
 `vlan60-cameras` is `RESTRICTED` and `vlan4000-guest` is `GUEST`, both deliberately
-outside `LAN` - the input and forward chains end in a drop for anything not from `LAN`.
+outside `LAN` - the v4 input chain and both v6 chains end in a drop for anything not from
+`LAN`.
 
-`LOCALSVC` holds `vlan60-cameras` and `vlan4000-guest`. It exists so those two can still
-reach the router for DHCP despite being outside `LAN`. **It was empty for the whole bench
-build**, which silently meant cameras and guest could not complete a DHCP handshake at
-all. If either VLAN stops getting leases, check this list first.
+`LOCALSVC` covers `vlan60-cameras` and `vlan4000-guest` so those two can still reach the
+router for DHCP and DNS despite being outside `LAN`. It does this with
+`include=RESTRICTED,GUEST` rather than direct members - the lists are pulled in
+dynamically.
+
+**`/interface list member print` shows nothing for a list built from includes.** An empty
+member listing is not an empty list; check `/interface list print` for the `INCLUDE`
+column before concluding anything is missing.
 
 ## IPv6
 
@@ -88,6 +93,33 @@ fourth hextet:
 7.24.4 - the result is not sequential allocation. ULAs are ordinary static addresses with
 no pool.
 
+### Firewall
+
+**The v4 and v6 filter chains have opposite shapes and this matters.** v4 forward is
+default-accept with targeted drops (cameras get no new outbound connections, guest cannot
+reach `LAN` or `RESTRICTED`). v6 forward is stock defconf: default-deny, ending in
+`drop everything else not coming from LAN`.
+
+The consequence is that anything outside the `LAN` list gets v4 connectivity for free and
+no v6 connectivity at all. Guest needed three explicit v6 rules above that final drop to
+mirror its v4 policy - drop to `LAN`, drop to `RESTRICTED`, accept to `WAN`, in that
+order. Cameras need no equivalent: VLAN 60 has no v6 address and no RA, so the final drop
+covers it.
+
+Newly added v6 rules can show the `I` (invalid) flag briefly while interface lists
+resolve. It clears on its own.
+
+### Router advertisements
+
+`/ipv6 nd` is left at its default single `interface=all` entry. That only produces RAs on
+interfaces holding an address with `advertise=yes`, which is the three VLANs above.
+
+`advertise-dns=no`, so no v6 resolver is advertised and clients keep using the v4 DNS
+their DHCP lease gave them - which is `ctrld`. That is what keeps v6-capable clients on
+the same resolver path as everything else, for both A and AAAA lookups.
+`managed-address-configuration` and `other-configuration` are both `no`: pure SLAAC, no
+DHCPv6 server.
+
 ### Not delegating downstream
 
 `pool-name=spectrum-pd` holds the delegation; the three addresses above draw from it and
@@ -118,6 +150,19 @@ only removes records commented `dhcp-auto`, so hand-made entries are safe from b
 `office-gw.internal.greyrock.io` exists so `external-dns` can reach the REST API by a
 name the router's certificate actually covers. Verified from inside the cluster: the name
 resolves through CoreDNS and the certificate validates without `-k`.
+
+### Service exposure
+
+`www-ssl` is restricted to 10.1.0.0/24, 10.1.10.0/24, 10.1.20.0/24 and 10.1.30.0/24 -
+management, internal, servers and containers. IoT, cameras, guest and the WAN are
+excluded. Winbox is a separate service on 8291 and is unaffected.
+
+The cluster arrives as a node address, not a pod address: Cilium runs `masquerade: true`
+with `routingMode: native` and `ipv4NativeRoutingCIDR: 10.244.0.0/16`, so pod traffic to
+10.1.0.1 leaves that CIDR and is masqueraded to 10.1.20.10/.12.
+
+The CLI keyword is now `available-from`; `address=` still works but warns that it is
+deprecated.
 
 ## DHCP
 
@@ -184,7 +229,6 @@ has no SVI.
 
 ## Open items
 
-- **`/ip service www-ssl` has no `address=` restriction**, so REST answers on every
-  address the router holds. Only the input chain's final drop keeps it off the WAN.
-- **IPv6 firewall is defconf.** It drops non-`LAN` on both input and forward, which is
-  correct, but it has not been reviewed against the VLANs that now carry global addresses.
+- **`--dnssleep 120` on the acme client.** acme.sh's DNS propagation check never
+  completes here and the cause was never established. See
+  [router-acme.md](router-acme.md).

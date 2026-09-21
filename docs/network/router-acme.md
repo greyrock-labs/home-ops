@@ -173,10 +173,14 @@ cat /acme.sh/crontab
 - **`--dnssleep 120` rather than propagation checking.** acme.sh's DNS check spins
   indefinitely here; the cause was not established. The flag is saved in the domain
   config, so renewals skip the check too.
-- **The unattended path is unproven.** Issuance and deploy were both run interactively.
-  `acme.sh --renew -d greyrock.io --ecc --force` exercises what cron actually does, at
-  the cost of one of five duplicate-certificate slots per week.
-- **`external-dns` still sets `MIKROTIK_SKIP_TLS_VERIFY: "true"`.** It connects to
-  `https://10.1.20.1` and this certificate has no IP SAN, so the flag cannot simply be
-  dropped. It needs `MIKROTIK_BASEURL` pointed at a name under `*.internal.greyrock.io`
-  and a matching static DNS entry on the router.
+
+Renewal has been exercised with `acme.sh --renew -d greyrock.io --ecc --force`: a new
+certificate issued, the saved `Le_DeployHook` fired without a TTY, four certificates and
+one key imported, and the `www-ssl` binding survived the hook's remove-and-reimport.
+
+acme.sh picks the next renewal from Let's Encrypt's ARI window rather than a fixed 60
+days, so the scheduled date comes from the CA and moves between runs.
+
+`external-dns` reaches the router at `https://office-gw.internal.greyrock.io` with no
+`MIKROTIK_SKIP_TLS_VERIFY`. Verified from inside the cluster: the name resolves through
+CoreDNS and curl returns an HTTP status without `-k`.

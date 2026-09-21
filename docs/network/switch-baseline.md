@@ -53,6 +53,10 @@ does not, so the migration drops it.
 - **RSTP runs on VLAN 1 only**, matching RouterOS, which runs a single instance per
   bridge rather than one per VLAN. CRS309 spines take priority 4096 / 8192 / 12288
   (Office / Game Room / Garage); every ICX leaf stays at the 32768 default.
+- **Time zone** is `America/New_York` with US daylight-saving rules. On FastIron that is
+  `clock timezone us Eastern` plus a bare `clock summer-time`, which takes the default US
+  rules. On the CRS309s it is set explicitly rather than by `time-zone-autodetect`, so a
+  switch clock never depends on an external lookup service.
 - **NTP** points at `time1`-`time4.internal.greyrock.io` with `disable serve`, so switches
   are clients only. Hostnames resolve fine in the `server` command despite the docs only
   showing IP literals.
@@ -389,15 +393,11 @@ power - one of these logged `rebooted without proper shutdown, probably power ou
 
 ## Open items
 
-- IPv6 is prefix-delegated and deliberately deferred.
-- **Time zone is unset on all nine switches.** Everything is on GMT. The RB5009 resolved
-  `America/New_York` by itself once it had real internet (`time-zone-autodetect: yes`);
-  neither FastIron nor RouterOS on the CRS309s does that.
-- **`ip mtu 9198` is set on `garage-icx8200` only.** The other five ICX still have `ve 1`
-  at 1500. That only affects traffic the switch itself originates or terminates, not
-  transit, which is why jumbo proved out end to end anyway - but it is inconsistent.
+- IPv6 does not run on the switches. They are pure L2 and every SVI is on the router;
+  see [router-baseline.md](router-baseline.md).
 
-Resolved since the bench build: `ctrld` is running on VLAN 30, the `netinstall` package
+Resolved since the bench build: time zone is set on all nine and `ip mtu 9198` is on all
+six ICX; `ctrld` is running on VLAN 30, the `netinstall` package
 and its three listeners are in place, and both BGP sessions are established - kerfuffle
 advertising five prefixes, and codswallop advertising 10.1.25.21/32 once
 `docker/codswallop/00-frr/config/frr.conf` peered with 10.1.0.1.
