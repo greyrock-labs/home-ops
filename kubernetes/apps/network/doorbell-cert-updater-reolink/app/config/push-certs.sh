@@ -14,7 +14,9 @@
 #   - Only RSA keys are accepted, not EC.
 #
 #   - Both CertificateClear and ImportCertificate restart the web server, so
-#     each is followed by a wait for it to answer again.
+#     each is followed by a wait for it to answer again. That restart also
+#     drops the session: the import answers "please login first" (rspCode -6)
+#     unless it logs in again after the clear.
 #
 #   - The file names in the import must stay server.crt / server.key. Names
 #     containing the FQDN make the import fail.
@@ -99,6 +101,15 @@ wait_for_web() {
     done
 }
 
+# Log in and set TOKEN. The request body is built once in main.
+login() {
+    TOKEN=""
+    api_call Login "$WORK/login.req"
+    TOKEN=$(tr -d '\r\n' < "$WORK/Login.json" | sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+    [ -n "$TOKEN" ] || { echo "ERROR: no token in Login response" >&2; exit 1; }
+    echo "Logged in."
+}
+
 main() {
     : "${UPDATER_USERNAME:?UPDATER_USERNAME not set}"
     : "${REOLINK_PASSWORD:?REOLINK_PASSWORD not set}"
@@ -115,15 +126,13 @@ main() {
 
     printf '[{"cmd":"Login","param":{"User":{"userName":"%s","password":"%s"}}}]' \
         "$(json_escape "$UPDATER_USERNAME")" "$(json_escape "$REOLINK_PASSWORD")" > "$WORK/login.req"
-    api_call Login "$WORK/login.req"
-    TOKEN=$(tr -d '\r\n' < "$WORK/Login.json" | sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
-    [ -n "$TOKEN" ] || { echo "ERROR: no token in Login response" >&2; exit 1; }
-    echo "Logged in."
+    login
 
     printf '[{"cmd":"CertificateClear","action":0,"param":{}}]' > "$WORK/clear.req"
     api_call CertificateClear "$WORK/clear.req"
     echo "Cleared existing certificate."
     wait_for_web
+    login
 
     crt_size=$(wc -c < "$CERT_FILE" | tr -d ' ')
     key_size=$(wc -c < "$KEY_FILE" | tr -d ' ')
