@@ -11,6 +11,8 @@ external_secrets:
   GARAGE_RPC_SECRET: op://Services/Garage/rpc_secret
   GARAGE_UI_OIDC_CLIENT_ID: op://Automation/kanidm/garage_ui_client_id
   GARAGE_UI_OIDC_CLIENT_SECRET: op://Automation/kanidm/garage_ui_client_secret
+  MIKROTIK_PASSWORD: op://Automation/MikroTik Router/password
+  MIKROTIK_USERNAME: op://Automation/MikroTik Router/username
   ZOT_HTPASSWD: op://Services/Zot/htpasswd
   ZOT_OIDC_CLIENT_ID: op://Automation/kanidm/zot_oidc_client_id
   ZOT_OIDC_CLIENT_SECRET: op://Automation/kanidm/zot_oidc_client_secret
