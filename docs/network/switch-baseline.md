@@ -400,6 +400,58 @@ and its three listeners are in place, and both BGP sessions are established - ke
 advertising five prefixes, and codswallop advertising 10.1.25.21/32 once
 `docker/codswallop/00-frr/config/frr.conf` peered with 10.1.0.1.
 
+## Planned: ICX7150 replacement and rename
+
+Four ICX8200-C08PF are on order to replace the three ICX7150s - one for the Office, one
+for the Game Room, and two to be **stacked** in the Garage.
+
+**Why:** `ipv6 multicast flood-unregistered` does not exist on the ICX7150
+(`Soft pkg not supported`), which is why MLD snooping is disabled outright on all three
+rather than running with flooding. Going all-8200 removes both the limitation and the
+workaround - see *FastIron 10.0 gotchas*.
+
+**Hardware:** the C08PF is 8x 1GbE PoE+ with a 124W budget and 2x 10 GbE SFP+
+stacking/uplink ports. The existing C08ZP is 8x 2.5GbE PoE++ with 2x 10 GbE SFP+. Both
+have the same uplink speed; the access ports are what differ.
+
+For the Garage stack, the SFP+ ports are also the stacking ports. A single stack link
+leaves one SFP+ per unit free for the uplink; a redundant stack link consumes both and
+leaves none.
+
+### Naming
+
+`<room>-icx8200` / `<room>-icx7150` stops working once every switch is an ICX8200. The
+replacement convention is **`<room>-<model>`**, dropping `icx8200` because it no longer
+distinguishes anything. This matches the shape the CRS309s already use.
+
+| Room | Names |
+| --- | --- |
+| Office | `office-crs309`, `office-c08zp`, `office-c08pf` |
+| Game Room | `gameroom-crs309`, `gameroom-c08zp`, `gameroom-c08pf` |
+| Garage | `garage-crs309`, `garage-c08zp`, `garage-c08pf` |
+
+The stacked Garage pair takes **one** name for both units. The three CRS309 names do not
+change. Addressing slots carry over unchanged: `.11`/`.21`/`.31` stay with the C08ZPs, and
+`.12`/`.22`/`.32` move from the 7150s to the C08PFs.
+
+### Everything that has to change
+
+| Where | What |
+| --- | --- |
+| `kubernetes/apps/observability/blackbox-exporter/app/probes.yaml` | Six switch entries |
+| `docs/network/switch-baseline.md` | Six as-built section headings and body references |
+| Router static DNS | Six entries commented `switch` |
+| Switch hostnames | FastIron `hostname` on six boxes |
+| Physical labels | - |
+| Unleashed | Follows the hostname the switch reports |
+
+Do this as **one cut once the C08PFs are installed.** Renaming the C08ZPs early leaves
+`office-c08zp` sitting beside `office-icx7150` and means touching DNS, probes and
+hostnames twice.
+
+Note when searching: `garage` in `docker/codswallop/04-garage/` and the kanidm
+`oauth2-garage-ui` refer to the Garage S3 software, not the room. They are not affected.
+
 ## Netinstall from a RouterOS device
 
 Running a Netinstall server on a RouterOS device is the separate `netinstall` package,
