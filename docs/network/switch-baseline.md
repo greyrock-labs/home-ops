@@ -177,6 +177,7 @@ all six VLANs; PoE allocation is dynamic; 240W budget.
 
 | Port | Name | Untagged | Tagged |
 | --- | --- | --- | --- |
+| 1/1/1 | homeassistant | 10 | - |
 | 1/1/5 | office-ap | 1 | 10, 20, 4000 |
 | 1/1/6 | uh-ap | 1 | 10, 20, 4000 |
 | 1/1/7 | codswallop | 20 | - |
@@ -266,20 +267,17 @@ Office CRS309. IGMP passive; MLD snooping not configured.
 | 1/1/2 | time2 | 20 |
 | 1/1/3 | time3 | 20 |
 | 1/1/4 | time4 | 20 |
-| 1/1/5 | ai-port | 60 |
 | 1/1/7 | kvm-hass | 20 |
-| 1/1/8 | homeassistant | 10 |
 | 1/1/9 | kvm-nas | 20 |
-| 1/1/11 | ai-key | 60 |
-| 1/1/12 | chime | 60 |
 | 1/2/1 | kvm-k8s | 20 |
-| 1/3/1 | nvr | 60 |
 
-`1/1/6`, `1/1/10` and `1/2/2` are unused. The front-panel "port 13" is `1/2/1`, the first
-copper uplink on module 2 - the PoE module only goes to `1/1/12`.
+`1/1/5`, `1/1/6`, `1/1/8`, `1/1/10`, `1/1/11`, `1/1/12`, `1/2/2` and `1/3/1` are unused.
+The front-panel "port 13" is `1/2/1`, the first copper uplink on module 2 - the PoE module
+only goes to `1/1/12`.
 
-`1/3/1` carries the NVR at 10G on VLAN 60 while the cameras sit on the Garage 7150, so
-camera-to-NVR traffic is the one flow that traverses the whole chain in normal operation.
+The NVR, chime and the two AI ports were removed from service. VLAN 60 remains configured
+and tagged on the uplink `1/3/2` for trunk consistency, but has no local untagged ports
+on this switch. `1/3/1` is the free 10G port that carried the NVR.
 
 ## CRS309 / RouterOS notes
 
