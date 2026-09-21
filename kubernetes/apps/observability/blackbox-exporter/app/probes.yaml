@@ -25,7 +25,7 @@ spec:
         - iotabase.internal.greyrock.io
         - iotagrge.internal.greyrock.io
         - kitchen-ap.internal.greyrock.io
-        - livingroom-ap.internal.greyrock.io
+        # - livingroom-ap.internal.greyrock.io
         - office-ap.internal.greyrock.io
         - office-crs309.internal.greyrock.io
         - office-gw.internal.greyrock.io
