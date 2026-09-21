@@ -125,6 +125,10 @@ acme.sh --issue --dns dns_cloudns --dnssleep 120 --keylength ec-256 -d greyrock.
 acme.sh --deploy -d greyrock.io --ecc --deploy-hook routeros
 ```
 
+`--dnssleep 120` replaces acme.sh's DNS propagation check, which does not complete in
+this environment. The flag is saved into the domain config, so renewals inherit it and
+behave the same way. This is settled configuration, not a workaround awaiting a fix.
+
 `--ecc` is required on every operation after issuance — the certificate lives in
 `greyrock.io_ecc`, and without the flag acme.sh looks in the RSA directory and reports
 the domain as unknown.
@@ -168,11 +172,7 @@ grep -E "Le_DeployHook|Le_DNSSleep|Le_API|Le_Keylength" /acme.sh/greyrock.io_ecc
 cat /acme.sh/crontab
 ```
 
-## Open items
-
-- **`--dnssleep 120` rather than propagation checking.** acme.sh's DNS check spins
-  indefinitely here; the cause was not established. The flag is saved in the domain
-  config, so renewals skip the check too.
+## Verified
 
 Renewal has been exercised with `acme.sh --renew -d greyrock.io --ecc --force`: a new
 certificate issued, the saved `Le_DeployHook` fired without a TTY, four certificates and

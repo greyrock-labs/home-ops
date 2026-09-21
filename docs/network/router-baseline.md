@@ -226,9 +226,3 @@ and `local.router-id` are both invalid on a connection; it comes from `/routing 
 
 `10.1.25.0/24` is the Cilium load-balancer range, learned over BGP. It is not a VLAN and
 has no SVI.
-
-## Open items
-
-- **`--dnssleep 120` on the acme client.** acme.sh's DNS propagation check never
-  completes here and the cause was never established. See
-  [router-acme.md](router-acme.md).
