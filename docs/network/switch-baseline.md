@@ -101,6 +101,27 @@ instance from the other is the same statement twice: RSTP replaced 802.1D on VLA
 | `show ipv6 multicast` | 8200s: `dft V2`, Flooding Enabled. 7150s: no VLANs listed at all |
 | `show ntp status` | synchronized, server mode disabled, client mode enabled |
 
+## Unleashed APs
+
+Static addresses, assigned in the same room blocks as the switches: each room gets a /24
+slice of 10.1.0.0/24 where the switches take the low numbers and the APs run up from `.3`.
+
+| AP | Address | Room block |
+| --- | --- | --- |
+| `office-ap` | 10.1.0.13 | Office (.10-.19) |
+| `upstairs-hallway-ap` | 10.1.0.14 | Office |
+| `gameroom-ap` | 10.1.0.23 | Game Room (.20-.29) |
+| `livingroom-ap` | 10.1.0.24 | Game Room |
+| `garage-ap` | 10.1.0.33 | Garage (.30-.39) |
+| `rear-driveway-ap` | 10.1.0.34 | Garage |
+| `side-yard-ap` | 10.1.0.35 | Garage |
+| `side-driveway-ap` | 10.1.0.36 | Garage |
+| `kitchen-ap` | 10.1.0.37 | Garage |
+
+The block is the address range, not the physical room - `kitchen-ap` and the driveway and
+side-yard APs all home to the Garage stack. The controller itself is at 10.1.20.2 on the
+servers VLAN. AP-to-switch-port mapping lives in Unleashed and is not duplicated here.
+
 ## Unleashed config drift
 
 These switches carry `manager registrar` and are co-managed. Unleashed re-asserts parts of
@@ -365,5 +386,212 @@ power - one of these logged `rebooted without proper shutdown, probably power ou
 ## Open items
 
 - IPv6 is prefix-delegated and deliberately deferred.
-- The RB5009 is configured last. Check whether its bridge runs an IGMP querier that
-  would compete with the Office ICX8200 (lowest IP wins the election).
+- **Time zone is unset on all nine switches.** Everything is on GMT. The RB5009 resolved
+  `America/New_York` by itself once it had real internet (`time-zone-autodetect: yes`);
+  neither FastIron nor RouterOS on the CRS309s does that.
+- **`ip mtu 9198` is set on `garage-icx8200` only.** The other five ICX still have `ve 1`
+  at 1500. That only affects traffic the switch itself originates or terminates, not
+  transit, which is why jumbo proved out end to end anyway - but it is inconsistent.
+- **codswallop's BGP session does not establish.** `docker/codswallop/00-frr/config/frr.conf`
+  has `neighbor 10.1.20.1`, which was the old router. The RB5009 peers from 10.1.0.1, so
+  FRR drops the OPEN from an address it has no neighbor statement for. Fix belongs in
+  frr.conf, not on the router. kerfuffle is unaffected - `CiliumBGPClusterConfig` already
+  points every k8s node at 10.1.0.1.
+
+Resolved since the bench build: `ctrld` is running on VLAN 30, the `netinstall` package
+and its three listeners are in place, and the kerfuffle BGP session is established with
+five prefixes.
+
+## Netinstall from a RouterOS device
+
+Running a Netinstall server on a RouterOS device is the separate `netinstall` package,
+which requires **RouterOS 7.24beta1 or later on the server device**. (The 7.4-era
+Netinstall change was the Linux/CLI build of the desktop tool - different thing.)
+Available for every architecture except SMIPS.
+
+Netinstall **reformats the target's system drive**: all configuration and user files are
+erased. The RouterOS license and RouterBOOT settings survive.
+
+### The hard constraint: one Layer 2 broadcast domain
+
+Server and target must share a broadcast domain. Etherboot is raw BOOTP broadcast over
+wired Ethernet, so it will not cross:
+
+- a routed hop
+- a different VLAN
+- a wireless link
+
+Across the house is fine as long as it is all one switched broadcast domain. MikroTik
+recommends a dedicated interface and a dumb switch to avoid IP/DHCP/BOOTP conflicts, but a
+shared bridge is explicitly supported - their own documented example binds to `bridge1`.
+
+### Server setup
+
+Enable the `netinstall` package for the *server's* architecture and reboot. On 7.24 the
+extra packages are already on the device - `/system package print` lists them flagged
+`A - AVAILABLE`, so there is no zip to download and upload.
+
+It then appears under Tools -> Netinstall (`/tool/netinstall`) and creates `NetinstallCache/`,
+which on flash-only boards lives in RAM - attach storage and set `cache-directory` if
+space is tight.
+
+Pre-fetching images needs internet on the server, and `arch` is the **target's** CPU
+architecture, not the server's:
+
+```
+/tool/netinstall/cache/add arch=arm version=7.24
+```
+
+Omitting `version` installs the latest in the Check for Updates channel.
+
+### Listener parameters
+
+| Parameter | Meaning / default |
+| --- | --- |
+| `interface` | Interface the server listens on |
+| `allow-etherboot` | yes/no, default yes |
+| `allow-flashfig` | yes/no, default yes |
+| `mac-address` | Restrict to one target MAC |
+| `ip-range` | BOOTP range handed to the target |
+| `version` | RouterOS version to install |
+| `auto-reboot` | none/reboot/shutdown, default reboot |
+| `extra-packages` | Beyond the system package, which installs automatically |
+| `keep-old-configuration` | yes/no, default yes |
+| `apply-default-configuration` | yes/no, default no |
+| `install-once` | yes/no, default yes |
+| `mode-file` | First-boot script, auto-removed after it runs |
+| `script-file` | Default configuration script |
+| `remove-branding` | yes/no, default no |
+| `wait` | yes/no, default no |
+| `etherboot-image` | Select a cached package |
+| `etherboot-image-arch` | CPU architecture |
+
+Also `/tool/netinstall/cache/` (arch mandatory, packages, version) and
+`/tool/netinstall/devices/` (device state; clear the list, or install with
+auto-reboot / extra-packages / numbers / version).
+
+### Getting a target into Etherboot
+
+- **Serial console**: hold Ctrl+E during boot.
+- **Regular booter**: power on, press and hold Reset ~1-2s after power-up.
+- **Backup booter**: power off, hold Reset, power on, wait for the LED to blink, go solid,
+  go off, then release.
+- **Remotely, if it still boots RouterOS**:
+
+```
+/system/routerboard/settings set boot-device=try-ethernet-once-then-nand
+/system/reboot
+```
+
+### boot-device options
+
+| Option | Behaviour |
+| --- | --- |
+| `nand-if-fail-then-ethernet` | Factory default. Boots NAND; if RouterOS will not boot, goes to Etherboot automatically |
+| `nand-only` | NAND only, no fallback |
+| `try-ethernet-once-then-nand` | Tries Etherboot next boot, falls back to NAND if nothing answers |
+| `ethernet` | Stays in Etherboot |
+| `flash-boot` | Flashfig mode; reverts to NAND after a config change or user login |
+| `flash-boot-once-then-nand` | Flashfig for one boot, then reverts to `nand-if-fail-then-ethernet` |
+
+`boot-protocol` is `bootp` (default) or `dhcp`.
+
+### Running the listener on a shared / production interface
+
+Supported, but tighten it:
+
+- **Pin the MAC** plus `install-once=yes`. Only a device actually in Etherboot can be
+  caught - but that includes anything someone reset-holds while the listener is live.
+- **`allow-flashfig=no`**, or a factory-fresh or freshly-reset board on that LAN can get
+  reconfigured unexpectedly.
+- **`ip-range` in dead space**, clear of the existing DHCP pool.
+- **DHCP race**: the LAN DHCP server and the listener both see the target's request. MAC
+  pinning usually settles it; disabling LAN DHCP for the minute the flash takes is the
+  blunt fix.
+- **VLAN-filtered bridge**: bind to the VLAN interface the target's port is untagged in,
+  not the bridge itself.
+- **RSTP**: `edge-port=yes` on the target's port. Forwarding delay eats the Etherboot
+  window and fails silently - it looks like the target is never seen at all.
+
+## CRS309 remote netinstall recovery
+
+Goal: reflash a bricked CRS309 from `office-gw` over VLAN 1 without unracking.
+
+It works because the factory default `boot-device=nand-if-fail-then-ethernet` means a
+switch that cannot boot RouterOS drops into Etherboot **by itself**. A failed upgrade is
+exactly that condition, so nothing needs pre-arming on the switch - only a listener armed
+on the router beforehand.
+
+CRS309-1G-8S+ is 32-bit ARM (98DX8208, 800MHz dual core), so `arch=arm`. It has one copper
+`ether1` plus 8x SFP+. The `etherboot-port` selector that lets you choose a boot interface
+exists only on CRS520/804/812 - on the 309, assume Etherboot uses **copper `ether1` only**.
+
+### Adjustments for this build
+
+- **Bind the listener to `bridge`, not `vlan1`.** VLAN 1 is untagged on the bridge itself
+  here; there is no separate VLAN 1 interface, unlike 10/20/50/60/4000. This is the
+  "bind to the VLAN interface the target is untagged in" rule, and here that is `bridge`.
+- **`ip-range` is 192.168.88.x**, not production space - Netinstall wants that subnet. The
+  router therefore needs a secondary address there on the listening interface, since the
+  server has to reach the target at whatever it hands out. It coexists with 10.1.0.1/24 on
+  the same bridge:
+
+  ```
+  /ip address add address=192.168.88.1/24 interface=bridge comment="netinstall"
+  ```
+- **Patch each CRS309's `ether1` to its local ICX.** All three currently uplink over SFP+
+  only, and Etherboot will not use those. `ether1` is already a bridge port at pvid 1, so
+  any untagged VLAN 1 port on the room's ICX works.
+- **`admin-edge-port` on that ICX port.** RSTP runs on VLAN 1 on the ICX side and
+  forwarding delay closes the Etherboot window. The router bridge is `protocol-mode=none`
+  and contributes no delay.
+- **Pin the `ether1` MAC**, not the bridge/management MAC.
+- **`keep-old-configuration=yes`** matters more than usual - a switch back on defaults is
+  unreachable on VLAN 1 management, which puts you right back at the rack. A `script-file`
+  with a minimal known-good management config (bridge, VLAN 1, address) is insurance for
+  the case where the config restore is what failed.
+
+```
+/tool/netinstall/add interface=bridge \
+    mac-address=<CRS309 ether1 MAC> \
+    ip-range=192.168.88.10-192.168.88.20 \
+    version=7.24 \
+    keep-old-configuration=yes \
+    allow-flashfig=no install-once=yes auto-reboot=reboot
+```
+
+### Workflow for bricking-on-upgrade
+
+1. Arm the listener for the switch about to be upgraded. Idle listeners cost nothing.
+2. Upgrade.
+3. If it bricks, it falls into Etherboot, gets caught, reflashes, reboots.
+4. Confirm it is back, then re-arm - `install-once` has disarmed the entry.
+
+```
+/tool/netinstall/devices/print
+/tool/netinstall/devices/install numbers=0 version=7.24
+```
+
+### Reset button (CRS309-1G-8S+IN)
+
+- Config reset: hold until the USER LED flashes.
+- Bootloader recovery: press before power-on, release after ~3s.
+- Netinstall/Etherboot: hold while powering on until the USR LED goes steady, then off.
+
+### Where this does not save you
+
+- **Half-brick** - boots RouterOS but comes up misconfigured or unreachable. It never
+  enters Etherboot, so nothing catches it.
+- **RouterBOOT-level corruption** - no Etherboot at all. Reset button or backup booter
+  only, which means unracking.
+- **Don't host the listener on a device being upgraded in the same window.**
+- **The reformat** - config and user files gone, license and RouterBOOT settings kept.
+
+Serial console or a switched PDU on these switches would cover nearly everything short of
+dead hardware, and is worth adding eventually.
+
+Sources:
+[Netinstall package](https://manual.mikrotik.com/docs/getting-started/installation-and-upgrade/netinstall/netinstall-package/) ·
+[Netinstall](https://manual.mikrotik.com/docs/getting-started/installation-and-upgrade/netinstall/) ·
+[RouterBOARD](https://help.mikrotik.com/docs/spaces/ROS/pages/40992878/RouterBOARD) ·
+[CRS309-1G-8S+IN](https://help.mikrotik.com/docs/spaces/UM/pages/17956906/CRS309-1G-8S+IN)
