@@ -470,18 +470,11 @@
           }
         },
         {
-          "id": "merge",
-          "options": {},
-          "filter": {
-            "id": "byRefId",
-            "options": "A"
-          }
-        },
-        {
           "id": "organize",
           "options": {
             "excludeByName": {
-              "Time": true
+              "Time": true,
+              "__name__": true
             },
             "renameByName": {
               "Value": "associations"
@@ -503,6 +496,14 @@
           "filter": {
             "id": "byRefId",
             "options": "B"
+          }
+        },
+        {
+          "id": "merge",
+          "options": {},
+          "filter": {
+            "id": "byRefId",
+            "options": "A"
           }
         },
         {
