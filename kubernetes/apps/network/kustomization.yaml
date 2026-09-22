@@ -18,5 +18,6 @@ resources:
   - ./multus/ks.yaml
   - ./printer-cert-updater-brother/ks.yaml
   - ./towonel-agent/ks.yaml
+  - ./unimus/ks.yaml
   - ./unleashed-voucher-manager/ks.yaml
   - ./wifi-cert-updater-ruckus/ks.yaml
