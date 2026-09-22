@@ -50,7 +50,7 @@
           var: doco_webhook_secret
         - key: Automation/crowdsec/api_token
           var: crowdsec_api_key
-        - key: Private/Personal SSH Key/public key
+        - key: Developer/Personal SSH Key/public key
           var: todd_ssh_public_key
       check_mode: false
       changed_when: false
