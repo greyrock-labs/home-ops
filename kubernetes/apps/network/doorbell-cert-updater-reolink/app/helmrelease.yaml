@@ -28,10 +28,6 @@ spec:
     networkpolicies:
       doorbell-cert-updater-reolink:
         type: cilium
-        endpointSelector:
-          matchLabels:
-            app.kubernetes.io/name: doorbell-cert-updater-reolink
-            app.kubernetes.io/instance: doorbell-cert-updater-reolink
         egress:
           # Cilium rejects a rule carrying both toCIDR and toEntities, and an invalid
           # policy is never imported -- which leaves block-all-egress denying

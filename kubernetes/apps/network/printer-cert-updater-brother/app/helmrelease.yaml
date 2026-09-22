@@ -28,10 +28,6 @@ spec:
     networkpolicies:
       printer-cert-updater-brother:
         type: cilium
-        endpointSelector:
-          matchLabels:
-            app.kubernetes.io/name: printer-cert-updater-brother
-            app.kubernetes.io/instance: printer-cert-updater-brother
         egress:
           # Cilium rejects a rule carrying both toCIDR and toEntities, and an invalid
           # policy is never imported -- which leaves block-all-egress denying

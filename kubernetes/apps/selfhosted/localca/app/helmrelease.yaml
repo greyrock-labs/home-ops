@@ -13,10 +13,6 @@ spec:
     networkpolicies:
       localca:
         type: cilium
-        endpointSelector:
-          matchLabels:
-            app.kubernetes.io/name: localca
-            app.kubernetes.io/instance: localca
         ingress:
           - fromEndpoints:
               - matchLabels:

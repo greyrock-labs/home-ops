@@ -28,10 +28,6 @@ spec:
     networkpolicies:
       wifi-cert-updater-ruckus:
         type: cilium
-        endpointSelector:
-          matchLabels:
-            app.kubernetes.io/name: wifi-cert-updater-ruckus
-            app.kubernetes.io/instance: wifi-cert-updater-ruckus
         egress:
           # Cilium rejects a rule carrying both toCIDR and toEntities, and an invalid
           # policy is never imported -- which leaves block-all-egress denying

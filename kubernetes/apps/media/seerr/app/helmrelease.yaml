@@ -13,10 +13,6 @@ spec:
     networkpolicies:
       seerr:
         type: cilium
-        endpointSelector:
-          matchLabels:
-            app.kubernetes.io/name: seerr
-            app.kubernetes.io/instance: seerr
         egress:
           - toEndpoints:
               - matchLabels:

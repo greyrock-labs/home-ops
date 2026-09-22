@@ -13,10 +13,6 @@ spec:
     networkpolicies:
       watchstate:
         type: cilium
-        endpointSelector:
-          matchLabels:
-            app.kubernetes.io/name: watchstate
-            app.kubernetes.io/instance: watchstate
         egress:
           - toEndpoints:
               - matchLabels:
