@@ -12,6 +12,8 @@ spec:
   values:
     fullnameOverride: victoria-logs
     server:
+      extraArgs:
+        syslog.timezone: America/New_York
       persistentVolume:
         enabled: true
         size: 20Gi
@@ -26,6 +28,10 @@ spec:
             namespace: network
       serviceMonitor:
         enabled: true
+      syslog:
+        udp:
+          - name: syslog-udp
+            value: :5140
     dashboards:
       enabled: true
       grafanaOperator:
