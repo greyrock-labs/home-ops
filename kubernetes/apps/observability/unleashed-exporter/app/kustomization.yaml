@@ -6,3 +6,11 @@ resources:
   - ./ocirepository.yaml
   - ./helmrelease.yaml
   - ./grafanadashboard.yaml
+configMapGenerator:
+  - name: unleashed-client-events-dashboard
+    files:
+      - client-events.json=./resources/client-events.json
+generatorOptions:
+  disableNameSuffixHash: true
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled

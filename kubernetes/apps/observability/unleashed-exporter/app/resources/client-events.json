@@ -1,0 +1,864 @@
+{
+  "title": "Ruckus Unleashed Client Events",
+  "uid": "ruckus-unleashed-client-events",
+  "tags": [
+    "ruckus",
+    "syslog"
+  ],
+  "timezone": "browser",
+  "editable": true,
+  "schemaVersion": 41,
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "refresh": "1m",
+  "templating": {
+    "list": [
+      {
+        "name": "ds_logs",
+        "label": "Logs",
+        "type": "datasource",
+        "query": "victoriametrics-logs-datasource",
+        "hide": 2
+      },
+      {
+        "name": "ds_prom",
+        "label": "Prometheus",
+        "type": "datasource",
+        "query": "prometheus",
+        "hide": 2
+      },
+      {
+        "name": "client",
+        "label": "Client MAC",
+        "type": "textbox",
+        "query": "",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "description": "Full or partial client MAC, lowercase with colons"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Associations",
+      "description": "Client associations logged by the Unleashed master (stamgr handle_assoc).",
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "${ds_logs}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "${ds_logs}"
+          },
+          "editorMode": "code",
+          "expr": "log_source:syslog \"handle_assoc():VAP\" | extract \"VAP <bssid> station <client_mac> \" | filter client_mac:~\"$client\" | stats count() associations",
+          "queryType": "stats"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "id": 1,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Clients associating",
+      "description": "Distinct client MACs that associated in the time range.",
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "${ds_logs}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "${ds_logs}"
+          },
+          "editorMode": "code",
+          "expr": "log_source:syslog \"handle_assoc():VAP\" | extract \"VAP <bssid> station <client_mac> \" | filter client_mac:~\"$client\" | stats count_uniq(client_mac) clients",
+          "queryType": "stats"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "id": 2,
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Disassociations",
+      "description": "hostapd disassociations. A client that loses power sends nothing, so this undercounts real drops.",
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "${ds_logs}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "${ds_logs}"
+          },
+          "editorMode": "code",
+          "expr": "log_source:syslog \"IEEE 802.11\" \"disassociated\" | extract \"STA <client_mac> IEEE\" | filter client_mac:~\"$client\" | stats count() disassociations",
+          "queryType": "stats"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "id": 3,
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Clients disassociating",
+      "description": "Distinct client MACs with a logged disassociation in the time range.",
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "${ds_logs}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "${ds_logs}"
+          },
+          "editorMode": "code",
+          "expr": "log_source:syslog \"IEEE 802.11\" \"disassociated\" | extract \"STA <client_mac> IEEE\" | filter client_mac:~\"$client\" | stats count_uniq(client_mac) clients",
+          "queryType": "stats"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "id": 4,
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Client events",
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "${ds_logs}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "${ds_logs}"
+          },
+          "editorMode": "code",
+          "expr": "log_source:syslog \"handle_assoc():VAP\" | extract \"VAP <bssid> station <client_mac> \" | filter client_mac:~\"$client\" | stats count() associations",
+          "queryType": "statsRange",
+          "legendFormat": "associations"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "${ds_logs}"
+          },
+          "editorMode": "code",
+          "expr": "log_source:syslog \"IEEE 802.11\" \"disassociated\" | extract \"STA <client_mac> IEEE\" | filter client_mac:~\"$client\" | stats count() disassociations",
+          "queryType": "statsRange",
+          "legendFormat": "disassociations"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "stacking": {
+              "mode": "none"
+            }
+          },
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "id": 5,
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 7
+      }
+    },
+    {
+      "type": "table",
+      "title": "Associations by AP and SSID",
+      "description": "Association counts, with each BSSID resolved to its AP, SSID and band through the exporter's ruckus_vap_status.",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Mixed --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "${ds_logs}"
+          },
+          "editorMode": "code",
+          "expr": "log_source:syslog \"handle_assoc():VAP\" | extract \"VAP <bssid> station <client_mac> \" | filter client_mac:~\"$client\" | stats by (bssid) count() associations",
+          "queryType": "stats"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds_prom}"
+          },
+          "editorMode": "code",
+          "expr": "max by (bssid, ssid, radio_band, ap_name) (ruckus_vap_status * on (ap_mac) group_left (ap_name) max by (ap_mac, ap_name) (ruckus_ap_status))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "mode": "columns"
+          },
+          "filter": {
+            "id": "byRefId",
+            "options": "A"
+          }
+        },
+        {
+          "id": "merge",
+          "options": {},
+          "filter": {
+            "id": "byRefId",
+            "options": "A"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Value": true
+            }
+          },
+          "filter": {
+            "id": "byRefId",
+            "options": "B"
+          }
+        },
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "bssid",
+            "mode": "inner"
+          }
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "ap_name": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "ssid": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "Value": {
+                "aggregations": [
+                  "sum"
+                ],
+                "operation": "aggregate"
+              }
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "ap_name": "AP",
+              "ssid": "SSID",
+              "Value (sum)": "Associations"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Associations",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      },
+      "id": 6,
+      "gridPos": {
+        "x": 0,
+        "y": 11,
+        "w": 12,
+        "h": 10
+      }
+    },
+    {
+      "type": "table",
+      "title": "Most frequently associating clients",
+      "description": "Clients with the most associations in the range; a high count usually means a client that keeps dropping and reconnecting. Names come from the exporter and are blank for clients not connected now.",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Mixed --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "${ds_logs}"
+          },
+          "editorMode": "code",
+          "expr": "log_source:syslog \"handle_assoc():VAP\" | extract \"VAP <bssid> station <client_mac> \" | filter client_mac:~\"$client\" | stats by (client_mac) count() associations | sort by (associations desc) | limit 25",
+          "queryType": "stats"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds_prom}"
+          },
+          "editorMode": "code",
+          "expr": "max by (client_mac, client_name) (ruckus_client_rssi_dbm)",
+          "format": "table",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "mode": "columns"
+          },
+          "filter": {
+            "id": "byRefId",
+            "options": "A"
+          }
+        },
+        {
+          "id": "merge",
+          "options": {},
+          "filter": {
+            "id": "byRefId",
+            "options": "A"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "associations"
+            }
+          },
+          "filter": {
+            "id": "byRefId",
+            "options": "A"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Value": true
+            }
+          },
+          "filter": {
+            "id": "byRefId",
+            "options": "B"
+          }
+        },
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "client_mac",
+            "mode": "outerTabular"
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "include",
+            "match": "any",
+            "filters": [
+              {
+                "fieldName": "associations",
+                "config": {
+                  "id": "greater",
+                  "options": {
+                    "value": 0
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "client_mac": 0,
+              "client_name": 1,
+              "associations": 2
+            },
+            "renameByName": {
+              "client_mac": "Client MAC",
+              "client_name": "Name",
+              "associations": "Associations"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Associations",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      },
+      "id": 7,
+      "gridPos": {
+        "x": 12,
+        "y": 11,
+        "w": 12,
+        "h": 10
+      }
+    },
+    {
+      "type": "table",
+      "title": "Association log",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Mixed --"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "${ds_logs}"
+          },
+          "editorMode": "code",
+          "expr": "log_source:syslog \"handle_assoc():VAP\" | extract \"VAP <bssid> station <client_mac> \" | filter client_mac:~\"$client\" | fields _time, client_mac, bssid",
+          "queryType": "instant",
+          "maxLines": 500
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds_prom}"
+          },
+          "editorMode": "code",
+          "expr": "max by (bssid, ssid, radio_band, ap_name) (ruckus_vap_status * on (ap_mac) group_left (ap_name) max by (ap_mac, ap_name) (ruckus_ap_status))",
+          "format": "table",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "labels",
+            "format": "json",
+            "replace": false
+          },
+          "filter": {
+            "id": "byRefId",
+            "options": "A"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Value": true
+            }
+          },
+          "filter": {
+            "id": "byRefId",
+            "options": "B"
+          }
+        },
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "bssid",
+            "mode": "inner"
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Time",
+                "client_mac",
+                "ap_name",
+                "ssid",
+                "radio_band",
+                "bssid"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "Time": 0,
+              "client_mac": 1,
+              "ap_name": 2,
+              "ssid": 3,
+              "radio_band": 4,
+              "bssid": 5
+            },
+            "renameByName": {
+              "client_mac": "Client MAC",
+              "ap_name": "AP",
+              "ssid": "SSID",
+              "radio_band": "Band",
+              "bssid": "BSSID"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Time",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true
+      },
+      "id": 8,
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 12,
+        "h": 12
+      }
+    },
+    {
+      "type": "table",
+      "title": "Disassociation log",
+      "description": "AP names are mapped from the sender IP (reverse DNS as of 2026-09-22).",
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "${ds_logs}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "${ds_logs}"
+          },
+          "editorMode": "code",
+          "expr": "log_source:syslog \"IEEE 802.11\" \"disassociated\" | extract \"STA <client_mac> IEEE\" | filter client_mac:~\"$client\" | fields _time, client_mac, remote_ip",
+          "queryType": "instant",
+          "maxLines": 500
+        }
+      ],
+      "transformations": [
+        {
+          "id": "extractFields",
+          "options": {
+            "source": "labels",
+            "format": "json",
+            "replace": false
+          }
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Time",
+                "client_mac",
+                "remote_ip"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "Time": 0,
+              "client_mac": 1,
+              "remote_ip": 2
+            },
+            "renameByName": {
+              "client_mac": "Client MAC",
+              "remote_ip": "AP"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Time",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "AP"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "10.1.0.13": {
+                        "text": "office-ap"
+                      },
+                      "10.1.0.14": {
+                        "text": "upstairs-hallway-ap"
+                      },
+                      "10.1.0.23": {
+                        "text": "game-room-ap"
+                      },
+                      "10.1.0.33": {
+                        "text": "garage-ap"
+                      },
+                      "10.1.0.34": {
+                        "text": "rear-driveway-ap"
+                      },
+                      "10.1.0.35": {
+                        "text": "side-yard-ap"
+                      },
+                      "10.1.0.36": {
+                        "text": "side-driveway-ap"
+                      },
+                      "10.1.0.37": {
+                        "text": "kitchen-ap"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true
+      },
+      "id": 9,
+      "gridPos": {
+        "x": 12,
+        "y": 21,
+        "w": 12,
+        "h": 12
+      }
+    },
+    {
+      "type": "logs",
+      "title": "Syslog lines matching the client filter",
+      "description": "Every syslog line (noise included) whose message matches the Client MAC filter. Set the filter first; empty shows all syslog.",
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "${ds_logs}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "${ds_logs}"
+          },
+          "editorMode": "code",
+          "expr": "log_source:syslog facility:* _msg:~\"$client\"",
+          "queryType": "instant",
+          "maxLines": 1000
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending",
+        "enableLogDetails": true
+      },
+      "id": 10,
+      "gridPos": {
+        "x": 0,
+        "y": 33,
+        "w": 24,
+        "h": 12
+      }
+    }
+  ]
+}

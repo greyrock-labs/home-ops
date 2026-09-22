@@ -25,3 +25,18 @@ spec:
     matchLabels:
       dashboards: grafana
   url: https://raw.githubusercontent.com/ccmpbll/ruckus-unleashed-exporter/v2026.09.20/dashboards/ruckus-unleashed.json
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/grafana.integreatly.org/grafanadashboard_v1beta1.json
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: unleashed-client-events
+spec:
+  allowCrossNamespaceImport: true
+  configMapRef:
+    key: client-events.json
+    name: unleashed-client-events-dashboard
+  folderRef: unleashed-exporter
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
