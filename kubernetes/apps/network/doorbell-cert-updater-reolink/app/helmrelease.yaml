@@ -10,6 +10,39 @@ spec:
     name: doorbell-cert-updater-reolink
   interval: 30m
   values:
+    externalSecrets:
+      doorbell-cert-updater-reolink:
+        refreshInterval: 12h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: onepassword-connect
+        data:
+          - secretKey: UPDATER_USERNAME
+            remoteRef:
+              key: Cert Updater
+              property: updater-username
+          - secretKey: REOLINK_PASSWORD
+            remoteRef:
+              key: Cert Updater
+              property: courtyard-porch-doorbell
+    networkpolicies:
+      doorbell-cert-updater-reolink:
+        type: cilium
+        endpointSelector:
+          matchLabels:
+            app.kubernetes.io/name: doorbell-cert-updater-reolink
+            app.kubernetes.io/instance: doorbell-cert-updater-reolink
+        egress:
+          # Cilium rejects a rule carrying both toCIDR and toEntities, and an invalid
+          # policy is never imported -- which leaves block-all-egress denying
+          # everything. The doorbell is a plain address outside the cluster, so the
+          # CIDR alone is what is needed. DNS comes from allow-dns-egress.
+          - toCIDR:
+              - 10.1.60.10/32
+            toPorts:
+              - ports:
+                  - port: "443"
+                    protocol: TCP
     controllers:
       doorbell-cert-updater-reolink:
         type: cronjob
@@ -41,8 +74,8 @@ spec:
             env:
               REOLINK_HOST: courtyard-porch-doorbell.internal.greyrock.io
             envFrom:
-              - secretRef:
-                  name: doorbell-cert-updater-reolink-secret
+              - externalSecretRef:
+                  identifier: doorbell-cert-updater-reolink
             probes:
               liveness:
                 enabled: false

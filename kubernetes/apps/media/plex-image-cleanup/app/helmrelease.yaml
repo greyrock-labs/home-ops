@@ -13,6 +13,33 @@ spec:
     - name: plex
       namespace: media
   values:
+    externalSecrets:
+      plex-image-cleanup:
+        refreshInterval: 12h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: onepassword-connect
+        data:
+          - secretKey: PLEX_TOKEN
+            remoteRef:
+              key: plex
+              property: PLEX_TOKEN
+    networkpolicies:
+      plex-image-cleanup:
+        type: cilium
+        endpointSelector:
+          matchLabels:
+            app.kubernetes.io/name: plex-image-cleanup
+            app.kubernetes.io/instance: plex-image-cleanup
+        egress:
+          - toEndpoints:
+              - matchLabels:
+                  k8s:io.kubernetes.pod.namespace: media
+                  app.kubernetes.io/name: plex
+            toPorts:
+              - ports:
+                  - port: "32400"
+                    protocol: TCP
     controllers:
       plex-image-cleanup:
         type: cronjob
@@ -51,7 +78,7 @@ spec:
               PLEX_TOKEN:
                 valueFrom:
                   secretKeyRef:
-                    name: plex-image-cleanup-secret
+                    name: "{{ .Release.Name }}"
                     key: PLEX_TOKEN
               PLEX_URL: http://plex.media.svc.cluster.local:32400
             probes:

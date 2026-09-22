@@ -10,6 +10,22 @@ spec:
     name: localca
   interval: 30m
   values:
+    networkpolicies:
+      localca:
+        type: cilium
+        endpointSelector:
+          matchLabels:
+            app.kubernetes.io/name: localca
+            app.kubernetes.io/instance: localca
+        ingress:
+          - fromEndpoints:
+              - matchLabels:
+                  k8s:io.kubernetes.pod.namespace: network
+                  gateway.networking.k8s.io/gateway-name: envoy-internal
+            toPorts:
+              - ports:
+                  - port: "8000"
+                    protocol: TCP
     controllers:
       localca:
         annotations:

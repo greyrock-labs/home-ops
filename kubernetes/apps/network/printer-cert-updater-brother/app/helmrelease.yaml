@@ -10,6 +10,39 @@ spec:
     name: printer-cert-updater-brother
   interval: 30m
   values:
+    externalSecrets:
+      printer-cert-updater-brother:
+        refreshInterval: 12h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: onepassword-connect
+        data:
+          - secretKey: BROTHER_PASSWORD
+            remoteRef:
+              key: Cert Updater
+              property: brother-password
+          - secretKey: BROTHER_P12_PASSWORD
+            remoteRef:
+              key: Cert Updater
+              property: printer-p12-password
+    networkpolicies:
+      printer-cert-updater-brother:
+        type: cilium
+        endpointSelector:
+          matchLabels:
+            app.kubernetes.io/name: printer-cert-updater-brother
+            app.kubernetes.io/instance: printer-cert-updater-brother
+        egress:
+          # Cilium rejects a rule carrying both toCIDR and toEntities, and an invalid
+          # policy is never imported -- which leaves block-all-egress denying
+          # everything. The printer is a plain address outside the cluster, so the
+          # CIDR alone is what is needed. DNS comes from allow-dns-egress.
+          - toCIDR:
+              - 10.1.10.218/32
+            toPorts:
+              - ports:
+                  - port: "443"
+                    protocol: TCP
     controllers:
       printer-cert-updater-brother:
         type: cronjob
@@ -50,8 +83,8 @@ spec:
                   -macalg sha1 -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES \
                   -passout "pass:${BROTHER_P12_PASSWORD}"
             envFrom:
-              - secretRef:
-                  name: printer-cert-updater-brother-secret
+              - externalSecretRef:
+                  identifier: printer-cert-updater-brother
             resources:
               requests:
                 cpu: 10m
@@ -75,8 +108,8 @@ spec:
             env:
               PRINTER_CERT_NAME: "*.internal.greyrock.io"
             envFrom:
-              - secretRef:
-                  name: printer-cert-updater-brother-secret
+              - externalSecretRef:
+                  identifier: printer-cert-updater-brother
             probes:
               liveness:
                 enabled: false

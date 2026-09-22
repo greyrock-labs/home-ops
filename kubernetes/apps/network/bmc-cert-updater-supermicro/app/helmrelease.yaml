@@ -10,6 +10,39 @@ spec:
     name: bmc-cert-updater-supermicro
   interval: 30m
   values:
+    externalSecrets:
+      bmc-cert-updater-supermicro:
+        refreshInterval: 12h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: onepassword-connect
+        data:
+          - secretKey: UPDATER_USERNAME
+            remoteRef:
+              key: Cert Updater
+              property: updater-username
+          - secretKey: HOMEASSISTANT_PASSWORD
+            remoteRef:
+              key: Cert Updater
+              property: homeassistant-password
+    networkpolicies:
+      bmc-cert-updater-supermicro:
+        type: cilium
+        endpointSelector:
+          matchLabels:
+            app.kubernetes.io/name: bmc-cert-updater-supermicro
+            app.kubernetes.io/instance: bmc-cert-updater-supermicro
+        egress:
+          # Cilium rejects a rule carrying both toCIDR and toEntities, and an invalid
+          # policy is never imported -- which leaves block-all-egress denying
+          # everything. The BMCs are plain addresses outside the cluster, so the CIDR
+          # alone is what is needed. DNS comes from allow-dns-egress.
+          - toCIDR:
+              - 10.1.20.14/32
+            toPorts:
+              - ports:
+                  - port: "443"
+                    protocol: TCP
     controllers:
       bmc-cert-updater-supermicro:
         type: cronjob
@@ -36,8 +69,8 @@ spec:
               - /bin/sh
               - /script/push-certs-supermicro.sh
             envFrom:
-              - secretRef:
-                  name: bmc-cert-supermicro-secret
+              - externalSecretRef:
+                  identifier: bmc-cert-updater-supermicro
             probes:
               liveness:
                 enabled: false

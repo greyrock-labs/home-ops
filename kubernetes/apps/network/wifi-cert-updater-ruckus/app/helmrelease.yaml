@@ -10,6 +10,39 @@ spec:
     name: wifi-cert-updater-ruckus
   interval: 30m
   values:
+    externalSecrets:
+      wifi-cert-updater-ruckus:
+        refreshInterval: 12h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: onepassword-connect
+        data:
+          - secretKey: UPDATER_USERNAME
+            remoteRef:
+              key: Cert Updater
+              property: updater-username
+          - secretKey: RUCKUS_PASSWORD
+            remoteRef:
+              key: Cert Updater
+              property: ruckus-password
+    networkpolicies:
+      wifi-cert-updater-ruckus:
+        type: cilium
+        endpointSelector:
+          matchLabels:
+            app.kubernetes.io/name: wifi-cert-updater-ruckus
+            app.kubernetes.io/instance: wifi-cert-updater-ruckus
+        egress:
+          # Cilium rejects a rule carrying both toCIDR and toEntities, and an invalid
+          # policy is never imported -- which leaves block-all-egress denying
+          # everything. The controller is a plain address outside the cluster, so the
+          # CIDR alone is what is needed. DNS comes from allow-dns-egress.
+          - toCIDR:
+              - 10.1.20.2/32
+            toPorts:
+              - ports:
+                  - port: "443"
+                    protocol: TCP
     controllers:
       wifi-cert-updater-ruckus:
         type: cronjob
@@ -41,8 +74,8 @@ spec:
             env:
               RUCKUS_HOST: unleashed.internal.greyrock.io
             envFrom:
-              - secretRef:
-                  name: wifi-cert-updater-ruckus-secret
+              - externalSecretRef:
+                  identifier: wifi-cert-updater-ruckus
             probes:
               liveness:
                 enabled: false

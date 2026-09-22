@@ -10,6 +10,44 @@ spec:
     name: bmc-cert-updater-asrock
   interval: 30m
   values:
+    externalSecrets:
+      bmc-cert-updater-asrock:
+        refreshInterval: 12h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: onepassword-connect
+        data:
+          - secretKey: UPDATER_USERNAME
+            remoteRef:
+              key: Cert Updater
+              property: updater-username
+          - secretKey: CODSWALLOP_PASSWORD
+            remoteRef:
+              key: Cert Updater
+              property: codswallop-password
+          - secretKey: KERFUFFLE_PASSWORD
+            remoteRef:
+              key: Cert Updater
+              property: kerfuffle-password
+    networkpolicies:
+      bmc-cert-updater-asrock:
+        type: cilium
+        endpointSelector:
+          matchLabels:
+            app.kubernetes.io/name: bmc-cert-updater-asrock
+            app.kubernetes.io/instance: bmc-cert-updater-asrock
+        egress:
+          # Cilium rejects a rule carrying both toCIDR and toEntities, and an invalid
+          # policy is never imported -- which leaves block-all-egress denying
+          # everything. The BMCs are plain addresses outside the cluster, so the CIDR
+          # alone is what is needed. DNS comes from allow-dns-egress.
+          - toCIDR:
+              - 10.1.20.13/32
+              - 10.1.20.11/32
+            toPorts:
+              - ports:
+                  - port: "443"
+                    protocol: TCP
     controllers:
       bmc-cert-updater-asrock:
         type: cronjob
@@ -36,8 +74,8 @@ spec:
               - /bin/sh
               - /script/push-certs.sh
             envFrom:
-              - secretRef:
-                  name: bmc-cert-updater-asrock-secret
+              - externalSecretRef:
+                  identifier: bmc-cert-updater-asrock
             probes:
               liveness:
                 enabled: false

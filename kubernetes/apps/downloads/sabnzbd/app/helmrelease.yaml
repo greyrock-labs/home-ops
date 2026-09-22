@@ -10,6 +10,26 @@ spec:
     name: sabnzbd
   interval: 30m
   values:
+    externalSecrets:
+      sabnzbd:
+        refreshInterval: 12h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: onepassword-connect
+        target:
+          template:
+            data:
+              SABNZBD__API_KEY: "{{ .SABNZBD_API_KEY }}"
+              SABNZBD__NZB_KEY: "{{ .SABNZBD__NZB_KEY }}"
+        data:
+          - secretKey: SABNZBD_API_KEY
+            remoteRef:
+              key: sabnzbd
+              property: api_key
+          - secretKey: SABNZBD__NZB_KEY
+            remoteRef:
+              key: sabnzbd
+              property: nzb_key
     controllers:
       sabnzbd:
         annotations:
@@ -36,8 +56,8 @@ spec:
                 sabnzbd.downloads.svc.cluster.local,
                 sabnzbd.greyrock.io
             envFrom:
-              - secretRef:
-                  name: sabnzbd-secret
+              - externalSecretRef:
+                  identifier: sabnzbd
             probes:
               liveness:
                 enabled: true
