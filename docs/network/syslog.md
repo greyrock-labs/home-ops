@@ -65,16 +65,17 @@ nothing else.
   the instance's `retentionPeriod: 14d` and 20Gi `miroir-local` volume with cluster logs.
   Recheck after several days, and again once MikroTik is sending.
 
-  Baseline on 2026-09-22, retention already full back to 2026-09-08:
+  Syslog ingestion started around 14:45Z on 2026-09-22, so there is not yet enough data
+  to extrapolate a rate - let it run several days first. What is valid as a starting
+  point, taken at 15:05Z with cluster-log retention already full back to 2026-09-08:
 
   | | |
   | --- | --- |
   | Compressed storage | ~506 MB (`vl_data_size_bytes{type="storage"}`) |
   | Free on volume | 20.26 GB of 20.96 GB |
-  | Syslog, last hour | 3,875 rows, 345 KB of message text |
-  | Everything, last hour | 59,795 rows, 8.1 MB of message text |
 
-  Syslog was about 6% of rows and 4% of message bytes. Recheck with:
+  Recheck with a window that syslog has fully covered, comparing syslog against
+  everything:
 
   ```
   _time:24h log_source:syslog | stats count() n, sum_len(_msg) bytes
