@@ -1,0 +1,85 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: unleashed-exporter
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: unleashed-exporter
+  interval: 30m
+  values:
+    controllers:
+      unleashed-exporter:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          securityContext:
+            runAsGroup: 10001
+            runAsNonRoot: true
+            runAsUser: 10001
+        containers:
+          app:
+            image:
+              repository: docker.io/ccmpbll/ruckus-unleashed-exporter
+              tag: 2026.09.20
+            env:
+              EXPORTER_PORT: &port 9785
+              RUCKUS_HOST: unleashed.internal.greyrock.io
+            envFrom:
+              - externalSecretRef:
+                  identifier: unleashed-exporter
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 256Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
+    externalSecrets:
+      unleashed-exporter:
+        refreshInterval: 12h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: onepassword-connect
+        target:
+          template:
+            data:
+              RUCKUS_PASS: "{{ index . `unleashed_unleashed-exporter-password` }}"
+              RUCKUS_USER: "{{ index . `unleashed_unleashed-exporter-username` }}"
+        dataFrom:
+          - extract:
+              key: Ruckus Unleashed Controller
+            rewrite:
+              - regexp:
+                  source: "(.*)"
+                  target: "unleashed_$1"
+    persistence:
+      tmpfs:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+    service:
+      app:
+        ports:
+          http:
+            port: *port
+    serviceMonitor:
+      app:
+        endpoints:
+          - interval: 1m
+            path: /metrics
+            port: http
+            scrapeTimeout: 30s
+        service:
+          identifier: app
