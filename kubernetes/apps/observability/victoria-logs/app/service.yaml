@@ -8,6 +8,7 @@ metadata:
     lbipam.cilium.io/ips: 10.1.25.44
 spec:
   type: LoadBalancer
+  externalTrafficPolicy: Local
   ports:
     - name: syslog-udp
       port: 514

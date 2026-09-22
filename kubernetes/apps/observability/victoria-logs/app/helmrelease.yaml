@@ -32,6 +32,9 @@ spec:
         udp:
           - name: syslog-udp
             extraFields: '{"log_source":"syslog"}'
+            streamFields: '["remote_ip"]'
+            useLocalTimestamp: true
+            useRemoteIP: true
             value: :5140
     dashboards:
       enabled: true
