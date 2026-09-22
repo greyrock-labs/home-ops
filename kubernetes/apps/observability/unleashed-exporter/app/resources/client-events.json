@@ -429,7 +429,7 @@
     {
       "type": "table",
       "title": "Most frequently associating clients",
-      "description": "Clients with the most associations in the range; a high count usually means a client that keeps dropping and reconnecting. Names come from the exporter and are blank for clients not connected now.",
+      "description": "Clients with the most associations in the range; a high count usually means a client that keeps dropping and reconnecting. The Prometheus query is multiplied by 0 so it only contributes names. Names come from the exporter and are blank for clients not connected now.",
       "datasource": {
         "type": "datasource",
         "uid": "-- Mixed --"
@@ -452,7 +452,7 @@
             "uid": "${ds_prom}"
           },
           "editorMode": "code",
-          "expr": "max by (client_mac, client_name) (ruckus_client_rssi_dbm)",
+          "expr": "0 * max by (client_mac, client_name) (ruckus_client_rssi_dbm)",
           "format": "table",
           "instant": true,
           "range": false
@@ -463,54 +463,43 @@
           "id": "labelsToFields",
           "options": {
             "mode": "columns"
-          },
-          "filter": {
-            "id": "byRefId",
-            "options": "A"
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "__name__": true
-            },
-            "renameByName": {
-              "Value": "associations"
-            }
-          },
-          "filter": {
-            "id": "byRefId",
-            "options": "A"
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "Value": true
-            }
-          },
-          "filter": {
-            "id": "byRefId",
-            "options": "B"
           }
         },
         {
           "id": "merge",
-          "options": {},
-          "filter": {
-            "id": "byRefId",
-            "options": "A"
+          "options": {}
+        },
+        {
+          "id": "groupBy",
+          "options": {
+            "fields": {
+              "client_mac": {
+                "aggregations": [],
+                "operation": "groupby"
+              },
+              "client_name": {
+                "aggregations": [
+                  "firstNotNull"
+                ],
+                "operation": "aggregate"
+              },
+              "Value": {
+                "aggregations": [
+                  "sum"
+                ],
+                "operation": "aggregate"
+              }
+            }
           }
         },
         {
-          "id": "joinByField",
+          "id": "organize",
           "options": {
-            "byField": "client_mac",
-            "mode": "outerTabular"
+            "renameByName": {
+              "client_mac": "Client MAC",
+              "client_name (firstNotNull)": "Name",
+              "Value (sum)": "Associations"
+            }
           }
         },
         {
@@ -520,7 +509,7 @@
             "match": "any",
             "filters": [
               {
-                "fieldName": "associations",
+                "fieldName": "Associations",
                 "config": {
                   "id": "greater",
                   "options": {
@@ -529,21 +518,6 @@
                 }
               }
             ]
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "indexByName": {
-              "client_mac": 0,
-              "client_name": 1,
-              "associations": 2
-            },
-            "renameByName": {
-              "client_mac": "Client MAC",
-              "client_name": "Name",
-              "associations": "Associations"
-            }
           }
         },
         {
