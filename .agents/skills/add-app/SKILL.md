@@ -11,7 +11,7 @@ Scaffolds `kubernetes/apps/<namespace>/<app>/` with a Flux Kustomization (`ks.ya
 | ------------------------------------- | ---------------------------------------------------------------------- |
 | `kubernetes/apps/network/echo-server` | Minimal stateless app + route                                          |
 | `kubernetes/apps/selfhosted/wotcher`  | Secrets, config file via configMapGenerator, kopiur-backed persistence |
-| `kubernetes/apps/selfhosted/searxng`  | Custom probes, CiliumNetworkPolicy, dragonfly dependency               |
+| `kubernetes/apps/selfhosted/searxng`  | Custom probes, `networkpolicies`, dragonfly dependency                 |
 
 ## Step 1: Gather details
 
@@ -21,7 +21,7 @@ Ask the user (AskUserQuestion) for anything not already given:
 2. **Image** repository + tag (upstream's current release)
 3. **Port** the app listens on, and whether it gets a **route** (hostname); internal (`envoy-internal`, default) or public (`envoy-external`)
 4. **Persistence** — does the app store state? (→ kopiur backup component)
-5. **Secrets** — env vars from 1Password? (→ ExternalSecret). Get the 1Password item name AND its exact field names — never guess field names
+5. **Secrets** — env vars from 1Password? (→ `externalSecrets` in the HelmRelease values). Get the 1Password item name AND its exact field names — never guess field names
 6. **Config files** — mounted config? (→ configMapGenerator + `resources/`)
 7. **Dependencies** — other Flux Kustomizations this app needs
 
@@ -36,7 +36,6 @@ kubernetes/apps/<namespace>/<app>/
     ├── kustomization.yaml
     ├── ocirepository.yaml
     ├── helmrelease.yaml
-    ├── externalsecret.yaml      # only if secrets
     └── resources/               # only if config files
 ```
 
@@ -89,7 +88,6 @@ Add user-specified dependencies to `dependsOn`. Include `postBuild.substitute.AP
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ./externalsecret.yaml # only if secrets
   - ./ocirepository.yaml
   - ./helmrelease.yaml
 ```
@@ -227,44 +225,39 @@ persistence:
         readOnly: true
 ```
 
-Secrets: add to the container:
+Secrets (only if secrets) — app-template renders the ExternalSecret; there is no separate `externalsecret.yaml`. Add at the top of `values`:
+
+```yaml
+externalSecrets:
+  <app>:
+    refreshInterval: 12h
+    secretStoreRef:
+      kind: ClusterSecretStore
+      name: onepassword-connect
+    target:
+      template:
+        data:
+          SOME_ENV_VAR: "{{ .<app>_field_name }}"
+    dataFrom:
+      - extract:
+          key: <1password-item>
+        rewrite:
+          - regexp:
+              source: "(.*)"
+              target: "<app>_$1"
+```
+
+and reference it from the container:
 
 ```yaml
 envFrom:
-  - secretRef:
-      name: <app>-secret
+  - externalSecretRef:
+      identifier: <app>
 ```
 
-### app/externalsecret.yaml (only if secrets)
+For a single key, use `secretKeyRef` with `name: "{{ .Release.Name }}"`.
 
-```yaml
----
-# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/external-secrets.io/externalsecret_v1.json
-apiVersion: external-secrets.io/v1
-kind: ExternalSecret
-metadata:
-  name: <app>
-spec:
-  refreshInterval: 12h
-  secretStoreRef:
-    kind: ClusterSecretStore
-    name: onepassword-connect
-  target:
-    name: <app>-secret
-    creationPolicy: Owner
-    template:
-      data:
-        SOME_ENV_VAR: "{{ .<app>_field_name }}"
-  dataFrom:
-    - extract:
-        key: <1password-item>
-      rewrite:
-        - regexp:
-            source: "(.*)"
-            target: "<app>_$1"
-```
-
-Convention: `metadata.name` is `<app>`, the generated Secret is `<app>-secret`, and `dataFrom.extract` + `rewrite` prefixes 1Password fields for use in `template.data` (see wotcher for a multi-item example). The `.<prefix>_<field>` references must use the item's real field names (from Step 1) — a wrong field name renders an empty value with no error. If the field names weren't provided and you can't ask, insert `<FIXME: 1password field name>` placeholders and call them out.
+Convention: the identifier is `<app>`, the generated Secret is named after the release (`<app>`), and `dataFrom.extract` + `rewrite` prefixes 1Password fields for use in `template.data` (see wotcher for a multi-item example). The `.<prefix>_<field>` references must use the item's real field names (from Step 1) — a wrong field name renders an empty value with no error. If the field names weren't provided and you can't ask, insert `<FIXME: 1password field name>` placeholders and call them out.
 
 ## Step 3: Register in the namespace kustomization
 
@@ -288,5 +281,5 @@ Show the user the created files and get confirmation before committing. Commit s
 - **Forgetting `reloader.stakater.com/auto`** — without it, secret/config changes don't restart pods.
 - **`readOnlyRootFilesystem: true` without a tmpfs** — apps that write to `/tmp` will crash; mount an emptyDir.
 - **Skipping the sorting conventions** — HelmRelease values follow `.agents/instructions/sorting.instructions.md`.
-- **Adding a CiliumNetworkPolicy by default** — only some apps lock down ingress; copy `searxng`'s if the user asks for one.
+- **Adding a network policy by default** — only some apps lock down ingress; copy `searxng`'s `networkpolicies` block (`type: cilium`, in the HelmRelease values — not a separate `ciliumnetworkpolicy.yaml`) if the user asks for one.
 - **Adding `wait`, `commonMetadata`, or `timeout` to `ks.yaml`** — all three are boilerplate now. Leave `wait` unset unless another Kustomization depends on this one and it has no `healthChecks` (then, and only then, `wait: true`).
