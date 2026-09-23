@@ -20,8 +20,26 @@ and the settings that deviate from defaults.
 | `rear-driveway-ap` | 10.1.0.34 | T750SE |
 | `side-driveway-ap` | 10.1.0.36 | T750SE |
 
-All radios run 20 MHz on 2.4 GHz, auto channel, and 2.4 GHz TX power `Min` from the
-System Default AP group. Channel assignment is left on Auto and does move.
+### AP groups
+
+| Group | APs | 2.4 GHz | WLANs |
+| --- | --- | --- | --- |
+| `indoor` | kitchen, upstairs-hallway, garage | on | all |
+| `indoor-2g-disabled` | office, game-room | off | Grey Rock, Grey Rock Guest |
+| `outdoor` | side-yard, rear-driveway, side-driveway | no WLANs | Grey Rock, Grey Rock Guest |
+
+System Default has no APs.
+
+The three 2.4 GHz radios are pinned to non-overlapping channels at 20 MHz, TX power Full:
+
+| AP | Channel |
+| --- | --- |
+| `kitchen-ap` | 1 |
+| `upstairs-hallway-ap` | 6 |
+| `garage-ap` | 11 |
+
+Pinning the channel on an AP forces per-AP overrides of Channelization and the channel
+list as well; Unleashed does not allow overriding the channel alone.
 
 ## WLANs
 
@@ -29,11 +47,11 @@ System Default AP group. Channel assignment is left on Auto and does move.
 | --- | --- | --- | --- |
 | Grey Rock | WPA3 (SAE) | 10 | 5 / 6 GHz |
 | Grey Rock IoT | WPA2 (PSK) | 10 | 2.4 GHz only |
-| Grey Rock Guest | OWE, managed guest pass | 4000 | all |
+| Grey Rock Guest | OWE, managed guest pass | 4000 | 5 / 6 GHz |
 
-Grey Rock is deliberately **off 2.4 GHz**, so the 2.4 GHz band carries only the ~59 IoT
-clients. Guest pass credentials come from the `Ruckus Unleashed Controller` 1Password
-item, which also holds the exporter's read-only login (see
+Only Grey Rock IoT uses 2.4 GHz.
+Guest pass credentials come from the `Ruckus Unleashed Controller` 1Password item, which
+also holds the exporter's read-only login (see
 `kubernetes/apps/network/unleashed-voucher-manager`).
 
 ### Grey Rock IoT settings that differ from defaults
@@ -41,29 +59,16 @@ item, which also holds the exporter's read-only login (see
 | Setting | Value | Why |
 | --- | --- | --- |
 | OFDM-Only | Enabled | keeps 802.11b rates (1–11 Mbps) off the air |
-| BSS Min Rate | Disabled (floor is 6 Mbps) | was 12 Mbps; lowered while chasing client disconnects |
-| Inactivity Timeout | 60 min | see below — the fix for IoT clients being kicked |
+| BSS Min Rate | Disabled (floor is 6 Mbps) | |
+| Inactivity Timeout | 60 min | see below |
 | DTIM | 1 | wake-friendly for sleepy IoT clients |
 | Directed MC/BC | Disabled | |
 
 #### Why the Inactivity Timeout is 60 minutes
 
-At the stock 5 minutes, APs kept dropping IoT clients with
-`[INACT] vap-N(wlan1): [<mac>]station kicked out due to excessive retries`, 12–20 times
-an hour across 16 devices, each losing 2–5 seconds while it reconnected. Raising the
-timeout stopped it: total client-downtime went from ~17 minutes per 4 hours to nothing.
-
-At 30 minutes a few kicks still trickled in — 3 in 8 hours, all on the same three
-devices. At 60 minutes there were none at all overnight.
-
-Moving the guest WLAN off 2.4 GHz happened within the hour that followed, so it cannot be
-fully ruled out as a contributor, but the kicks stopped at the minute the timeout was
-applied, before that change.
-
-Things that did **not** help, each tried and measured: lowering the BSS minimum rate,
-raising 2.4 GHz TX power on the worst AP, and moving the main WLAN off 2.4 GHz. The
-clients being kicked were not idle, weak-signalled or unusually quiet — they matched the
-never-kicked ones on both RSSI and packet rate.
+At the default 5 minutes, APs repeatedly drop IoT clients with
+`[INACT] vap-N(wlan1): [<mac>]station kicked out due to excessive retries`, and each one
+is offline for a few seconds while it reconnects. At 60 minutes they are not kicked.
 
 The only cost is that a departed client lingers in the client list longer. The maximum
 the field accepts is 4200 minutes.
