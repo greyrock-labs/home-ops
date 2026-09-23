@@ -398,8 +398,8 @@ power - one of these logged `rebooted without proper shutdown, probably power ou
 - **ICX DNS servers.** Adding 10.1.30.2 left the previous DNS server entry in place on
   every ICX. Once ctrld-b (10.1.30.4) is live, set each ICX to 10.1.30.2 and 10.1.30.4
   and remove the old entry, one switch at a time.
-- **CRS309 DNS servers.** The three CRS309s need 10.1.30.4 alongside 10.1.30.2 as well,
-  one switch at a time.
+- **RouterOS versions.** gameroom-crs309 and garage-crs309 run 7.24; office-gw and
+  office-crs309 run 7.24.4.
 
 Resolved since the bench build: time zone is set on all nine and `ip mtu 9198` is on all
 six ICX; `ctrld` is running on VLAN 30, the `netinstall` package
