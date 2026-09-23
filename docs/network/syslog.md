@@ -5,9 +5,78 @@ LoadBalancer in front of the `syslog-udp` listener on `:5140`
 (`kubernetes/apps/observability/victoria-logs/`). Every record carries
 `log_source=syslog`.
 
-Currently sending: the Unleashed APs, and the six ICX by way of Unleashed. The RB5009 and
-the CRS309s are not configured to send yet - they are not Unleashed-managed and need
-their own `/system logging action`.
+Currently sending: the RB5009 and all three CRS309s directly, the Unleashed APs, and the
+six ICX by way of Unleashed.
+
+## MikroTik senders
+
+Applied 2026-09-23 to `office-gw` and all three CRS309s. `src-address` is each device's
+own management address - `10.1.0.1`, `.10`, `.20`, `.30`:
+
+```
+/system logging action add name=victorialogs target=remote remote=10.1.25.44 remote-port=514 src-address=<own mgmt IP> remote-log-format=syslog syslog-facility=local0
+/system logging add topics=dhcp action=victorialogs
+/system logging add topics=error action=victorialogs
+/system logging add topics=warning action=victorialogs
+/system logging add topics=critical action=victorialogs
+```
+
+Gotchas:
+
+- **`remote-log-format=syslog` is the one that matters.** WinBox labels it "BSD syslog" in
+  the Remote Log Format dropdown; the values are `cef`/`default`/`syslog`. Left at
+  `default`, RouterOS sends no PRI and no hostname, and the record lands with null
+  facility, severity and app_name.
+- `syslog-time-format=bsd-syslog` is a different property (Timestamp Format) and does not
+  fix that. `bsd-syslog=yes` is not a valid property in RouterOS 7.
+- **Without `src-address` the router identifies itself as `10.1.20.1`**, the servers SVI,
+  because routing picks that interface toward the cluster. Pin it to the management
+  address.
+- The action name is deliberately identical on all four devices, so the configs match;
+  `hostname` is what identifies the sender. That action name also becomes `app_name` for
+  anything that isn't a firewall rule.
+
+Unlike the Ruckus gear, these parse fully: `hostname` is the device identity, `facility`
+is 16 (local0), and severity comes from the topic.
+
+### Firewall logging
+
+`office-gw` only, with `/system logging add topics=firewall action=victorialogs`. Rules
+carry `log=yes` and a `log-prefix`, and **the prefix arrives as `app_name`**:
+
+| Chain | Rule | Prefix |
+| --- | --- | --- |
+| input | drop invalid | `in-invalid` |
+| forward | cameras: no forwarding out of vlan 60 | `cam-block` |
+| forward | guest: no lan | `guest-lan` |
+| forward | guest: no cameras | `guest-cam` |
+| forward | drop invalid | `fwd-invalid` |
+| input (v6) | drop invalid | `in6-invalid` |
+| forward (v6) | drop invalid | `fwd6-invalid` |
+| forward (v6) | drop packets with bad src ipv6 | `bad6-src` |
+| forward (v6) | drop packets with bad dst ipv6 | `bad6-dst` |
+| forward (v6) | rfc4890 drop hop-limit=1 | `rfc4890` |
+| forward (v6) | guest: no lan | `guest6-lan` |
+| forward (v6) | guest: no cameras | `guest6-cam` |
+
+The WAN-facing drops are deliberately **not** logged - v4 `drop all not coming from LAN`
+and `drop all from WAN not DSTNATed`, and both v6 `drop everything else not coming from
+LAN` rules. That is internet background noise. The dynamic back-to-home-vpn rule cannot
+be edited.
+
+### Telling MikroTik from Ruckus
+
+**`hostname:*` does not do it.** VictoriaLogs falls back to the source IP when a sender
+omits the hostname, so the APs match it too, as `hostname="10.1.0.13"` and so on. Filter
+on the names, or exclude the addresses:
+
+```
+_time:24h log_source:syslog -hostname:~"^[0-9]"          (MikroTik only)
+_time:24h log_source:syslog hostname:"office-gw"
+_time:24h log_source:syslog hostname:"office-gw" app_name:"cam-block"
+```
+
+`facility` does not separate them either - the APs also send local0.
 
 ## What the senders actually put on the wire
 
@@ -61,21 +130,23 @@ nothing else.
 
 ## Open items
 
-- **Confirm storage fits 14-day retention once the ingest rate is real.** Syslog shares
-  the instance's `retentionPeriod: 14d` and 20Gi `miroir-local` volume with cluster logs.
-  Recheck after several days, and again once MikroTik is sending.
+- **Confirm storage fits 14-day retention.** Syslog shares the instance's
+  `retentionPeriod: 14d` and 20Gi `miroir-local` volume with cluster logs.
 
-  Syslog ingestion started around 14:45Z on 2026-09-22, so there is not yet enough data
-  to extrapolate a rate - let it run several days first. What is valid as a starting
-  point, taken at 15:05Z with cluster-log retention already full back to 2026-09-08:
+  Measured 2026-09-23 13:56Z, with MikroTik sending for only ~20 minutes:
 
   | | |
   | --- | --- |
-  | Compressed storage | ~506 MB (`vl_data_size_bytes{type="storage"}`) |
-  | Free on volume | 20.26 GB of 20.96 GB |
+  | All logs, 24h | 1,532,256 records / 184 MB raw |
+  | Syslog, 24h | 514,373 records / 48.9 MB raw |
+  | On disk | 460 MB (~14d cluster logs + ~1d syslog) |
+  | Free on volume | 20.3 GB of ~21 GB |
 
-  Recheck with a window that syslog has fully covered, comparing syslog against
-  everything:
+  Implied compression is roughly 4:1, projecting to about 600-700 MB at steady state -
+  around 3% of the volume. Expect the daily figure to rise: MikroTik DHCP logging is
+  verbose, roughly 20 records per lease renewal, one per option field.
+
+  Recheck with a full window once everything has been sending a few days:
 
   ```
   _time:24h log_source:syslog | stats count() n, sum_len(_msg) bytes
@@ -83,3 +154,6 @@ nothing else.
   ```
 
   plus `vl_data_size_bytes` and `vl_free_disk_space_bytes` from `/metrics`.
+
+- **The six ICX still relay through the Unleashed master** rather than sending directly,
+  so their lines carry the master AP's `remote_ip` and a doubled timestamp.
