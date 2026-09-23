@@ -201,8 +201,6 @@ and 20 DHCP networks set `next-server` to their gateway and `boot-file-name` to
 own. `netboot.xyz.efi` (iPXE drivers) and `netboot.xyz.kpxe` (BIOS) are served too, if a
 machine needs them.
 
-In `find where address=...`, quote the prefix. Unquoted, it silently matches nothing.
-
 ### RouterOS scripting gotchas
 
 - **There is no `:tolower`.** No lowercase function exists at all. Case folding has to be
