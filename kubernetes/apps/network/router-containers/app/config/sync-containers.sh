@@ -1,14 +1,15 @@
 #!/bin/sh
-# Makes the containers on office-gw run the images listed in /config/containers.
-# For each container whose remote-image differs from the listed one it runs
-# stop -> set remote-image -> repull -> start, over the RouterOS REST API.
-# A container that already matches is left alone, so a run with nothing
-# merged changes nothing.
+# Makes the containers on office-gw run the image tags listed in
+# /config/containers. Every container whose remote-image is a listed image
+# with a different tag gets stop -> set remote-image -> repull -> start, over
+# the RouterOS REST API. A container that already matches is left alone, so a
+# run with nothing merged changes nothing.
 #
-# Containers are handled in file order, one at a time. A container listed with
-# a DNS address must answer a query there before the run moves on, and any
-# failure ends the run. Before a resolver is stopped, every other listed
-# resolver must be answering. That is what keeps one of ctrld / ctrld-b serving.
+# Containers sharing an image are updated one at a time. A container that
+# answers DNS on its veth address before the update must answer again after
+# it, and before any container is stopped, every other container on the same
+# image that answered DNS must still be answering. That is what keeps one of
+# ctrld / ctrld-b serving. Any failure ends the run.
 #
 # Things about RouterOS 7.24 worth knowing:
 #
@@ -17,17 +18,13 @@
 #
 #   - `repull` stops a running container itself, so there is no pulling ahead
 #     while it keeps serving. Downtime per container is the pull plus start;
-#     the second ctrld covers it.
+#     the other ctrld covers it.
 #
-#   - A running container reports `"running":"true"`. Nothing else is treated
-#     as running.
-#
-#   - `start` is retried until the container reports running, so an image
-#     that is still extracting when the tag flips does not fail the run.
+#   - The user needs `web` and `api` as well as `rest-api`; without them every
+#     /rest/container call returns 500 "not allowed (9)".
 #
 # Every step is checked explicitly: sync_one runs on the left of `||`, where
-# `set -e` does not apply. The router's reported remote-image and tag, and a
-# DNS answer where one is listed, are the only proof of success.
+# `set -e` does not apply.
 
 set -eu
 
@@ -105,10 +102,29 @@ start_and_check() {
     is_running "$2"
 }
 
+# Address of a container's veth, without the prefix length.
+veth_address() {
+    rest GET "/interface/veth?name=$1&.proplist=address" | field 'address' | cut -d/ -f1 | cut -d, -f1
+}
+
+# Print "<name> <interface> <remote-image>" for every container on the router.
+all_containers() {
+    rest GET "/container?.proplist=name,interface,remote-image" \
+        | sed 's/},{/}\n{/g' \
+        | while IFS= read -r obj; do
+            printf '%s %s %s\n' \
+                "$(printf '%s' "$obj" | field 'name')" \
+                "$(printf '%s' "$obj" | field 'interface')" \
+                "$(printf '%s' "$obj" | field 'remote-image')"
+        done
+}
+
+# sync_one <name> <dns address or -> <desired image:tag> <other DNS addresses>
 sync_one() {
     name=$1
     dns=$2
     want=$3
+    peers=$4
 
     current=$(state "$name") || { echo "ERROR: $name: cannot read state" >&2; return 1; }
     id=$(printf '%s' "$current" | field '\.id')
@@ -121,14 +137,10 @@ sync_one() {
     fi
     echo "$name: $have -> $want"
 
-    # Never stop a resolver unless every other listed resolver is answering.
-    if [ "$dns" != "-" ]; then
-        for other in $DNS_ALL; do
-            [ "$other" = "$dns" ] && continue
-            answers_dns "$other" \
-                || { echo "ERROR: $name: not updating while $other is not answering DNS" >&2; return 1; }
-        done
-    fi
+    for peer in $peers; do
+        answers_dns "$peer" \
+            || { echo "ERROR: $name: not updating while $peer is not answering DNS" >&2; return 1; }
+    done
 
     was_running=false
     printf '%s' "$current" | grep -q '"running":"true"' && was_running=true
@@ -166,6 +178,31 @@ sync_one() {
     echo "$name: now $want"
 }
 
+# sync_image <image> <tag>
+sync_image() {
+    image=$1
+    want="$1:$2"
+
+    # Containers on this image, with the address each answers DNS on, if any.
+    all_containers > "$WORK/all" || { echo "ERROR: $image: cannot list containers" >&2; return 1; }
+    while read -r name iface remote; do
+        [ "${remote%:*}" = "$image" ] || continue
+        addr=$(veth_address "$iface") || addr=""
+        if [ -n "$addr" ] && answers_dns "$addr"; then
+            echo "$name $addr"
+        else
+            echo "$name -"
+        fi
+    done < "$WORK/all" > "$WORK/group"
+
+    [ -s "$WORK/group" ] || { echo "$image: no containers on the router"; return 0; }
+
+    while read -r name dns; do
+        peers=$(awk -v self="$name" '$1 != self && $2 != "-" { print $2 }' "$WORK/group")
+        sync_one "$name" "$dns" "$want" "$peers" < /dev/null || return 1
+    done < "$WORK/group"
+}
+
 main() {
     : "${MIKROTIK_USERNAME:?MIKROTIK_USERNAME not set}"
     : "${MIKROTIK_PASSWORD:?MIKROTIK_PASSWORD not set}"
@@ -173,15 +210,11 @@ main() {
     WORK=$(mktemp -d)
     printf 'user = "%s:%s"\n' "$MIKROTIK_USERNAME" "$MIKROTIK_PASSWORD" > "$WORK/auth"
 
-    DNS_ALL=$(awk '$1 !~ /^#/ && NF == 3 && $2 != "-" { print $2 }' "$CONTAINERS_FILE")
-
-    # A failure ends the run rather than moving on: with ctrld down, touching
-    # ctrld-b would take DNS out entirely.
-    while read -r name dns spec; do
-        case "$name" in ''|'#'*) continue ;; esac
-        image=${spec%=*}
-        tag=${spec##*=}
-        sync_one "$name" "$dns" "${image}:${tag}" || exit 1
+    # A failure ends the run rather than moving on: with one ctrld down,
+    # touching the other would take DNS out entirely.
+    while read -r spec; do
+        case "$spec" in ''|'#'*) continue ;; esac
+        sync_image "${spec%=*}" "${spec##*=}" || exit 1
     done < "$CONTAINERS_FILE"
 }
 
