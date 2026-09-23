@@ -9,8 +9,9 @@
 # renovate: datasource=docker depName=neilpang/acme.sh
 acme - neilpang/acme.sh=3.1.6
 
-# renovate: datasource=docker depName=controldns/ctrld
-ctrld 10.1.30.2 controldns/ctrld=1.5.7
+# Matches what ctrld already runs, so the job leaves it alone until clients have
+# renewed onto both ctrlds. Then pin it like ctrld-b, with the renovate comment.
+ctrld 10.1.30.2 controldns/ctrld=latest
 
 # renovate: datasource=docker depName=controldns/ctrld
 ctrld-b 10.1.30.4 controldns/ctrld=1.5.7

@@ -56,8 +56,6 @@ spec:
           # A run only touches a container whose image differs from
           # config/containers, which happens once per merged Renovate PR.
           schedule: "*/15 * * * *"
-          # Suspended until clients have renewed onto both ctrlds.
-          suspend: true
           backoffLimit: 0
           concurrencyPolicy: Forbid
           failedJobsHistory: 1
