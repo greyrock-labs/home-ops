@@ -38,8 +38,8 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 # Credentials go through a curl config file so they never appear in argv.
-# Neither curl nor nslookup may read stdin: both run inside `while read` loops,
-# and in busybox sh one of them swallowed the rest of the loop's input.
+# Neither curl nor nslookup reads stdin, since both run inside `while read`
+# loops.
 rest() {
     method=$1
     path=$2
@@ -94,10 +94,11 @@ veth_address() {
 }
 
 # Print "<name> <interface> <remote-image>" for every container on the router.
+# The REST response has no trailing newline, so the last object is read too.
 all_containers() {
     rest GET "/container?.proplist=name,interface,remote-image" \
         | sed 's/},{/}\n{/g' \
-        | while IFS= read -r obj; do
+        | while IFS= read -r obj || [ -n "$obj" ]; do
             printf '%s %s %s\n' \
                 "$(printf '%s' "$obj" | field 'name')" \
                 "$(printf '%s' "$obj" | field 'interface')" \
