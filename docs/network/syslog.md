@@ -124,38 +124,19 @@ associate, key install, VLAN assignment and `AUTHORIZED`, each with the client M
 power-cycled client produces no event when it drops (no deauth is sent); the reconnect is
 what appears, starting with the AP clearing its stale entry.
 
-All six switches used to send the same single line roughly once a minute -
-`MGMT Agent: switch Registrar Query Failure. Please check DRS/SWR Registrar` - and
-nothing else. Relayed through 10.1.0.13, that came to about 36,000 lines a day.
-
-That line came from the SmartZone registrar. It stopped once `no sz registrar` / `sz disable`
-went onto every ICX. The last one arrived at 2026-09-23 15:38Z, and none had arrived three
-hours later.
+The switches send almost nothing. A once-a-minute `Registrar Query Failure` line came from
+the SmartZone registrar and stopped once `no sz registrar` / `sz disable` went onto every
+ICX.
 
 ## Storage
 
-Syslog shares the instance's `retentionPeriod: 14d` and 20Gi `miroir-local` volume with
-cluster logs. Measured 2026-09-23, after ~8 hours with every sender live:
-
-| | 13:56Z | 20:00Z |
-| --- | --- | --- |
-| On disk (storage + indexdb) | 460 MB | 471 MB + 3 MB |
-| Free on volume | 20.3 GB | 20.3 GB of ~21 GB |
-| Syslog, 24h | 514k records / 48.9 MB raw | 523k records / 49.1 MB raw |
-
-Syslog settles at roughly 21-24k records an hour; it peaked at 33.8k in the 14:00Z hour and
-dropped once the SmartZone registrar line stopped. At ~50 MB raw a day and the ~4:1
-compression seen so far, 14 days of syslog is about 175 MB on disk - under 1% of the
-volume. It fits with ample room; no retention change needed.
-
-The largest sender is the Unleashed master (10.1.0.13), about 67k records in 8 hours
-including the relayed ICX lines. The other APs send 14-20k each, `office-gw` about 14.5k.
+Syslog shares the instance's 14-day retention and 20Gi volume with cluster logs. It runs
+about 50 MB raw a day, roughly 175 MB on disk over 14 days - under 1% of the volume.
 
 To recheck:
 
 ```
 _time:24h log_source:syslog | stats count() n, sum_len(_msg) bytes
-_time:24h | stats count() n, sum_len(_msg) bytes
 ```
 
 plus `vl_data_size_bytes` and `vl_free_disk_space_bytes` from `/metrics`.
