@@ -230,22 +230,22 @@ forward accepts, which match the `ctrld` address list holding both addresses.
 
 The image each container runs is pinned in
 `kubernetes/apps/network/router-containers/app/config/containers`. Renovate opens a PR
-when a new tag is released. After it is merged, the `router-containers` CronJob (every 15 minutes) finds the
-container whose `remote-image` differs and runs stop -> `set remote-image` -> `repull` ->
-start over the REST API. A container that already matches is left alone.
+when a new tag is released. After it is merged, the `router-containers` CronJob (every 15 minutes) finds every
+container whose `remote-image` is that image with a different tag, and sets
+`remote-image` over the REST API. That is the whole update: with
+`ignore-remote-image-change=no`, RouterOS stops the container, repulls and starts it on
+its own - about 1 second when the layers are cached. An explicit `repull` straight after
+is rejected with 400 while the container is busy. A container that already matches is left alone.
 
 - The job logs in as the `router-containers` user: group `read,write,web,api,rest-api`, only
   from 10.1.20.0/24. Its credentials are the `containers-username`/`containers-password`
   fields of the `MikroTik Router` 1Password item. `rest-api` alone is not enough:
   without `web` and `api` every `/rest/container` call returns 500
   `not allowed (9)`.
-- `repull` after `set remote-image=` does pull the new tag. Verified on acme: the image-id
-  matched the registry's arm64 config digest for `3.1.6`.
-- `repull` stops a running container itself, so an image cannot be pulled ahead while
-  it keeps serving. That is why there are two ctrlds: every DHCP network hands out both,
-  and the job updates them one at a time. Before stopping either it checks the other
-  answers a query, and after starting one it waits for it to answer before moving on.
-  Any failure ends the run.
+- Containers on the same image are done one at a time. A container that answered DNS on
+  its veth address before the change must answer again after it, and before any is
+  changed, every other container on that image that answers DNS must still be answering.
+  Any failure ends the run. That is what keeps one of the two ctrlds serving.
 - The terraform-routeros provider was ruled out: its `routeros_container` still uses
   `envlist`/`mounts` and cannot set `name`, which RouterOS 7.21+ changed. The fix,
   upstream PR #910, was unmerged at the time.

@@ -1,8 +1,7 @@
 #!/bin/sh
 # Makes the containers on office-gw run the image tags listed in
 # /config/containers. Every container whose remote-image is a listed image
-# with a different tag gets stop -> set remote-image -> repull -> start, over
-# the RouterOS REST API. A container that already matches is left alone, so a
+# with a different tag has its remote-image set over the RouterOS REST API. A container that already matches is left alone, so a
 # run with nothing merged changes nothing.
 #
 # Containers sharing an image are updated one at a time. A container that
@@ -13,12 +12,10 @@
 #
 # Things about RouterOS 7.24 worth knowing:
 #
-#   - `repull` after `set remote-image=` pulls the new tag. Verified on acme:
-#     the image-id matched the registry's arm64 config digest for the new tag.
-#
-#   - `repull` stops a running container itself, so there is no pulling ahead
-#     while it keeps serving. Downtime per container is the pull plus start;
-#     the other ctrld covers it.
+#   - Changing remote-image is the update. With ignore-remote-image-change=no
+#     RouterOS stops the container, repulls and starts it again on its own
+#     (seen in the container log, ~1s when the layers are cached). An explicit
+#     repull straight after is rejected with 400 while it is busy.
 #
 #   - The user needs `web` and `api` as well as `rest-api`; without them every
 #     /rest/container call returns 500 "not allowed (9)".
@@ -59,16 +56,8 @@ state() {
     rest GET "/container?name=$1&.proplist=.id,remote-image,running,tag"
 }
 
-ros_cmd() {
-    rest POST "/container/$1" --data "{\"numbers\":\"$2\"}" > /dev/null
-}
-
 is_running() {
     state "$1" | grep -q '"running":"true"'
-}
-
-is_stopped() {
-    ! is_running "$1"
 }
 
 # The tag is the registry-qualified image, e.g.
@@ -95,11 +84,6 @@ wait_for() {
         [ "$i" -lt "$tries" ] || return 1
         sleep "$pause"
     done
-}
-
-start_and_check() {
-    ros_cmd start "$1" 2>/dev/null || true
-    is_running "$2"
 }
 
 # Address of a container's veth, without the prefix length.
@@ -142,28 +126,17 @@ sync_one() {
             || { echo "ERROR: $name: not updating while $peer is not answering DNS" >&2; return 1; }
     done
 
-    was_running=false
-    printf '%s' "$current" | grep -q '"running":"true"' && was_running=true
-
-    if $was_running; then
-        ros_cmd stop "$id" || { echo "ERROR: $name: stop failed" >&2; return 1; }
-        wait_for 60 1 is_stopped "$name" \
-            || { echo "ERROR: $name: did not stop" >&2; return 1; }
-        echo "$name: stopped"
-    fi
-
+    # Setting remote-image is the whole update: with ignore-remote-image-change
+    # off, RouterOS stops the container, repulls, and starts it again itself.
     rest PATCH "/container/$id" --data "{\"remote-image\":\"$want\"}" > /dev/null \
         || { echo "ERROR: $name: set remote-image failed" >&2; return 1; }
-    ros_cmd repull "$id" || { echo "ERROR: $name: repull failed" >&2; return 1; }
-    echo "$name: repulling"
+    echo "$name: set remote-image"
 
-    wait_for 150 2 has_tag "$name" "$want" \
+    wait_for 300 1 has_tag "$name" "$want" \
         || { echo "ERROR: $name: image tag is not $want after 5 minutes" >&2; return 1; }
-    echo "$name: pulled"
-
-    if $was_running; then
-        wait_for 150 2 start_and_check "$id" "$name" \
-            || { echo "ERROR: $name: did not start within 5 minutes" >&2; return 1; }
+    if printf '%s' "$current" | grep -q '"running":"true"'; then
+        wait_for 120 1 is_running "$name" \
+            || { echo "ERROR: $name: not running 2 minutes after the pull" >&2; return 1; }
         echo "$name: running"
     fi
 
