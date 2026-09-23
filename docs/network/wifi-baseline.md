@@ -42,19 +42,41 @@ item, which also holds the exporter's read-only login (see
 | --- | --- | --- |
 | OFDM-Only | Enabled | keeps 802.11b rates (1–11 Mbps) off the air |
 | BSS Min Rate | Disabled (floor is 6 Mbps) | was 12 Mbps; lowered while chasing client disconnects |
-| Inactivity Timeout | 30 min | was 5 min; keeps the client list stable, not a fix |
-| Proxy ARP | Enabled | AP answers ARP for its clients instead of flooding the air |
+| Inactivity Timeout | 60 min | see below — the fix for IoT clients being kicked |
 | DTIM | 1 | wake-friendly for sleepy IoT clients |
 | Directed MC/BC | Disabled | |
 
-Proxy ARP is CLI-only — it has no checkbox in the web UI:
+#### Why the Inactivity Timeout is 60 minutes
+
+At the stock 5 minutes, APs kept dropping IoT clients with
+`[INACT] vap-N(wlan1): [<mac>]station kicked out due to excessive retries`, 12–20 times
+an hour across 16 devices, each losing 2–5 seconds while it reconnected. Raising the
+timeout stopped it: total client-downtime went from ~17 minutes per 4 hours to nothing.
+
+At 30 minutes a few kicks still trickled in — 3 in 8 hours, all on the same three
+devices. At 60 minutes there were none at all overnight.
+
+Moving the guest WLAN off 2.4 GHz happened within the hour that followed, so it cannot be
+fully ruled out as a contributor, but the kicks stopped at the minute the timeout was
+applied, before that change.
+
+Things that did **not** help, each tried and measured: lowering the BSS minimum rate,
+raising 2.4 GHz TX power on the worst AP, and moving the main WLAN off 2.4 GHz. The
+clients being kicked were not idle, weak-signalled or unusually quiet — they matched the
+never-kicked ones on both RSSI and packet rate.
+
+The only cost is that a departed client lingers in the client list longer. The maximum
+the field accepts is 4200 minutes.
+
+WLAN settings can also be read and set from the CLI, which exposes fields the web UI does
+not have:
 
 ```
 ssh unleashed.internal.greyrock.io
 en
 config
 wlan "Grey Rock IoT"
-proxy-arp
+show
 end
 ```
 
