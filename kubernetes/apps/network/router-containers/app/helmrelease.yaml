@@ -1,0 +1,102 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: router-containers
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: router-containers
+  interval: 30m
+  values:
+    externalSecrets:
+      router-containers:
+        refreshInterval: 12h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: onepassword-connect
+        data:
+          - secretKey: MIKROTIK_USERNAME
+            remoteRef:
+              key: MikroTik Router
+              property: containers_username
+          - secretKey: MIKROTIK_PASSWORD
+            remoteRef:
+              key: MikroTik Router
+              property: containers_password
+    networkpolicies:
+      router-containers:
+        type: cilium
+        egress:
+          # Cilium rejects a rule carrying both toCIDR and toEntities, and an invalid
+          # policy is never imported -- which leaves block-all-egress denying
+          # everything. The router is a plain address outside the cluster, so the
+          # CIDR alone is what is needed. DNS comes from allow-dns-egress.
+          - toCIDR:
+              - 10.1.0.1/32
+            toPorts:
+              - ports:
+                  - port: "443"
+                    protocol: TCP
+    controllers:
+      router-containers:
+        type: cronjob
+        cronjob:
+          # A run only touches a container whose image differs from
+          # config/containers, which happens once per merged Renovate PR.
+          schedule: "*/15 * * * *"
+          backoffLimit: 0
+          concurrencyPolicy: Forbid
+          failedJobsHistory: 1
+          successfulJobsHistory: 1
+          ttlSecondsAfterFinished: 86400
+        pod:
+          labels:
+            egress.policy.home.arpa/block-all: "true"
+          securityContext:
+            runAsGroup: 100
+            runAsNonRoot: true
+            runAsUser: 100
+        containers:
+          app:
+            image:
+              repository: docker.io/curlimages/curl
+              tag: 8.22.0@sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777
+            command:
+              - /bin/sh
+              - /config/sync-containers.sh
+            env:
+              ROUTER_HOST: office-gw.internal.greyrock.io
+            envFrom:
+              - externalSecretRef:
+                  identifier: router-containers
+            probes:
+              liveness:
+                enabled: false
+              readiness:
+                enabled: false
+              startup:
+                enabled: false
+            resources:
+              requests:
+                cpu: 10m
+                memory: 16Mi
+              limits:
+                memory: 64Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              readOnlyRootFilesystem: true
+    persistence:
+      config:
+        type: configMap
+        name: router-containers
+        globalMounts:
+          - path: /config
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp

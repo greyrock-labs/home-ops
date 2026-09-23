@@ -218,6 +218,25 @@ the `/interface bridge vlan` entry for 30 needs no `untagged=` edit.
 `/container envs` takes `key=`, and `/container mounts` takes `list=`, with
 `mountlists=` on `/container add`. Every published guide uses `name=`/`mounts=`.
 
+### Image updates
+
+The image each container runs is pinned in
+`kubernetes/apps/network/router-containers/app/config/containers`. Renovate opens a PR
+when a new tag is released. After it is merged, the `router-containers` CronJob (every 15 minutes) finds the
+container whose `remote-image` differs and runs stop -> `set remote-image` -> `repull` ->
+start over the REST API. A container that already matches is left alone.
+
+- The job logs in as the `router-containers` user: group `read,write,rest-api`, only
+  from 10.1.20.0/24. Its credentials are the `containers_username`/`containers_password`
+  fields of the `MikroTik Router` 1Password item.
+- `repull` after `set remote-image=` does pull the new tag. Verified on acme: the image-id
+  matched the registry's arm64 config digest for `3.1.6`.
+- An update to ctrld takes client DNS down until it is running again. The router itself
+  resolves through Quad9, so the pull is unaffected.
+- The terraform-routeros provider was ruled out: its `routeros_container` still uses
+  `envlist`/`mounts` and cannot set `name`, which RouterOS 7.21+ changed. The fix,
+  upstream PR #910, was unmerged at the time.
+
 ## BGP
 
 Local AS 64513, router-id 10.1.0.1 from `/routing id` - the dynamic `main` entry had

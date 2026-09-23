@@ -1,0 +1,9 @@
+# Images the containers on office-gw should run, one per line as
+# "<container name> <image>=<tag>". Renovate bumps the tag; sync-containers.sh
+# makes the router match after the PR is merged.
+
+# renovate: datasource=docker depName=neilpang/acme.sh
+acme neilpang/acme.sh=3.1.6
+
+# renovate: datasource=docker depName=controldns/ctrld
+ctrld controldns/ctrld=1.5.7

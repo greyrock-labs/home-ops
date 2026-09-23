@@ -43,7 +43,7 @@ webhook runs `authIdType: auth-id`, so acme.sh wants `CLOUDNS_AUTH_ID` — not t
 
 | | |
 | --- | --- |
-| Container | `acme`, image `neilpang/acme.sh:latest` |
+| Container | `acme`, image pinned by `router-containers`, see `router-baseline.md` |
 | Root dir | `usb1/acme-root` |
 | Mount list | `acme` — `usb1/acme` to `/acme.sh` |
 | Env list | `acme` |
