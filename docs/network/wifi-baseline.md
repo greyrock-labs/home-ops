@@ -91,9 +91,9 @@ plain text, so keep that output out of shared logs.
 ## Client names
 
 Unleashed shows whatever a device calls itself, which for IoT gear means many clients
-sharing one model name. Clients are renamed to descriptive names kept in a local
-inventory, outside this repo. A rename sticks after the client disconnects, and the
-controller holds up to 520 of them.
+sharing one model name. Clients are renamed to descriptive names kept in the 1Password
+document "Network Device MAC Addresses" (Private vault), outside this repo. A rename
+sticks after the client disconnects, and the controller holds up to 520 of them.
 
 Renaming in bulk through the UI is slow; the same call the Save button makes can be
 replayed against `/admin/_cmdstat.jsp` from a logged-in session:
