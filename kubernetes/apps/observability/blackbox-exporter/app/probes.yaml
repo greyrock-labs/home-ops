@@ -14,23 +14,23 @@ spec:
         - bambu-a1-printer.internal.greyrock.io
         - codswallop.internal.greyrock.io
         - gameroom-ap.internal.greyrock.io
+        - gameroom-c08zp.internal.greyrock.io
         - gameroom-crs309.internal.greyrock.io
         - gameroom-icx7150.internal.greyrock.io
-        - gameroom-icx8200.internal.greyrock.io
         - garage-ap.internal.greyrock.io
+        - garage-c08zp.internal.greyrock.io
         - garage-crs309.internal.greyrock.io
         - garage-icx7150.internal.greyrock.io
-        - garage-icx8200.internal.greyrock.io
         - home.internal.greyrock.io
         - iotabase.internal.greyrock.io
         - iotagrge.internal.greyrock.io
         - kitchen-ap.internal.greyrock.io
         # - livingroom-ap.internal.greyrock.io
         - office-ap.internal.greyrock.io
+        - office-c08zp.internal.greyrock.io
         - office-crs309.internal.greyrock.io
         - office-gw.internal.greyrock.io
         - office-icx7150.internal.greyrock.io
-        - office-icx8200.internal.greyrock.io
         - rear-driveway-ap.internal.greyrock.io
         - side-driveway-ap.internal.greyrock.io
         - side-yard-ap.internal.greyrock.io

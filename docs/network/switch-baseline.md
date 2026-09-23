@@ -47,7 +47,7 @@ does not, so the migration drops it.
   factory-default switch is reachable over its uplink before it is configured.
 - **Port VLAN lists are written native-first.** `1,10,20,4000` means untagged 1, tagged
   10/20/4000.
-- **Hostnames** are `<room>-icx8200` / `<room>-icx7150` — no dashes. Rooms are `office`, `gameroom`, `garage`; the router is `office-gw`. Uplink ports are named `uplink-<room>-crs309`.
+- **Hostnames** are `<room>-<model>`: `<room>-c08zp` for the ICX8200-C08ZPs, `<room>-crs309` for the spines. The ICX7150s keep `<room>-icx7150` until they are replaced. Rooms are `office`, `gameroom`, `garage`; the router is `office-gw`. Uplink ports are named `uplink-<room>-crs309`.
 - **Management** is static on `ve 1` out of 10.1.0.0/24, gateway 10.1.0.1, DNS the two
   ctrlds 10.1.30.2 and 10.1.30.4, domain `internal.greyrock.io`. The CRS309s use the same
   two DNS servers. On FastIron, `no ip dns server-address` needs the exact current list,
@@ -170,7 +170,7 @@ Each of these cost a round trip on the first switch. The published docs describe
 | `enable` at a `#` prompt | Rejected; already privileged. Needed only after a reload, which drops you to `>`. |
 | `?` in a pasted block | Swallowed. Help queries must be typed by hand. |
 
-## Office ICX8200 as-built
+## Office C08ZP as-built
 
 ICX8200-C08ZP, FastIron `10.0.10g_cd6T253`, 8x 2.5G PoE (`1/1/1`-`1/1/8`) plus 2x SFP+
 (`1/2/1`, `1/2/2`). `show stack` reports stacking disabled, so the default `stack-port`
@@ -191,7 +191,7 @@ all six VLANs; PoE allocation is dynamic; 240W budget.
 `active-backup` over a single link, **not** LACP, so they take plain access ports with
 no LAG. Both take their VLAN 20 address by DHCP and resolve against 10.1.20.1.
 
-## Game Room ICX8200 as-built
+## Game Room C08ZP as-built
 
 Identical hardware and firmware to the Office box. `show version` additionally reports
 `Current License: 2X25G` and module `ICX8200-2X25G`, so the SFP+ ports are 25G-capable —
@@ -208,7 +208,7 @@ Uplink `1/2/2` to the Game Room CRS309. IGMP/MLD **passive** on all six VLANs.
 
 `1/1/6` is unused.
 
-## Garage ICX8200 as-built
+## Garage C08ZP as-built
 
 Same model and firmware as the other two, but the only one with the full L3 package:
 `ICX8200_L3_SOFT_PACKAGE`, license `2X25GR`, against `ICX8200_BASE_L3_SOFT_PACKAGE` /
@@ -325,7 +325,7 @@ priority `0x3000` (12288), hardware offload active on all ports.
 | Port | Comment |
 | --- | --- |
 | sfp-sfpplus1 | uplink-gameroom-crs309 |
-| sfp-sfpplus2 | garage-icx8200 |
+| sfp-sfpplus2 | garage-c08zp |
 | sfp-sfpplus3 | garage-icx7150 |
 
 `ether1` and `sfp-sfpplus4`-`8` stay in the bridge at pvid 1, so any unused port is an
@@ -340,7 +340,7 @@ CRS309-1G-8S+, RouterOS 7.24. Management 10.1.0.20/24 on the bridge, RSTP priori
 | --- | --- |
 | sfp-sfpplus1 | uplink-office-crs309 |
 | sfp-sfpplus2 | downlink-garage-crs309 |
-| sfp-sfpplus3 | gameroom-icx8200 |
+| sfp-sfpplus3 | gameroom-c08zp |
 | sfp-sfpplus4 | gameroom-icx7150 |
 
 This unit has **32MB flash (18.7MB free)** and `minimum-version: 7.11.2`; the Garage unit
@@ -365,7 +365,7 @@ attaches.
 | --- | --- |
 | sfp-sfpplus1 | uplink-office-gw (RB5009) |
 | sfp-sfpplus2 | downlink-gameroom-crs309 |
-| sfp-sfpplus3 | office-icx8200 |
+| sfp-sfpplus3 | office-c08zp |
 | sfp-sfpplus4 | office-icx7150 |
 
 ## CRS309 flash revisions
@@ -440,7 +440,7 @@ the end of the daisy chain and needs its uplink.
 **Module 2 must be clean before stacking is enabled.** From the same notes: "Stacking
 cannot be enabled on an ICX 8200 device containing configuration for Module 2, including
 port speed. The configuration must be removed before stacking is enabled." The existing
-C08ZP carries inert default `stack-port` lines on both SFP+ (see *Office ICX8200
+C08ZP carries inert default `stack-port` lines on both SFP+ (see *Office C08ZP
 as-built*), so expect the same on a new unit and clear Module 2 first.
 
 C08PF supports 10-Gbps stacking only, which is moot here - the ports are 10G.
@@ -477,18 +477,17 @@ change. Addressing slots carry over unchanged: `.11`/`.21`/`.31` stay with the C
 
 ### Everything that has to change
 
+The three C08ZPs were renamed on 2026-09-23, ahead of the C08PFs. When each C08PF goes
+in, the `<room>-icx7150` it replaces becomes `<room>-c08pf`:
+
 | Where | What |
 | --- | --- |
-| `kubernetes/apps/observability/blackbox-exporter/app/probes.yaml` | Six switch entries |
-| `docs/network/switch-baseline.md` | Six as-built section headings and body references |
-| Router static DNS | Six entries commented `switch` |
-| Switch hostnames | FastIron `hostname` on six boxes |
-| Physical labels | - |
+| `kubernetes/apps/observability/blackbox-exporter/app/probes.yaml` | The 7150's entry |
+| `docs/network/switch-baseline.md` | The 7150's as-built section and CRS309 port comment |
+| Router static DNS | The 7150's entry, commented `switch` |
+| CRS309 port comment | The port facing the 7150 |
+| Switch hostname | FastIron `hostname` on the new unit |
 | Unleashed | Follows the hostname the switch reports |
-
-Do this as **one cut once the C08PFs are installed.** Renaming the C08ZPs early leaves
-`office-c08zp` sitting beside `office-icx7150` and means touching DNS, probes and
-hostnames twice.
 
 Note when searching: `garage` in `docker/codswallop/04-garage/` and the kanidm
 `oauth2-garage-ui` refer to the Garage S3 software, not the room. They are not affected.

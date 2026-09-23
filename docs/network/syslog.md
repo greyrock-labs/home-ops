@@ -110,7 +110,7 @@ Consequences to keep in mind when querying:
 
 - Relayed ICX lines carry the **master AP's** `remote_ip` - currently `office-ap`, and it
   changes if master fails over. Filter switches by message text, e.g.
-  `_msg:~"garage-icx8200"`. Giving each switch its own `remote_ip` would mean pointing its
+  `_msg:~"garage-c08zp"`. Giving each switch its own `remote_ip` would mean pointing its
   `logging host` directly at `10.1.25.44`, which Unleashed may overwrite.
 - NUL records have no ingest-side filter; exclude them with `facility:*`.
 
