@@ -74,6 +74,8 @@ does not, so the migration drops it.
   on everywhere.
 - **Never remove** `manager registrar` (Unleashed adoption), `logging host 10.1.20.2
   udp-port 6514`, or the `snmp-server community` line.
+- **SmartZone is off** (`no sz registrar`, `sz disable`) on every ICX. Nothing here uses
+  SmartZone. `show running-config | include sz` returns nothing.
 - Unleashed and the CLI co-manage these switches; the majority of config is done by CLI.
 
 ## Verifying a switch

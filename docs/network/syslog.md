@@ -124,9 +124,13 @@ associate, key install, VLAN assignment and `AUTHORIZED`, each with the client M
 power-cycled client produces no event when it drops (no deauth is sent); the reconnect is
 what appears, starting with the AP clearing its stale entry.
 
-All six switches send the same single line roughly once a minute -
+All six switches used to send the same single line roughly once a minute -
 `MGMT Agent: switch Registrar Query Failure. Please check DRS/SWR Registrar` - and
-nothing else.
+nothing else. Relayed through 10.1.0.13, that came to about 36,000 lines a day.
+
+That line came from the SmartZone registrar. It stopped once `no sz registrar` / `sz disable`
+went onto every ICX. The last one arrived at 2026-09-23 15:38Z, and none had arrived three
+hours later.
 
 ## Open items
 
