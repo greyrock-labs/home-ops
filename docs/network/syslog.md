@@ -158,6 +158,3 @@ hours later.
   ```
 
   plus `vl_data_size_bytes` and `vl_free_disk_space_bytes` from `/metrics`.
-
-- **The six ICX still relay through the Unleashed master** rather than sending directly,
-  so their lines carry the master AP's `remote_ip` and a doubled timestamp.
