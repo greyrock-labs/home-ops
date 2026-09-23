@@ -48,8 +48,10 @@ does not, so the migration drops it.
 - **Port VLAN lists are written native-first.** `1,10,20,4000` means untagged 1, tagged
   10/20/4000.
 - **Hostnames** are `<room>-icx8200` / `<room>-icx7150` — no dashes. Rooms are `office`, `gameroom`, `garage`; the router is `office-gw`. Uplink ports are named `uplink-<room>-crs309`.
-- **Management** is static on `ve 1` out of 10.1.0.0/24, gateway and DNS 10.1.0.1,
-  domain `internal.greyrock.io`.
+- **Management** is static on `ve 1` out of 10.1.0.0/24, gateway 10.1.0.1, DNS the two
+  ctrlds 10.1.30.2 and 10.1.30.4, domain `internal.greyrock.io`. The CRS309s use the same
+  two DNS servers. On FastIron, `no ip dns server-address` needs the exact current list,
+  and adding an address already in the list fails with `duplicated dns server IP address`.
 - **RSTP runs on VLAN 1 only**, matching RouterOS, which runs a single instance per
   bridge rather than one per VLAN. CRS309 spines take priority 4096 / 8192 / 12288
   (Office / Game Room / Garage); every ICX leaf stays at the 32768 default.
@@ -395,9 +397,6 @@ power - one of these logged `rebooted without proper shutdown, probably power ou
 
 - IPv6 does not run on the switches. They are pure L2 and every SVI is on the router;
   see [router-baseline.md](router-baseline.md).
-- **ICX DNS servers.** Adding 10.1.30.2 left the previous DNS server entry in place on
-  every ICX. Once ctrld-b (10.1.30.4) is live, set each ICX to 10.1.30.2 and 10.1.30.4
-  and remove the old entry, one switch at a time.
 
 Resolved since the bench build: time zone is set on all nine and `ip mtu 9198` is on all
 six ICX; `ctrld` is running on VLAN 30, the `netinstall` package
