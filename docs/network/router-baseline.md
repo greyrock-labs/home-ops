@@ -128,7 +128,7 @@ nothing else does. There is no DHCPv6 server and no PD to downstream routers.
 ## DNS
 
 The router runs `allow-remote-requests` with Quad9 upstream, but clients are pointed at
-`ctrld` on 10.1.30.2, which forwards `greyrock.io` and `10.in-addr.arpa` back to the
+`ctrld` on 10.1.30.2 and `ctrld-b` on 10.1.30.4, which forward `greyrock.io` and `10.in-addr.arpa` back to the
 router at 10.1.30.1:53. That split is what makes internal names resolve while everything
 else goes out over DoH. `mdns-repeat-ifaces` covers `vlan10-internal` and
 `vlan20-servers`.
@@ -204,11 +204,12 @@ Keep the lease script to the single lease it was called for.
 
 ## Containers
 
-Two, both on `vlan30-container` via veth, with layers and tmpdir shared on `usb1/pull`.
+Three, all on `vlan30-container` via veth, with layers and tmpdir shared on `usb1/pull`.
 
 | Container | veth | Address | Purpose |
 | --- | --- | --- | --- |
 | `ctrld` | `veth-ctrld` | 10.1.30.2 | DNS, split-horizon to the router |
+| `ctrld-b` | `veth-ctrld-b` | 10.1.30.4 | Second DNS, same config |
 | `acme` | `veth-acme` | 10.1.30.3 | Let's Encrypt, see `router-acme.md` |
 
 VLAN 30 is in the `LAN` interface list, so containers reach the router without a
@@ -217,6 +218,13 @@ the `/interface bridge vlan` entry for 30 needs no `untagged=` edit.
 
 `/container envs` takes `key=`, and `/container mounts` takes `list=`, with
 `mountlists=` on `/container add`. Every published guide uses `name=`/`mounts=`.
+
+### Two ctrlds
+
+`ctrld` and `ctrld-b` share the `ctrld` mount list, so both read the one
+`usb1/ctrld/ctrld.toml`. That works because the listener binds `0.0.0.0` and ctrld never
+writes to that directory. Clients outside `LAN` reach them through the `dns to ctrld`
+forward accepts, which match the `ctrld` address list holding both addresses.
 
 ### Image updates
 
@@ -231,8 +239,11 @@ start over the REST API. A container that already matches is left alone.
   fields of the `MikroTik Router` 1Password item.
 - `repull` after `set remote-image=` does pull the new tag. Verified on acme: the image-id
   matched the registry's arm64 config digest for `3.1.6`.
-- An update to ctrld takes client DNS down until it is running again. The router itself
-  resolves through Quad9, so the pull is unaffected.
+- `repull` stops a running container itself, so an image cannot be pulled ahead while
+  it keeps serving. That is why there are two ctrlds: every DHCP network hands out both,
+  and the job updates them one at a time. Before stopping either it checks the other
+  answers a query, and after starting one it waits for it to answer before moving on.
+  Any failure ends the run.
 - The terraform-routeros provider was ruled out: its `routeros_container` still uses
   `envlist`/`mounts` and cannot set `name`, which RouterOS 7.21+ changed. The fix,
   upstream PR #910, was unmerged at the time.

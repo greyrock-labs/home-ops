@@ -1,9 +1,16 @@
 # Images the containers on office-gw should run, one per line as
-# "<container name> <image>=<tag>". Renovate bumps the tag; sync-containers.sh
-# makes the router match after the PR is merged.
+# "<container name> <dns address to check, or -> <image>=<tag>". Renovate bumps
+# the tag; sync-containers.sh makes the router match after the PR is merged.
+#
+# Containers are updated in file order, one at a time. A container with a DNS
+# address must answer a query there before the next one is touched, which is
+# what keeps one of the two ctrlds serving throughout.
 
 # renovate: datasource=docker depName=neilpang/acme.sh
-acme neilpang/acme.sh=3.1.6
+acme - neilpang/acme.sh=3.1.6
 
 # renovate: datasource=docker depName=controldns/ctrld
-ctrld controldns/ctrld=1.5.7
+ctrld 10.1.30.2 controldns/ctrld=1.5.7
+
+# renovate: datasource=docker depName=controldns/ctrld
+ctrld-b 10.1.30.4 controldns/ctrld=1.5.7
