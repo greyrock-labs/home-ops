@@ -132,29 +132,30 @@ That line came from the SmartZone registrar. It stopped once `no sz registrar` /
 went onto every ICX. The last one arrived at 2026-09-23 15:38Z, and none had arrived three
 hours later.
 
-## Open items
+## Storage
 
-- **Confirm storage fits 14-day retention.** Syslog shares the instance's
-  `retentionPeriod: 14d` and 20Gi `miroir-local` volume with cluster logs.
+Syslog shares the instance's `retentionPeriod: 14d` and 20Gi `miroir-local` volume with
+cluster logs. Measured 2026-09-23, after ~8 hours with every sender live:
 
-  Measured 2026-09-23 13:56Z, with MikroTik sending for only ~20 minutes:
+| | 13:56Z | 20:00Z |
+| --- | --- | --- |
+| On disk (storage + indexdb) | 460 MB | 471 MB + 3 MB |
+| Free on volume | 20.3 GB | 20.3 GB of ~21 GB |
+| Syslog, 24h | 514k records / 48.9 MB raw | 523k records / 49.1 MB raw |
 
-  | | |
-  | --- | --- |
-  | All logs, 24h | 1,532,256 records / 184 MB raw |
-  | Syslog, 24h | 514,373 records / 48.9 MB raw |
-  | On disk | 460 MB (~14d cluster logs + ~1d syslog) |
-  | Free on volume | 20.3 GB of ~21 GB |
+Syslog settles at roughly 21-24k records an hour; it peaked at 33.8k in the 14:00Z hour and
+dropped once the SmartZone registrar line stopped. At ~50 MB raw a day and the ~4:1
+compression seen so far, 14 days of syslog is about 175 MB on disk - under 1% of the
+volume. It fits with ample room; no retention change needed.
 
-  Implied compression is roughly 4:1, projecting to about 600-700 MB at steady state -
-  around 3% of the volume. Expect the daily figure to rise: MikroTik DHCP logging is
-  verbose, roughly 20 records per lease renewal, one per option field.
+The largest sender is the Unleashed master (10.1.0.13), about 67k records in 8 hours
+including the relayed ICX lines. The other APs send 14-20k each, `office-gw` about 14.5k.
 
-  Recheck with a full window once everything has been sending a few days:
+To recheck:
 
-  ```
-  _time:24h log_source:syslog | stats count() n, sum_len(_msg) bytes
-  _time:24h | stats count() n, sum_len(_msg) bytes
-  ```
+```
+_time:24h log_source:syslog | stats count() n, sum_len(_msg) bytes
+_time:24h | stats count() n, sum_len(_msg) bytes
+```
 
-  plus `vl_data_size_bytes` and `vl_free_disk_space_bytes` from `/metrics`.
+plus `vl_data_size_bytes` and `vl_free_disk_space_bytes` from `/metrics`.
