@@ -173,9 +173,23 @@ A lease script writes a DNS record per lease so that requests reaching `ctrld` c
 attributed to a device. It is installed on every server **except guest**. Behaviour:
 
 - Hostname is lowercased and sanitised to `[a-z0-9-]`; anything else becomes `-`.
-- A client that sends no hostname gets `host-<last 3 octets of MAC>`.
-- A name that already exists pointing at a different address gets the MAC suffix appended.
+- A client that sends no hostname gets `host-<last 3 octets of MAC>`, with no further suffix.
+- A hostname that already exists pointing at a different address gets `-<last 3 octets of MAC>`
+  appended.
+- When any entry already has that exact name and address, whatever its comment, nothing is
+  added. `home` (10.1.10.3) and `kerfuffle` (10.1.20.10) are covered by hand-made entries this
+  way.
 - Entries are tagged `dhcp-auto` and removed when the lease goes away.
+
+`lease-script` only fires when a lease is assigned or de-assigned, never on renewal, so a
+lease that bound while the script was broken never gets an entry from it. A second script,
+`dhcp-dns-sync`, sweeps every bound lease on the servers that have a `lease-script`. It adds
+missing entries and prunes `dhcp-auto` entries whose address is no longer bound. The
+`dhcp-dns-sync` scheduler runs it every 5 minutes.
+
+The sweep lives in the scheduler, not the lease script. With the sweep in the lease script,
+a phone's lease took long enough that the phone looked to have fallen back to its old lease.
+Keep the lease script to the single lease it was called for.
 
 ### RouterOS scripting gotchas
 
@@ -184,6 +198,9 @@ attributed to a device. It is installed on every server **except guest**. Behavi
 - The function is `:tostr`, not `:tostring`.
 - A failing lease script is silent from the DHCP side. `/log print where topics~"script"`
   is the only place it surfaces.
+- An error stops the whole script. `/ip dns static add` fails with `entry already exists`
+  on a duplicate name and address, so every `add` and `remove` is wrapped in
+  `:do { } on-error={}`.
 
 ## Containers
 
