@@ -191,6 +191,18 @@ The sweep lives in the scheduler, not the lease script. With the sweep in the le
 a phone's lease took long enough that the phone looked to have fallen back to its old lease.
 Keep the lease script to the single lease it was called for.
 
+### Network boot
+
+The router's built-in TFTP server hands out netboot.xyz on VLANs 10 and 20; the menus
+and installers load from `boot.netboot.xyz` over HTTPS. The boot files live in
+`usb1/tftp`, and each has an `/ip tftp` entry limited to those two subnets. The VLAN 10
+and 20 DHCP networks set `next-server` to their gateway and `boot-file-name` to
+`netboot.xyz-snponly.efi`, which uses the firmware's network driver rather than iPXE's
+own. `netboot.xyz.efi` (iPXE drivers) and `netboot.xyz.kpxe` (BIOS) are served too, if a
+machine needs them.
+
+In `find where address=...`, quote the prefix. Unquoted, it silently matches nothing.
+
 ### RouterOS scripting gotchas
 
 - **There is no `:tolower`.** No lowercase function exists at all. Case folding has to be
