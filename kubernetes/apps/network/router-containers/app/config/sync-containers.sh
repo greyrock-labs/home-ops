@@ -38,13 +38,15 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 # Credentials go through a curl config file so they never appear in argv.
+# Neither curl nor nslookup may read stdin: both run inside `while read` loops,
+# and in busybox sh one of them swallowed the rest of the loop's input.
 rest() {
     method=$1
     path=$2
     shift 2
     curl -sS --fail-with-body --connect-timeout 10 --max-time 120 \
         -K "$WORK/auth" -X "$method" -H 'Content-Type: application/json' \
-        "$@" "${API}${path}"
+        "$@" "${API}${path}" < /dev/null
 }
 
 # Print one string field from a single-object JSON response.
@@ -70,7 +72,7 @@ has_tag() {
 }
 
 answers_dns() {
-    nslookup "$DNS_CHECK_NAME" "$1" > /dev/null 2>&1
+    nslookup "$DNS_CHECK_NAME" "$1" < /dev/null > /dev/null 2>&1
 }
 
 # wait_for <tries> <seconds between> <command...>
