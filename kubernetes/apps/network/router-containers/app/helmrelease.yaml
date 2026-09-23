@@ -20,11 +20,11 @@ spec:
           - secretKey: MIKROTIK_USERNAME
             remoteRef:
               key: MikroTik Router
-              property: containers_username
+              property: containers-username
           - secretKey: MIKROTIK_PASSWORD
             remoteRef:
               key: MikroTik Router
-              property: containers_password
+              property: containers-password
     networkpolicies:
       router-containers:
         type: cilium

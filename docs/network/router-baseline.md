@@ -227,7 +227,7 @@ container whose `remote-image` differs and runs stop -> `set remote-image` -> `r
 start over the REST API. A container that already matches is left alone.
 
 - The job logs in as the `router-containers` user: group `read,write,rest-api`, only
-  from 10.1.20.0/24. Its credentials are the `containers_username`/`containers_password`
+  from 10.1.20.0/24. Its credentials are the `containers-username`/`containers-password`
   fields of the `MikroTik Router` 1Password item.
 - `repull` after `set remote-image=` does pull the new tag. Verified on acme: the image-id
   matched the registry's arm64 config digest for `3.1.6`.
