@@ -206,6 +206,9 @@ machine needs them.
 - **There is no `:tolower`.** No lowercase function exists at all. Case folding has to be
   a character-map lookup with `:find` against `"ABCDEFGHIJKLMNOPQRSTUVWXYZ"`.
 - The function is `:tostr`, not `:tostring`.
+- Compare addresses as strings (`[:tostr ...]` on both sides). Comparing the lease's
+  address with a DNS entry's `address` directly never matched, so the scripts took a
+  device's own entry for a clash and flipped it between the plain and MAC-suffixed name.
 - A failing lease script is silent from the DHCP side. `/log print where topics~"script"`
   is the only place it surfaces.
 - An error stops the whole script. `/ip dns static add` fails with `entry already exists`
