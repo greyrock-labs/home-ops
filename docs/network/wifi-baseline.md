@@ -30,13 +30,23 @@ and the settings that deviate from defaults.
 
 System Default has no APs.
 
-The three 2.4 GHz radios are pinned to non-overlapping channels at 20 MHz, TX power Full:
+Channels are pinned per AP, and ChannelFly is off for 2.4 and 5 GHz (on for 6 GHz).
 
-| AP | Channel |
-| --- | --- |
-| `kitchen-ap` | 1 |
-| `upstairs-hallway-ap` | 6 |
-| `garage-ap` | 11 |
+| AP | 2.4 GHz (20 MHz, TX Full) | 5 GHz (40 MHz, TX -3 dB) |
+| --- | --- | --- |
+| `side-yard-ap` | — | 36 |
+| `game-room-ap` | — | 44 |
+| `kitchen-ap` | 1 | 52 (DFS) |
+| `office-ap` | — | 60 (DFS) |
+| `upstairs-hallway-ap` | 6 | 100 (DFS) |
+| `garage-ap` | 11 | 108 (DFS) |
+| `rear-driveway-ap` | — | 149 |
+| `side-driveway-ap` | — | 157 |
+
+Every 5 GHz radio has its own channel. The outdoor APs are on non-DFS channels so a
+radar event cannot move them while someone outside depends on them. 40 MHz channels 118
+and 126 overlap the weather-radar band and 142 needs channel 144, so they are unused.
+134 (DFS) is reserved for the planned living-room AP.
 
 Pinning the channel on an AP forces per-AP overrides of Channelization and the channel
 list as well; Unleashed does not allow overriding the channel alone.
