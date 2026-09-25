@@ -14,11 +14,11 @@ True daisy chain, RB5009 (`office-gw`, 10.1.0.1) at the head in the Office:
 ```
 office-gw
    |
-[Office CRS309 .10] -- ICX8200 .11
-   |                -- ICX7150 .12
-[GameRoom CRS309 .20] -- ICX8200 .21
+[Office CRS309 .10] -- C08ZP .11
+   |                -- C08PF .12
+[GameRoom CRS309 .20] -- C08ZP .21
    |                  -- ICX7150 .22
-[Garage CRS309 .30] -- ICX8200 .31
+[Garage CRS309 .30] -- C08ZP .31
                     -- ICX7150 .32
 ```
 
@@ -47,7 +47,7 @@ does not, so the migration drops it.
   factory-default switch is reachable over its uplink before it is configured.
 - **Port VLAN lists are written native-first.** `1,10,20,4000` means untagged 1, tagged
   10/20/4000.
-- **Hostnames** are `<room>-<model>`: `<room>-c08zp` for the ICX8200-C08ZPs, `<room>-crs309` for the spines. The ICX7150s keep `<room>-icx7150` until they are replaced. Rooms are `office`, `gameroom`, `garage`; the router is `office-gw`. Uplink ports are named `uplink-<room>-crs309`.
+- **Hostnames** are `<room>-<model>`: `<room>-c08zp` for the ICX8200-C08ZPs, `<room>-crs309` for the spines. `<room>-c08pf` for the C08PFs replacing the ICX7150s; an ICX7150 keeps `<room>-icx7150` until its replacement goes in. Rooms are `office`, `gameroom`, `garage`; the router is `office-gw`. Uplink ports are named `uplink-<room>-crs309`.
 - **Management** is static on `ve 1` out of 10.1.0.0/24, gateway 10.1.0.1, DNS the two
   ctrlds 10.1.30.2 and 10.1.30.4, domain `internal.greyrock.io`. The CRS309s use the same
   two DNS servers. On FastIron, `no ip dns server-address` needs the exact current list,
@@ -260,10 +260,11 @@ Game Room CRS309. IGMP passive; MLD snooping not configured.
 
 `1/1/3`-`1/1/12` are unused.
 
-## Office ICX7150 as-built
+## Office C08PF as-built
 
-Same hardware, firmware and module layout as the other two 7150s. Uplink `1/3/2` to the
-Office CRS309. IGMP passive; MLD snooping not configured.
+ICX8200-C08PF, FastIron `10.0.10g_cd6T253`, license `2X10G`. 8x 1G PoE+ (`1/1/1`-`1/1/8`)
+plus 2x SFP+ (`1/2/1`, `1/2/2`). Replaced the Office ICX7150 at `.12`. Uplink `1/2/2` to the
+Office CRS309. IGMP and MLD **passive** with flooding on all six VLANs.
 
 | Port | Name | Untagged |
 | --- | --- | --- |
@@ -271,17 +272,18 @@ Office CRS309. IGMP passive; MLD snooping not configured.
 | 1/1/2 | time2 | 20 |
 | 1/1/3 | time3 | 20 |
 | 1/1/4 | time4 | 20 |
-| 1/1/7 | kvm-hass | 20 |
-| 1/1/9 | kvm-nas | 20 |
-| 1/2/1 | kvm-k8s | 20 |
+| 1/1/5 | kvm-hass | 20 |
+| 1/1/6 | kvm-nas | 20 |
+| 1/1/7 | kvm-k8s | 20 |
 
-`1/1/5`, `1/1/6`, `1/1/8`, `1/1/10`, `1/1/11`, `1/1/12`, `1/2/2` and `1/3/1` are unused.
-The front-panel "port 13" is `1/2/1`, the first copper uplink on module 2 - the PoE module
-only goes to `1/1/12`.
+`1/1/8` and `1/2/1` are unused.
 
-The NVR, chime and the two AI ports were removed from service. VLAN 60 remains configured
-and tagged on the uplink `1/3/2` for trunk consistency, but has no local untagged ports
-on this switch. `1/3/1` is the free 10G port that carried the NVR.
+Factory units ship on `10.0.00` and need upgrading to match. On that release the switch's
+own `scp` binary is broken (`wrong ELF class`), and the RouterOS TFTP server on `office-gw`
+never answered the switch's request, so the image came from a TFTP server on a laptop:
+`copy tftp flash <ip> RDR10010g_cd6ufi.bin primary`. Reload only after the PoE firmware
+update that follows the upgrade has finished. `ip mtu 9198` is rejected until the reload
+that activates `jumbo`.
 
 ## CRS309 / RouterOS notes
 
@@ -366,7 +368,7 @@ attaches.
 | sfp-sfpplus1 | uplink-office-gw (RB5009) |
 | sfp-sfpplus2 | downlink-gameroom-crs309 |
 | sfp-sfpplus3 | office-c08zp |
-| sfp-sfpplus4 | office-icx7150 |
+| sfp-sfpplus4 | office-c08pf |
 
 ## CRS309 flash revisions
 
