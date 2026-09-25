@@ -70,6 +70,8 @@ spec:
     persistence:
       config:
         existingClaim: unimus-config
+        globalMounts:
+          - path: /etc/unimus
     route:
       app:
         hostnames:
