@@ -19,7 +19,7 @@ office-gw
 [GameRoom CRS309 .20] -- C08ZP .21
    |                  -- C08PF .22
 [Garage CRS309 .30] -- C08ZP .31
-                    -- ICX7150 .32
+                    -- C08PF .32
 ```
 
 Garage traffic transits Game Room and Office. Routing is router-on-a-stick: all nine
@@ -47,7 +47,7 @@ does not, so the migration drops it.
   factory-default switch is reachable over its uplink before it is configured.
 - **Port VLAN lists are written native-first.** `1,10,20,4000` means untagged 1, tagged
   10/20/4000.
-- **Hostnames** are `<room>-<model>`: `<room>-c08zp` for the ICX8200-C08ZPs, `<room>-crs309` for the spines. `<room>-c08pf` for the C08PFs replacing the ICX7150s; an ICX7150 keeps `<room>-icx7150` until its replacement goes in. Rooms are `office`, `gameroom`, `garage`; the router is `office-gw`. Uplink ports are named `uplink-<room>-crs309`.
+- **Hostnames** are `<room>-<model>`: `<room>-c08zp`, `<room>-c08pf` and `<room>-crs309`. Rooms are `office`, `gameroom`, `garage`; the router is `office-gw`. Uplink ports are named `uplink-<room>-crs309`.
 - **Management** is static on `ve 1` out of 10.1.0.0/24, gateway 10.1.0.1, DNS the two
   ctrlds 10.1.30.2 and 10.1.30.4, domain `internal.greyrock.io`. The CRS309s use the same
   two DNS servers. On FastIron, `no ip dns server-address` needs the exact current list,
@@ -65,19 +65,15 @@ does not, so the migration drops it.
 - **Jumbo frames on every switch.** Talos hosts run `mtu: 9000` on `bond0`
   (`kubernetes/talos/cluster.yaml.j2`). `jumbo` is global on FastIron and needs a reload.
 - **IGMP/MLD snooping on every VLAN.** Exactly one active querier per VLAN in the L2
-  domain — the Office ICX8200. Every other switch is `passive`.
+  domain — office-c08zp. Every other switch is `passive`.
 - **Unregistered multicast floods.** Snooping otherwise prunes IPv6 link-local groups,
   which breaks Matter and HomeKit over `ff02::fb`. IPv4 mDNS (224.0.0.251) is inside
   `224.0.0.0/24` and is never pruned, so only the IPv6 side is actually at risk.
-- **MLD snooping is disabled entirely on the ICX7150s.** That platform has no
-  `ipv6 multicast flood-unregistered`, so its MLD snooping can only prune, never flood —
-  strictly worse than no snooping for Matter. The 8200s keep MLD snooping with flooding
-  enabled. The outcome is the same on both, by different means; IGMP (IPv4) snooping stays
-  on everywhere.
 - **Never remove** `manager registrar` (Unleashed adoption), `logging host 10.1.20.2
   udp-port 6514`, or the `snmp-server community` line.
 - **SmartZone is off** (`no sz registrar`, `sz disable`) on every ICX. Nothing here uses
-  SmartZone. `show running-config | include sz` returns nothing.
+  SmartZone. It is on by default and does not appear in `show running-config`, so a new
+  unit needs both commands even though nothing shows.
 - Unleashed and the CLI co-manage these switches; the majority of config is done by CLI.
 
 ## Verifying a switch
@@ -164,7 +160,6 @@ Each of these cost a round trip on the first switch. The published docs describe
 | A global command after a `vlan`/`interface` stanza | Silently ignored or misfiled into the sub-context. `no global-stp` landed nowhere; `no ip dhcp-client enable` was written into an interface. **Always `exit` to global config first.** |
 | `no global-stp` before VLAN 1 is on 802.1w | Silently does not stick. Removal only takes once `spanning-tree 802-1w` is active on VLAN 1, so sequence it *after* the VLAN 1 stanza. Confirm with `show running-config | include global-stp` printing nothing. |
 | `ipv6 mld version 2` | Accepted without error but **silently unreliable** — it applied on two units and left a third on MLDv1. Use the canonical `ipv6 multicast version 2` instead, and verify with `show ipv6 multicast`: want `Version=2`, `dft V2` and `(SG)` caches, not `V1` / `(*G)`. |
-| `ipv6 multicast flood-unregistered` on an ICX7150 | `Invalid input` / `Soft pkg not supported`. The keyword does not exist on that platform — confirmed against `ipv6 multicast ?`, which offers only active/passive/version/timers. Works fine on the ICX8200. |
 | `global-rstp` | Does not exist. 802.1w is per-VLAN: `spanning-tree 802-1w`. Remove `global-stp`, and `no spanning-tree` on the VLAN before enabling 802.1w. |
 | `spanning-tree 802-1w priority 32768` | Accepted but absent from running-config, because it equals the default. Confirm via the bridge ID in `show 802-1w` — a leading `8000` is 32768. |
 | `enable` at a `#` prompt | Rejected; already privileged. Needed only after a reload, which drops you to `>`. |
@@ -225,28 +220,22 @@ load of the three: five APs against a 240W budget, dynamic allocation.
 | 1/1/4 | sd-ap | 1 | 10, 20, 4000 |
 | 1/1/5 | kitchen-ap | 1 | 10, 20, 4000 |
 
-## Garage ICX7150 as-built
+## Garage C08PF as-built
 
-ICX7150-C12-POE, FastIron `10.0.10g_cd6T213`, `ICX7150_L3_SOFT_PACKAGE`, license `2X10GR`.
-Three modules, so the port map differs from the 8200s:
+Same hardware and firmware as the Office C08PF. Replaced the Garage ICX7150 at `.32`.
+Standalone for now - the second unit of the planned stack was DOA. Uplink `1/2/2` to the
+Garage CRS309, leaving `1/2/1` free to become the stack port. IGMP and MLD **passive** with
+flooding.
 
-- `1/1/1`-`1/1/12` - 12x 1G PoE
-- `1/2/1`-`1/2/2` - 2x 1G copper (`ICX7150-2X1GC`)
-- `1/3/1`-`1/3/2` - 2x 10G SFP+ (`ICX7150-2X10GF`)
+| Port | Name | Untagged |
+| --- | --- | --- |
+| 1/1/1 | courtyard-doorbell | 60 |
+| 1/1/2 | garage-todd | 60 |
+| 1/1/3 | rear-driveway | 60 |
+| 1/1/4 | rear-side-yard | 60 |
+| 1/1/5 | garage-andy | 60 |
 
-Uplink `1/3/2` to the Garage CRS309. Stacking confirmed inactive, so the default
-`stack-port` claim on `1/3/1`-`1/3/2` is inert. IGMP passive; **MLD snooping removed**
-(see Conventions).
-
-| Port | Name | Untagged | Tagged |
-| --- | --- | --- | --- |
-| 1/1/1 | courtyard-doorbell | 60 | - |
-| 1/1/2 | garage-todd | 60 | - |
-| 1/1/3 | rear-driveway | 60 | - |
-| 1/1/4 | rear-side-yard | 60 | - |
-| 1/1/6 | garage-andy | 60 | - |
-
-`1/1/5` and `1/1/7`-`1/1/12` are unused.
+`1/1/6`-`1/1/8` and `1/2/1` are unused.
 
 ## Game Room C08PF as-built
 
@@ -317,10 +306,10 @@ RouterOS expresses the same trunk profile differently: a `pvid` on each bridge p
   `10218` is the CRS3xx maximum and lines up with the 10200 the ICX switches report.
 - **Bridge priority is hex.** `0x1000` / `0x2000` / `0x3000` for 4096 / 8192 / 12288.
 - **Unregistered multicast floods by default** via the per-port `unknown-multicast-flood=yes`,
-  so IGMP snooping can stay enabled here without the Matter/HomeKit problem the ICX7150 has.
+  so IGMP snooping can stay enabled here without the Matter/HomeKit problem the ICX7150s had.
   RouterOS covers IGMP and MLD in the one feature.
 - **Align snooping versions.** The bridge defaults to `igmp-version=2` / `mld-version=1`
-  while the Office ICX8200 queries at IGMPv3 / MLDv2. Set `igmp-version=3 mld-version=2`.
+  while office-c08zp queries at IGMPv3 / MLDv2. Set `igmp-version=3 mld-version=2`.
 - **`multicast-querier=no`** on all three. No MikroTik switch queries.
 - **The build block is idempotent except `/ip route add`.** Changing the address and
   enabling `vlan-filtering` both drop the session, so the block often gets pasted twice.
@@ -342,7 +331,7 @@ priority `0x3000` (12288), hardware offload active on all ports.
 | --- | --- |
 | sfp-sfpplus1 | uplink-gameroom-crs309 |
 | sfp-sfpplus2 | garage-c08zp |
-| sfp-sfpplus3 | garage-icx7150 |
+| sfp-sfpplus3 | garage-c08pf |
 
 `ether1` and `sfp-sfpplus4`-`8` stay in the bridge at pvid 1, so any unused port is an
 untagged VLAN 1 access port - a way back in if management is lost.
@@ -420,21 +409,11 @@ and its three listeners are in place, and both BGP sessions are established - ke
 advertising five prefixes, and codswallop advertising 10.1.25.21/32 once
 `docker/codswallop/00-frr/config/frr.conf` peered with 10.1.0.1.
 
-## Planned: ICX7150 replacement and rename
+## Planned: Garage stack
 
-Four ICX8200-C08PF are on order to replace the three ICX7150s - one for the Office, one
-for the Game Room, and two to be **stacked** in the Garage.
+garage-c08pf runs standalone; the second C08PF was DOA. When the replacement arrives, the
+two form one stack under the one name and address.
 
-**Why:** `ipv6 multicast flood-unregistered` does not exist on the ICX7150
-(`Soft pkg not supported`), which is why MLD snooping is disabled outright on all three
-rather than running with flooding. Going all-8200 removes both the limitation and the
-workaround - see *FastIron 10.0 gotchas*.
-
-**Hardware:** the C08PF is 8x 1GbE PoE+ with a 124W budget and 2x 10 GbE SFP+
-stacking/uplink ports. The existing C08ZP is 8x 2.5GbE PoE++ with 2x 10 GbE SFP+. Both
-have the same uplink speed; the access ports are what differ.
-
-### Garage stack
 
 The SFP+ ports are also the stacking ports, but a two-unit stack only consumes one per
 unit. Confirmed in the FastIron 10.0.20 Stacking Configuration Guide, Table 16 and the
@@ -461,52 +440,8 @@ as-built*), so expect the same on a new unit and clear Module 2 first.
 
 C08PF supports 10-Gbps stacking only, which is moot here - the ports are 10G.
 
-### Naming
-
-`<room>-icx8200` / `<room>-icx7150` stops working once every switch is an ICX8200. The
-replacement convention is **`<room>-<model>`**, dropping `icx8200` because it no longer
-distinguishes anything. This matches the shape the CRS309s already use.
-
-| Room | Names |
-| --- | --- |
-| Office | `office-crs309`, `office-c08zp`, `office-c08pf` |
-| Game Room | `gameroom-crs309`, `gameroom-c08zp`, `gameroom-c08pf` |
-| Garage | `garage-crs309`, `garage-c08zp`, `garage-c08pf` |
-
-The stacked Garage pair takes **one** name for both units. The three CRS309 names do not
-change. Addressing slots carry over unchanged: `.11`/`.21`/`.31` stay with the C08ZPs, and
-`.12`/`.22`/`.32` move from the 7150s to the C08PFs.
-
-### Install sequence
-
-1. Configure each new switch standalone against the baseline in *Conventions* - VLANs,
-   trunk, RSTP priority 32768, IGMP/MLD passive, jumbo, NTP, time zone, DNS, mgmt address.
-2. For the Garage pair, clear Module 2 config, then enable stacking with a single
-   stack-port per unit, leaving the second SFP+ for the uplink.
-3. Move the ports off the 7150 being replaced, per its as-built table.
-4. Swap the uplink to the room's CRS309.
-5. Rename, in one cut - see below.
-6. Enable MLD snooping properly now that the 7150 limitation is gone: `ipv6 multicast
-   flood-unregistered` works on the 8200, so these boxes can run MLD passive with
-   flooding rather than MLD disabled.
-7. Retire the 7150.
-
-### Everything that has to change
-
-The three C08ZPs were renamed on 2026-09-23, ahead of the C08PFs. When each C08PF goes
-in, the `<room>-icx7150` it replaces becomes `<room>-c08pf`:
-
-| Where | What |
-| --- | --- |
-| `kubernetes/apps/observability/blackbox-exporter/app/probes.yaml` | The 7150's entry |
-| `docs/network/switch-baseline.md` | The 7150's as-built section and CRS309 port comment |
-| Router static DNS | The 7150's entry, commented `switch` |
-| CRS309 port comment | The port facing the 7150 |
-| Switch hostname | FastIron `hostname` on the new unit |
-| Unleashed | Follows the hostname the switch reports |
-
 Note when searching: `garage` in `docker/codswallop/04-garage/` and the kanidm
-`oauth2-garage-ui` refer to the Garage S3 software, not the room. They are not affected.
+`oauth2-garage-ui` refer to the Garage S3 software, not the room.
 
 ## Netinstall from a RouterOS device
 

@@ -18,9 +18,9 @@ spec:
         - gameroom-c08zp.internal.greyrock.io
         - gameroom-crs309.internal.greyrock.io
         - garage-ap.internal.greyrock.io
+        - garage-c08pf.internal.greyrock.io
         - garage-c08zp.internal.greyrock.io
         - garage-crs309.internal.greyrock.io
-        - garage-icx7150.internal.greyrock.io
         - home.internal.greyrock.io
         - iotabase.internal.greyrock.io
         - iotagrge.internal.greyrock.io
