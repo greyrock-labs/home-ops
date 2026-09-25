@@ -17,7 +17,7 @@ office-gw
 [Office CRS309 .10] -- C08ZP .11
    |                -- C08PF .12
 [GameRoom CRS309 .20] -- C08ZP .21
-   |                  -- ICX7150 .22
+   |                  -- C08PF .22
 [Garage CRS309 .30] -- C08ZP .31
                     -- ICX7150 .32
 ```
@@ -248,17 +248,17 @@ Uplink `1/3/2` to the Garage CRS309. Stacking confirmed inactive, so the default
 
 `1/1/5` and `1/1/7`-`1/1/12` are unused.
 
-## Game Room ICX7150 as-built
+## Game Room C08PF as-built
 
-Same hardware, firmware and module layout as the Garage ICX7150. Uplink `1/3/2` to the
-Game Room CRS309. IGMP passive; MLD snooping not configured.
+Same hardware and firmware as the Office C08PF. Replaced the Game Room ICX7150 at `.22`.
+Uplink `1/2/2` to the Game Room CRS309. IGMP and MLD **passive** with flooding.
 
-| Port | Name | Untagged | Tagged |
-| --- | --- | --- | --- |
-| 1/1/1 | solaredge | 50 | - |
-| 1/1/2 | zigbee | 10 | - |
+| Port | Name | Untagged |
+| --- | --- | --- |
+| 1/1/1 | solaredge | 50 |
+| 1/1/2 | zigbee | 10 |
 
-`1/1/3`-`1/1/12` are unused.
+`1/1/3`-`1/1/8` and `1/2/1` are unused.
 
 ## Office C08PF as-built
 
@@ -278,12 +278,26 @@ Office CRS309. IGMP and MLD **passive** with flooding on all six VLANs.
 
 `1/1/8` and `1/2/1` are unused.
 
-Factory units ship on `10.0.00` and need upgrading to match. On that release the switch's
-own `scp` binary is broken (`wrong ELF class`), and the RouterOS TFTP server on `office-gw`
-never answered the switch's request, so the image came from a TFTP server on a laptop:
-`copy tftp flash <ip> RDR10010g_cd6ufi.bin primary`. Reload only after the PoE firmware
-update that follows the upgrade has finished. `ip mtu 9198` is rejected until the reload
-that activates `jumbo`.
+### Upgrading a factory C08PF
+
+Factory units ship on `10.0.00`. On that release the switch's own `scp` binary is broken
+(`wrong ELF class`), and the RouterOS TFTP server on `office-gw` never answered the
+switch's request, so the image comes from the macOS TFTP server on a laptop
+(`/private/tftpboot`). Set the block size first - a factory unit asks for 8192-byte blocks,
+which fragment and stall the transfer at 0%:
+
+```
+configure terminal
+ip tftp blocksize 1400
+exit
+copy tftp flash <laptop ip> ICX8200/Images/RDR10010g_cd6ufi.bin primary
+show flash
+boot system flash primary
+```
+
+`boot system flash primary` at the `#` prompt reboots immediately. Afterwards the switch
+updates its PoE firmware; wait for that to finish before any further reload.
+`ip mtu 9198` is rejected until the reload that activates `jumbo`.
 
 ## CRS309 / RouterOS notes
 
@@ -343,7 +357,7 @@ CRS309-1G-8S+, RouterOS 7.24. Management 10.1.0.20/24 on the bridge, RSTP priori
 | sfp-sfpplus1 | uplink-office-crs309 |
 | sfp-sfpplus2 | downlink-garage-crs309 |
 | sfp-sfpplus3 | gameroom-c08zp |
-| sfp-sfpplus4 | gameroom-icx7150 |
+| sfp-sfpplus4 | gameroom-c08pf |
 
 This unit has **32MB flash (18.7MB free)** and `minimum-version: 7.11.2`; the Garage unit
 has **16MB with ~1.2MB free** and `minimum-version: 6.44.6` - a different board revision.

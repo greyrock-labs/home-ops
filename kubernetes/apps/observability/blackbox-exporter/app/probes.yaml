@@ -14,9 +14,9 @@ spec:
         - bambu-a1-printer.internal.greyrock.io
         - codswallop.internal.greyrock.io
         - gameroom-ap.internal.greyrock.io
+        - gameroom-c08pf.internal.greyrock.io
         - gameroom-c08zp.internal.greyrock.io
         - gameroom-crs309.internal.greyrock.io
-        - gameroom-icx7150.internal.greyrock.io
         - garage-ap.internal.greyrock.io
         - garage-c08zp.internal.greyrock.io
         - garage-crs309.internal.greyrock.io
