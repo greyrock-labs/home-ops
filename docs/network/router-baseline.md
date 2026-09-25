@@ -138,14 +138,14 @@ filtered from hand-made records:
 
 | Comment | Source | Notes |
 | --- | --- | --- |
-| `dhcp-auto` | DHCP lease script | Added and removed by the script only |
+| `static-lease` | Hand-made | One per static DHCP lease, named from the MAC address list in 1Password |
 | `switch` | Hand-made | Nine switches, 10.1.0.10-.12/.20-.22/.30-.32 |
 | `ap` | Hand-made | Nine Unleashed APs, see `switch-baseline.md` |
 | `router` | Hand-made | `office-gw.internal.greyrock.io` → 10.1.0.1 |
 | *(none)* | `external-dns` | Owned via TXT registry, `txtPrefix: k8s.main.%{record_type}-` |
 
-`external-dns` only deletes records it holds an ownership TXT for, and the lease script
-only removes records commented `dhcp-auto`, so hand-made entries are safe from both.
+`external-dns` only deletes records it holds an ownership TXT for, so hand-made entries are
+safe from it.
 
 `office-gw.internal.greyrock.io` exists so `external-dns` can reach the REST API by a
 name the router's certificate actually covers. Verified from inside the cluster: the name
@@ -169,27 +169,20 @@ deprecated.
 Leases are 8h everywhere except guest at 4h. Pools start at `.100` on VLAN 1, `.2` on
 guest, and `.6` on everything else.
 
-A lease script writes a DNS record per lease so that requests reaching `ctrld` can be
-attributed to a device. It is installed on every server **except guest**. Behaviour:
+Every known device has a **static lease** on the address it already had, with the lease
+comment and a `static-lease` DNS entry both set to its name. ctrld resolves client names by
+reverse lookup against the router, so that one name per address is what shows up there.
+Names come from the "Network Device MAC Addresses" document in 1Password: lowercased, with
+the room first (`gameroom`, `livingroom`, `diningroom`, `master-bedroom`,
+`upstairs-bathroom`, `downstairs-bathroom`), and plugs as `<room>-plug-<rest>` with
+`christmas` last.
 
-- Hostname is lowercased and sanitised to `[a-z0-9-]`; anything else becomes `-`.
-- A client that sends no hostname gets `host-<last 3 octets of MAC>`, with no further suffix.
-- A hostname that already exists pointing at a different address gets `-<last 3 octets of MAC>`
-  appended.
-- When any entry already has that exact name and address, whatever its comment, nothing is
-  added. `home` (10.1.10.3) and `kerfuffle` (10.1.20.10) are covered by hand-made entries this
-  way.
-- Entries are tagged `dhcp-auto` and removed when the lease goes away.
+There is no DHCP lease script. Anything still dynamic has no DNS name and shows in ctrld as
+a bare address, which is the cue to give it a static lease. Deliberately dynamic: the UniFi
+cameras on VLAN 60 and everything on guest.
 
-`lease-script` only fires when a lease is assigned or de-assigned, never on renewal, so a
-lease that bound while the script was broken never gets an entry from it. A second script,
-`dhcp-dns-sync`, sweeps every bound lease on the servers that have a `lease-script`. It adds
-missing entries and prunes `dhcp-auto` entries whose address is no longer bound. The
-`dhcp-dns-sync` scheduler runs it every 5 minutes.
-
-The sweep lives in the scheduler, not the lease script. With the sweep in the lease script,
-a phone's lease took long enough that the phone looked to have fallen back to its old lease.
-Keep the lease script to the single lease it was called for.
+To add a device, on the lease: `make-static`, set `comment=<name>`, then
+`/ip dns static add name=<name>.internal.greyrock.io address=<ip> comment=static-lease`.
 
 ### Network boot
 
@@ -200,20 +193,6 @@ and 20 DHCP networks set `next-server` to their gateway and `boot-file-name` to
 `netboot.xyz-snponly.efi`, which uses the firmware's network driver rather than iPXE's
 own. `netboot.xyz.efi` (iPXE drivers) and `netboot.xyz.kpxe` (BIOS) are served too, if a
 machine needs them.
-
-### RouterOS scripting gotchas
-
-- **There is no `:tolower`.** No lowercase function exists at all. Case folding has to be
-  a character-map lookup with `:find` against `"ABCDEFGHIJKLMNOPQRSTUVWXYZ"`.
-- The function is `:tostr`, not `:tostring`.
-- Compare addresses as strings (`[:tostr ...]` on both sides). Comparing the lease's
-  address with a DNS entry's `address` directly never matched, so the scripts took a
-  device's own entry for a clash and flipped it between the plain and MAC-suffixed name.
-- A failing lease script is silent from the DHCP side. `/log print where topics~"script"`
-  is the only place it surfaces.
-- An error stops the whole script. `/ip dns static add` fails with `entry already exists`
-  on a duplicate name and address, so every `add` and `remove` is wrapped in
-  `:do { } on-error={}`.
 
 ## Containers
 
