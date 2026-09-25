@@ -175,8 +175,8 @@ deprecated.
 Leases are 8h everywhere except guest at 4h. Pools start at `.100` on VLAN 1, `.2` on
 guest, and `.6` on everything else.
 
-Every known device has a **static lease** on the address it already had, with the lease
-comment and a `static-lease` DNS entry both set to its name. ctrld resolves client names by
+Every known device has a **static lease** on the address it already had. The lease comment
+is its name as written in the CSV, and it has a `static-lease` DNS entry with the DNS name. ctrld resolves client names by
 reverse lookup against the router, so that one name per address is what shows up there.
 Names come from the "Network Device MAC Addresses" document in 1Password: lowercased, with
 the room first (`gameroom`, `livingroom`, `diningroom`, `master-bedroom`,
@@ -187,7 +187,8 @@ There is no DHCP lease script. Anything still dynamic has no DNS name and shows 
 a bare address, which is the cue to give it a static lease. Deliberately dynamic: the UniFi
 cameras on VLAN 60 and everything on guest.
 
-To add a device, on the lease: `make-static`, set `comment=<name>`, then
+To add a device, add it to the CSV, then on the lease: `make-static`, set
+`comment="<CSV name>"`, then
 `/ip dns static add name=<name>.internal.greyrock.io address=<ip> comment=static-lease`.
 
 ### Network boot
