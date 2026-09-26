@@ -34,7 +34,7 @@ spec:
           app:
             image:
               repository: docker.io/croc/unimus
-              tag: 2.9.1@sha256:e3feabca49f818c24c1a86e08cccfa53e8b283a8ff83b64d204992b87d77ceb4
+              tag: 2.9.1@sha256:a69e549437f49b7fcca761b37d4d4386de14f228ffdb57e5ebb032051aa70f37
             env:
               JAVA_OPTS: -Xms256M -Xmx1024M -Dunimus.core.connect-timeout=20000 -Dunimus.core.inter-connection-delay=1000 -Dunimus.core.cli-expect-timeout=30000
               TZ: America/New_York
