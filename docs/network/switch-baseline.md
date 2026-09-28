@@ -177,11 +177,14 @@ all six VLANs; PoE allocation is dynamic; 240W budget.
 | Port | Name | Untagged | Tagged |
 | --- | --- | --- | --- |
 | 1/1/1 | homeassistant | 10 | - |
+| 1/1/2 | rubberneck | 20 | - |
 | 1/1/5 | office-ap | 1 | 10, 20, 4000 |
 | 1/1/6 | uh-ap | 1 | 10, 20, 4000 |
 | 1/1/7 | codswallop | 20 | - |
 | 1/1/8 | kerfuffle | 20 | 10, 60 |
 
+`rubberneck` is a Mac mini Scrypted cluster node doing image processing; the Scrypted
+server in the cluster talks to the cameras and hands it work, so it needs VLAN 20 only.
 `codswallop` and `kerfuffle` are Talos control-plane hosts. Their `bond0` is
 `active-backup` over a single link, **not** LACP, so they take plain access ports with
 no LAG. Both take their VLAN 20 address by DHCP and resolve against 10.1.20.1.
@@ -264,8 +267,9 @@ Office CRS309. IGMP and MLD **passive** with flooding on all six VLANs.
 | 1/1/5 | kvm-hass | 20 |
 | 1/1/6 | kvm-nas | 20 |
 | 1/1/7 | kvm-k8s | 20 |
+| 1/1/8 | kvm-rubberneck | 20 |
 
-`1/1/8` and `1/2/1` are unused.
+`1/2/1` is unused.
 
 ### Upgrading a factory C08PF
 
