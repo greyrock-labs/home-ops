@@ -47,6 +47,7 @@
               - install
               - --assumeyes
               - --idempotent
+              - --allow-inactive
               - --unchanged-exit-77
               - tailscale
               - firewalld
