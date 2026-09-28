@@ -126,7 +126,3 @@ spec:
         parentRefs:
           - name: envoy-external
             namespace: network
-            sectionName: https
-          - name: envoy-external
-            namespace: network
-            sectionName: https-proxy
