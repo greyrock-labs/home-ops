@@ -3,17 +3,13 @@
 apiVersion: externaldns.k8s.io/v1alpha1
 kind: DNSEndpoint
 metadata:
-  name: towonel-agent
+  name: public-edge
 spec:
   endpoints:
     - dnsName: ingress-ext.greyrock.io
       recordType: A
       targets:
         - &vps_ip 104.168.59.58
-    - dnsName: twnl.greyrock.io
-      recordType: A
-      targets:
-        - *vps_ip
     - dnsName: skedaddle-doco-cd.greyrock.io
       recordType: A
       targets:

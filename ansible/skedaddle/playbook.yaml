@@ -4,6 +4,7 @@
   become: true
   gather_facts: false
   vars:
+    ansible_port: 22222
     ansible_user: "{{ bootstrap_user | default('todd') }}"
     ansible_python_interpreter: auto_silent
     host_ssh_port: 22222
@@ -85,6 +86,12 @@
         - name: packages | Install ipset
           ansible.builtin.apt:
             name: ipset
+            state: present
+            update_cache: false
+
+        - name: packages | Install WireGuard
+          ansible.builtin.apt:
+            name: wireguard-tools
             state: present
             update_cache: false
 
@@ -178,9 +185,6 @@
               port: 80
             - name: HTTPS
               port: 443
-            - name: towonel-iroh
-              port: 51820
-              protocol: udp
 
         - name: firewall | Enable UFW
           community.general.ufw:
@@ -197,20 +201,6 @@
             name: edge
             driver: bridge
             state: present
-
-    - name: towonel
-      tags:
-        - towonel
-      vars:
-        towonel_config_dir: /opt/towonel
-      block:
-        - name: towonel | Create directory
-          ansible.builtin.file:
-            path: "{{ towonel_config_dir }}"
-            state: directory
-            owner: 10001
-            group: 10001
-            mode: "0755"
 
     - name: doco-cd
       tags:
@@ -269,6 +259,87 @@
           retries: 30
           delay: 10
           when: not ansible_check_mode
+
+    - name: public-edge
+      tags:
+        - public-edge
+      block:
+        - name: public-edge | Read keys from 1Password
+          ansible.builtin.shell: "op read 'op://{{ item }}' < /dev/null"
+          delegate_to: localhost
+          become: false
+          loop:
+            - automation/Skedaddle - Wireguard - MikroTik Public Edge/private_key
+            - automation/Skedaddle - Wireguard - MikroTik Public Edge/server_public_key
+          check_mode: false
+          changed_when: false
+          no_log: true
+          register: public_edge_keys_raw
+
+        - name: public-edge | Set key facts
+          ansible.builtin.set_fact:
+            public_edge_private_key: "{{ public_edge_keys_raw.results[0].stdout }}"
+            public_edge_server_public_key: "{{ public_edge_keys_raw.results[1].stdout }}"
+          no_log: true
+
+        - name: public-edge | Install restricted WireGuard profile
+          ansible.builtin.template:
+            src: public-edge.conf.j2
+            dest: /etc/wireguard/public-edge.conf
+            owner: root
+            group: root
+            mode: "0600"
+          no_log: true
+          notify: Restart Public Edge
+
+        - name: public-edge | Install route service
+          ansible.builtin.template:
+            src: public-edge-route.service
+            dest: /etc/systemd/system/public-edge-route.service
+            owner: root
+            group: root
+            mode: "0644"
+          notify:
+            - Reload systemd daemon
+            - Restart Public Edge
+
+        - name: public-edge | Stop and disable route service
+          ansible.builtin.systemd:
+            name: public-edge-route.service
+            daemon_reload: true
+            enabled: false
+            state: stopped
+          when:
+            - not ansible_check_mode
+            - not (public_edge_start | default(true) | bool)
+
+        - name: public-edge | Stop and disable WireGuard service
+          ansible.builtin.systemd:
+            name: wg-quick@public-edge.service
+            enabled: false
+            state: stopped
+          when:
+            - not ansible_check_mode
+            - not (public_edge_start | default(true) | bool)
+
+        - name: public-edge | Enable and start WireGuard service
+          ansible.builtin.systemd:
+            name: wg-quick@public-edge.service
+            daemon_reload: true
+            enabled: true
+            state: started
+          when:
+            - not ansible_check_mode
+            - public_edge_start | default(true) | bool
+
+        - name: public-edge | Enable and start route service
+          ansible.builtin.systemd:
+            name: public-edge-route.service
+            enabled: true
+            state: started
+          when:
+            - not ansible_check_mode
+            - public_edge_start | default(true) | bool
 
     - name: crowdsec
       tags:
@@ -428,3 +499,24 @@
       ansible.builtin.service:
         name: crowdsec-firewall-bouncer
         state: restarted
+
+    - name: Stop Public Edge Route
+      ansible.builtin.systemd:
+        name: public-edge-route.service
+        state: stopped
+      listen: Restart Public Edge
+      when: public_edge_start | default(true) | bool
+
+    - name: Restart Public Edge WireGuard
+      ansible.builtin.systemd:
+        name: wg-quick@public-edge.service
+        state: restarted
+      listen: Restart Public Edge
+      when: public_edge_start | default(true) | bool
+
+    - name: Start Public Edge Route
+      ansible.builtin.systemd:
+        name: public-edge-route.service
+        state: started
+      listen: Restart Public Edge
+      when: public_edge_start | default(true) | bool
