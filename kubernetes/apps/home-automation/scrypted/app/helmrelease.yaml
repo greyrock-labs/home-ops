@@ -35,6 +35,12 @@ spec:
                 "mac": "2e:7e:33:e1:dd:ab"
               },
               {
+                "name":"multus-servers",
+                "namespace": "network",
+                "ips": ["10.1.20.23/24"],
+                "mac": "2e:7e:33:e1:dd:20"
+              },
+              {
                 "name":"multus-video",
                 "namespace": "network",
                 "ips": ["10.1.60.3/24"],
@@ -49,7 +55,7 @@ spec:
               repository: ghcr.io/koush/scrypted
               tag: v0.147.0-noble-full
             env:
-              SCRYPTED_CLUSTER_ADDRESS: 10.1.10.2
+              SCRYPTED_CLUSTER_ADDRESS: 10.1.20.23
               SCRYPTED_CLUSTER_LABELS: storage
               SCRYPTED_CLUSTER_MODE: server
               SCRYPTED_INSECURE_PORT: &httpPort 11080
