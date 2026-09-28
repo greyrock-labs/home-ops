@@ -84,7 +84,7 @@ because `envFrom` requires valid environment-variable names. A single shared
 ### 4. App `bmc-cert-updater-asrock` (app-template CronJob)
 
 Directory layout `kubernetes/apps/network/bmc-cert-updater-asrock/` mirrors the
-recyclarr/towonel-agent convention:
+recyclarr convention:
 
 ```
 ks.yaml                     # targetNamespace: network; dependsOn: [cert-manager, external-secrets, internal-greyrock-io-cert]

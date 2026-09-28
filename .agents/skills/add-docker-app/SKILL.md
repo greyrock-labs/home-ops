@@ -10,7 +10,7 @@ Apps live in `docker/<host>/NN-<app>/docker-compose.yaml`, deployed GitOps-style
 | Host | Proxy | Network | Reference apps |
 |---|---|---|---|
 | `codswallop` (TrueNAS) | traefik (`01-traefik`, docker provider, `exposedByDefault: false`, wildcard `*.greyrock.io`) | `apps`, or `network_mode: host` | `03-garage` (bind-mount storage), `02-exporters` (host network) |
-| `skedaddle` (VPS) | caddy-l4 (`03-caddy-l4`, Caddyfile) | external `edge` (no published ports for HTTP) | `04-gatus` (config file, secrets), `02-towonel` (published non-HTTP ports) |
+| `skedaddle` (VPS) | caddy-l4 (`03-caddy-l4`, Caddyfile) | external `edge` (no published ports for HTTP) | `04-gatus` (config file, secrets), `03-caddy-l4` (published ports) |
 
 ## Steps
 
@@ -18,17 +18,17 @@ Apps live in `docker/<host>/NN-<app>/docker-compose.yaml`, deployed GitOps-style
 
 2. **Compose file** — conventions from existing apps:
    - Top-level `name: <app>` and `container_name: <app>`, `restart: unless-stopped`.
-   - Registry-qualified image with a pinned version tag. **Never write a tag from memory** — look up the upstream project's current release first. Plain tags are fine; Renovate manages digests/updates. Keep a `# renovate: datasource=docker depName=...` hint comment only if copying from an app that has one (e.g. `01-crowdsec`, `02-towonel`).
-   - Set `user:` where the image supports it (see garage/towonel).
+   - Registry-qualified image with a pinned version tag. **Never write a tag from memory** — look up the upstream project's current release first. Plain tags are fine; Renovate manages digests/updates. Keep a `# renovate: datasource=docker depName=...` hint comment only if copying from an app that has one (e.g. `01-crowdsec`).
+   - Set `user:` where the image supports it (see garage).
    - Config files: `config/` subdirectory, wired via a `configs:` block (`04-gatus`) or a read-only bind volume (`03-garage`).
-   - Persistent data: on codswallop, named volume with `driver_opts` bind to `/mnt/drone/apps/<app>/<vol>` (see garage); on skedaddle, host path (towonel uses `/opt/<app>`) or a named volume.
+   - Persistent data: on codswallop, named volume with `driver_opts` bind to `/mnt/drone/apps/<app>/<vol>` (see garage); on skedaddle, a named volume (see crowdsec, gatus).
 
 3. **Secrets**: add `VAR_NAME: op://<vault>/<item>/<field>` under `external_secrets` in `docker/<host>/.doco-cd.yaml`, reference as `${VAR_NAME}` in the compose file. Use the item's **real field names** (ask the user; never guess) — doco-cd injects these as env vars at deploy time.
 
 4. **Expose it** (only if it serves HTTP):
    - **skedaddle**: join the `edge` network (`networks: default: {name: edge, external: true}`), publish no HTTP ports, then register `skedaddle-<app>.bjw-s.dev` in **two places**: `VPS_LOCAL_HOSTS` in `03-caddy-l4/docker-compose.yaml` AND a `reverse_proxy <container>:<port>` site block in `03-caddy-l4/config/Caddyfile`.
    - **codswallop**: traefik is label-based but no current app uses labels (garage/exporters run host-network). Confirm the intended exposure with the user instead of inventing label conventions.
-   - Only publish `ports:` directly for non-HTTP protocols (see towonel: 22, 51820/udp).
+   - Only publish `ports:` directly for non-HTTP protocols. On skedaddle, caddy-l4 already holds 22, 80 and 443 (see `docs/network/public-edge.md`).
 
 5. **Verify**: `docker compose -f docker/<host>/NN-<app>/docker-compose.yaml config --quiet` (unset `${VAR}` warnings are expected). Show the user the files before committing. Commit style: `feat(<app>): Deploy to NAS`.
 
