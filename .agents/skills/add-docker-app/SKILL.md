@@ -26,7 +26,7 @@ Apps live in `docker/<host>/NN-<app>/docker-compose.yaml`, deployed GitOps-style
 3. **Secrets**: add `VAR_NAME: op://<vault>/<item>/<field>` under `external_secrets` in `docker/<host>/.doco-cd.yaml`, reference as `${VAR_NAME}` in the compose file. Use the item's **real field names** (ask the user; never guess) — doco-cd injects these as env vars at deploy time.
 
 4. **Expose it** (only if it serves HTTP):
-   - **skedaddle**: join the `edge` network (`networks: default: {name: edge, external: true}`), publish no HTTP ports, then register `skedaddle-<app>.bjw-s.dev` in **two places**: `VPS_LOCAL_HOSTS` in `03-caddy-l4/docker-compose.yaml` AND a `reverse_proxy <container>:<port>` site block in `03-caddy-l4/config/Caddyfile`.
+   - **skedaddle**: join the `edge` network (`networks: default: {name: edge, external: true}`), publish no HTTP ports, then register `skedaddle-<app>.greyrock.io` in **two places**: `VPS_LOCAL_HOSTS` in `03-caddy-l4/docker-compose.yaml` AND a `reverse_proxy <container>:<port>` site block in `03-caddy-l4/config/Caddyfile`.
    - **codswallop**: traefik is label-based but no current app uses labels (garage/exporters run host-network). Confirm the intended exposure with the user instead of inventing label conventions.
    - Only publish `ports:` directly for non-HTTP protocols. On skedaddle, caddy-l4 already holds 22, 80 and 443 (see `docs/network/public-edge.md`).
 

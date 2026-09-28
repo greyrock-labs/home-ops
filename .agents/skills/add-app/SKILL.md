@@ -192,7 +192,7 @@ Route (web UI/API):
 route:
   app:
     hostnames:
-      - <app>.bjw-s.dev
+      - <app>.greyrock.io
     parentRefs:
       - name: envoy-internal # envoy-external for public apps
         namespace: network
