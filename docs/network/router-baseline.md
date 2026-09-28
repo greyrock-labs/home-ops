@@ -20,6 +20,7 @@ running config cannot explain about itself.
 | `vlan50-iot` | 10.1.50.1/24 | IoT |
 | `vlan60-cameras` | 10.1.60.1/24 | Cameras |
 | `vlan4000-guest` | 192.168.23.1/24 | Guest |
+| `wg-public-edge` | 10.254.45.1/24 | WireGuard to skedaddle, see [public-edge.md](public-edge.md) |
 
 `192.168.88.1/24` also sits on the bridge for Netinstall. Nothing reaches it unless a
 CRS309's `ether1` is patched to a local ICX for recovery, so it stays configured rather
