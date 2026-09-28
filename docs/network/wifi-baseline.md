@@ -32,20 +32,22 @@ System Default has no APs.
 
 Channels are pinned per AP, and ChannelFly is off on every band.
 
-| AP | 2.4 GHz (20 MHz, TX Full) | 5 GHz (40 MHz, TX -3 dB) | 6 GHz (160 MHz) |
+| AP | 2.4 GHz (20 MHz, TX Full) | 5 GHz (40 MHz, TX -3 dB) | 6 GHz (160 MHz, TX Full) |
 | --- | --- | --- | --- |
 | `side-yard-ap` | — | 36 | — |
 | `game-room-ap` | — | 44 | 37 (33–61) |
 | `kitchen-ap` | 1 | 52 (DFS) | 69 (65–93) |
 | `office-ap` | — | 60 (DFS) | 133 (129–157) |
-| `upstairs-hallway-ap` | 6 | 100 (DFS) | 5 (1–29) |
+| `upstairs-hallway-ap` | 6 | 149 | 5 (1–29) |
 | `garage-ap` | 11 | 108 (DFS) | — |
 | `rear-driveway-ap` | — | 149 | — |
 | `side-driveway-ap` | — | 157 | — |
 
-Every radio has its own channel. The outdoor APs are on non-DFS 5 GHz channels so a
-radar event cannot move them while someone outside depends on them. 40 MHz channels 118
-and 126 overlap the weather-radar band and 142 needs channel 144, so they are unused.
+Every radio has its own channel except upstairs-hallway and rear-driveway, which share
+5 GHz 149 so upstairs-hallway stays off DFS; rear-driveway is the AP farthest from it.
+The outdoor APs are on non-DFS 5 GHz channels so a radar event cannot move them while
+someone outside depends on them. 40 MHz channels 118 and 126 overlap the weather-radar
+band and 142 needs channel 144, so they are unused.
 
 The four 6 GHz blocks in use are the only 160 MHz blocks AFC allows at standard power
 here; the channel picker in Unleashed marks each channel "Allowed by AFC".
