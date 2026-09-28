@@ -1,0 +1,207 @@
+---
+- name: Configure Gallivant Tailscale router
+  hosts: all
+  become: true
+  gather_facts: false
+  vars:
+    ansible_user: todd
+    ansible_python_interpreter: auto_silent
+    ansible_ssh_use_tty: false
+    gallivant_lan_interface: ens3
+    gallivant_lan_connection: Wired connection 1
+    gallivant_tailscale_routes:
+      - 10.1.0.0/24
+      - 10.1.10.0/24
+      - 10.1.20.0/24
+      - 10.1.25.0/24
+      - 10.1.30.0/24
+      - 10.1.50.0/24
+
+  tasks:
+    - name: Check host connectivity
+      ansible.builtin.ping:
+
+    - name: packages
+      tags:
+        - packages
+      block:
+        - name: packages | Install Tailscale repository
+          ansible.builtin.copy:
+            src: templates/tailscale.repo
+            dest: /etc/yum.repos.d/tailscale.repo
+            owner: root
+            group: root
+            mode: "0644"
+
+        - name: packages | Check required networking packages
+          ansible.builtin.command: rpm -q tailscale firewalld NetworkManager
+          register: network_packages_installed
+          check_mode: false
+          failed_when: false
+          changed_when: false
+
+        - name: packages | Stage required networking packages in the next rpm-ostree deployment
+          ansible.builtin.command:
+            argv:
+              - rpm-ostree
+              - install
+              - --assumeyes
+              - --idempotent
+              - --unchanged-exit-77
+              - tailscale
+              - firewalld
+              - NetworkManager
+          register: network_packages_layering
+          failed_when: network_packages_layering.rc not in [0, 77]
+          changed_when: network_packages_layering.rc == 0
+          when: not ansible_check_mode and network_packages_installed.rc != 0
+
+        - name: packages | Reboot into the staged rpm-ostree deployment
+          ansible.builtin.reboot:
+            msg: Rebooting Gallivant into the deployment containing required network packages
+            reboot_timeout: 1800
+            test_command: rpm-ostree status --booted
+          when: not ansible_check_mode and network_packages_layering is changed
+
+        - name: packages | Verify required packages after reboot
+          ansible.builtin.command: rpm -q tailscale firewalld NetworkManager
+          changed_when: false
+          check_mode: false
+          when: not ansible_check_mode
+
+    - name: network
+      tags:
+        - network
+      block:
+        - name: network | Enable NetworkManager
+          ansible.builtin.systemd:
+            name: NetworkManager.service
+            enabled: true
+            state: started
+
+        - name: network | Preserve DHCP on the LAN interface
+          community.general.nmcli:
+            conn_name: "{{ gallivant_lan_connection }}"
+            ifname: "{{ gallivant_lan_interface }}"
+            type: ethernet
+            autoconnect: true
+            method4: auto
+            method6: auto
+            state: present
+            conn_reload: true
+
+    - name: firewall
+      tags:
+        - firewall
+      block:
+        - name: firewall | Enable firewalld
+          ansible.builtin.systemd:
+            name: firewalld.service
+            enabled: true
+            state: started
+
+        - name: firewall | Assert firewalld is active
+          ansible.builtin.command: firewall-cmd --state
+          check_mode: false
+          changed_when: false
+
+        - name: firewall | Read the default zone
+          ansible.builtin.command: firewall-cmd --get-default-zone
+          register: firewalld_default_zone
+          check_mode: false
+          changed_when: false
+
+        - name: firewall | Set the default zone to public
+          ansible.builtin.command: firewall-cmd --set-default-zone=public
+          when: not ansible_check_mode and firewalld_default_zone.stdout != "public"
+          changed_when: firewalld_default_zone.stdout != "public"
+
+        - name: firewall | Bind the LAN interface to public
+          ansible.posix.firewalld:
+            zone: public
+            interface: "{{ gallivant_lan_interface }}"
+            permanent: true
+            immediate: true
+            state: enabled
+
+        - name: firewall | Allow required public-zone services
+          ansible.posix.firewalld:
+            zone: public
+            service: "{{ item }}"
+            permanent: true
+            immediate: true
+            state: enabled
+          loop:
+            - dhcpv6-client
+            - ssh
+
+        - name: firewall | Allow Tailscale WireGuard transport
+          ansible.posix.firewalld:
+            zone: public
+            port: 41641/udp
+            permanent: true
+            immediate: true
+            state: enabled
+
+        - name: firewall | Preserve forwarding without broad masquerading
+          ansible.posix.firewalld:
+            zone: public
+            forward: true
+            permanent: true
+            immediate: true
+            state: enabled
+
+        - name: firewall | Persist Tailscale routing sysctls
+          ansible.builtin.copy:
+            src: templates/tailscale-forward.conf
+            dest: /etc/sysctl.d/90-tailscale-forward.conf
+            owner: root
+            group: root
+            mode: "0644"
+          notify: Apply Tailscale routing sysctls
+
+    - name: tailscale
+      tags:
+        - tailscale
+      block:
+        - name: tailscale | Enable and start daemon
+          ansible.builtin.systemd:
+            name: tailscaled.service
+            enabled: true
+            state: started
+
+        - name: tailscale | Read local authentication state
+          ansible.builtin.command: tailscale status --json
+          register: tailscale_status
+          check_mode: false
+          changed_when: false
+          failed_when: false
+
+        - name: tailscale | Require an authenticated Gallivant device
+          ansible.builtin.assert:
+            that:
+              - tailscale_status.rc == 0
+              - (tailscale_status.stdout | from_json).BackendState == "Running"
+            fail_msg: >-
+              Gallivant is not authenticated to Tailscale. Run `sudo tailscale up` interactively,
+              authenticate the device, and rerun this playbook. Then approve its IPv4 subnet
+              and IPv4/IPv6 exit-node routes in the Tailscale admin console.
+
+        - name: tailscale | Configure IPv4 subnets and dual-stack exit-node routes
+          ansible.builtin.command:
+            argv:
+              - tailscale
+              - set
+              - --advertise-exit-node
+              - "--advertise-routes={{ gallivant_tailscale_routes | join(',') }}"
+              - --accept-dns=false
+              - --snat-subnet-routes=true
+              - --stateful-filtering=false
+              - --netfilter-mode=on
+              - --ssh=false
+          changed_when: false
+
+  handlers:
+    - name: Apply Tailscale routing sysctls
+      ansible.builtin.command: sysctl -p /etc/sysctl.d/90-tailscale-forward.conf
+      when: not ansible_check_mode
