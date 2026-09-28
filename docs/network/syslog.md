@@ -61,8 +61,7 @@ carry `log=yes` and a `log-prefix`, and **the prefix arrives as `app_name`**:
 
 The WAN-facing drops are deliberately **not** logged - v4 `drop all not coming from LAN`
 and `drop all from WAN not DSTNATed`, and both v6 `drop everything else not coming from
-LAN` rules. That is internet background noise. The dynamic back-to-home-vpn rule cannot
-be edited.
+LAN` rules. That is internet background noise.
 
 ### Telling MikroTik from Ruckus
 
