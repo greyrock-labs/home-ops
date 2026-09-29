@@ -56,6 +56,17 @@ pastes real output; you respond with commands for that box only. No batch config
 devices, and no "if the output says X, do Y instead" — he will not follow branching
 instructions. He pastes, you fix.
 
+## He runs the playbooks
+
+Never run `ansible-playbook` against his hosts. Commit and push the change, then hand him
+the exact command (e.g. `ansible-playbook -i <host>, playbook.yaml --tags <tag>` from
+`ansible/<host>/`) and verify the result afterwards with read-only checks.
+
+## Delete means delete
+
+When he says remove or delete, delete it. Do not quietly archive, disable, or keep a
+fallback instead; if deleting is genuinely risky, say so before acting.
+
 ## Testing against real devices
 
 - Test a job only with its own credentials, from where it runs (e.g. a throwaway pod in
