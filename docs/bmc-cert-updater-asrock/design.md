@@ -56,8 +56,8 @@ public Cloudflare zone — normal for DNS-01; exposes no host IPs.
 ### 2. Certificate `internal-greyrock-io`
 
 `kubernetes/apps/network/internal-greyrock-io-cert/app/certificate.yaml` — shared
-infrastructure in its own Flux Kustomization, mounted by all four cert-updater apps
-(both BMCs, the Brother printer and the Ruckus controller):
+infrastructure in its own Flux Kustomization, mounted by all three cert-updater apps
+(both BMCs and the Brother printer):
 
 - `dnsNames: ["*.internal.greyrock.io"]`
 - `issuerRef: ClusterIssuer/letsencrypt-production-classic`
