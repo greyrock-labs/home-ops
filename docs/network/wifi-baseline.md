@@ -4,7 +4,7 @@ Ruckus Unleashed, eight APs, replacing UniFi in the 2026 rebuild. The master AP 
 `unleashed.internal.greyrock.io` (10.1.20.2) follows whichever AP currently holds it, and
 each AP also has its own A record under `internal.greyrock.io`.
 
-Configs are not stored here — Unimus backs the devices up. This documents the decisions
+Configs are not stored here. This documents the decisions
 and the settings that deviate from defaults.
 
 ## APs
@@ -67,10 +67,6 @@ list as well; Unleashed does not allow overriding the channel alone.
 | Grey Rock Guest | OWE, managed guest pass | 4000 | 5 / 6 GHz |
 
 Only Grey Rock IoT uses 2.4 GHz.
-Guest pass credentials come from the `Ruckus Unleashed Controller` 1Password item, which
-also holds the exporter's read-only login (see
-`kubernetes/apps/network/unleashed-voucher-manager`).
-
 ### Grey Rock IoT settings that differ from defaults
 
 | Setting | Value | Why |
@@ -130,9 +126,3 @@ request for `<client LEVEL='1' client-type='3'/>`, which returns each client's `
   pipeline and the parsing caveats. The Wi-Fi client events worth querying are
   `handle_assoc():VAP <bssid> station <mac>` (every association, logged by the master AP)
   and `STA <mac> IEEE 802.11: ... disassociated` (logged by the serving AP).
-- **Metrics** come from `kubernetes/apps/observability/unleashed-exporter`, which polls
-  the Unleashed AJAX API. `ruckus_vap_status` maps each BSSID to its AP, SSID and band,
-  which is what turns a syslog BSSID into a name.
-- **Dashboards** live in the Grafana "Ruckus Unleashed" folder: the exporter's own
-  dashboard for current state and RF health, and *Ruckus Unleashed Client Events* for the
-  syslog association history.

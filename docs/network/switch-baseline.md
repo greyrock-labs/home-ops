@@ -4,7 +4,7 @@ Reference for the 2026 network rebuild. Covers both switch families: six Ruckus 
 running FastIron 10.0, and three MikroTik CRS309 running RouterOS 7. Records the shared
 conventions, and the platform syntax that differs from the published documentation.
 
-Configs themselves are not stored here — Unimus is the intended backup. This file
+Configs themselves are not stored here. This file
 documents the *decisions* and the *gotchas*, not per-device running-configs.
 
 ## Topology

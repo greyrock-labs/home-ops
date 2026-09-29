@@ -27,8 +27,8 @@ dashboard), so a filed issue is a real signal.
 ## Environment
 
 The Kubernetes nodes are on wired Ethernet. An in-cluster job can safely do something
-that restarts the Wi-Fi (e.g. `wifi-cert-updater-ruckus` applying a certificate to
-Unleashed) and verify it afterwards by polling until the controller returns.
+that restarts the Wi-Fi (e.g. applying a certificate to the wireless controller) and
+verify it afterwards by polling until the controller returns.
 
 ## Knowledge notes
 

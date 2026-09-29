@@ -84,8 +84,7 @@ or retry. When work runs in-cluster, let the pod read the Kubernetes secret inst
 
 ## Documentation
 
-Documentation in the repo is fine and wanted. Device configs are not — Unimus is the
-intended backup. Document decisions, conventions, and platform gotchas; do not document
+Documentation in the repo is fine and wanted. Device configs are not. Document decisions, conventions, and platform gotchas; do not document
 mistakes made while getting there.
 
 Docs are a snapshot of now. State current settings, with a short present-tense reason
