@@ -46,12 +46,12 @@ Appended to `kubernetes/apps/cert-manager/cert-manager/app/clusterissuer.yaml`:
 
 - Byte-copy of `letsencrypt-production` minus the `profile:` line (LE `classic` profile
   is the default → 90-day certs, RSA allowed)
-- Same `email: acme@greyrock.io`, same ClouDNS dns01 webhook solver
-  (`groupName: acme.ixon.cloud`, `solverName: cloudns`)
+- Same `email: acme@greyrock.io`, same Cloudflare dns01 solver
+  (`cert-manager-cloudflare-secret`)
 - `privateKeySecretRef.name: letsencrypt-production-classic`
 
 DNS-01 validation writes a `_acme-challenge.internal.greyrock.io` TXT record into the
-public ClouDNS zone — normal for DNS-01; exposes no host IPs.
+public Cloudflare zone — normal for DNS-01; exposes no host IPs.
 
 ### 2. Certificate `internal-greyrock-io`
 
