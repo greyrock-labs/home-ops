@@ -10,17 +10,6 @@ spec:
     name: scrypted
   interval: 30m
   values:
-    externalSecrets:
-      scrypted:
-        refreshInterval: 12h
-        secretStoreRef:
-          kind: ClusterSecretStore
-          name: onepassword-connect
-        data:
-          - secretKey: SCRYPTED_CLUSTER_SECRET
-            remoteRef:
-              key: scrypted
-              property: cluster-secret
     controllers:
       scrypted:
         annotations:
@@ -33,12 +22,6 @@ spec:
                 "namespace": "network",
                 "ips": ["10.1.10.2/24"],
                 "mac": "2e:7e:33:e1:dd:ab"
-              },
-              {
-                "name":"multus-servers",
-                "namespace": "network",
-                "ips": ["10.1.20.23/24"],
-                "mac": "2e:7e:33:e1:dd:20"
               },
               {
                 "name":"multus-video",
@@ -55,13 +38,7 @@ spec:
               repository: ghcr.io/koush/scrypted
               tag: v0.147.0-noble-full
             env:
-              SCRYPTED_CLUSTER_ADDRESS: 10.1.20.23
-              SCRYPTED_CLUSTER_LABELS: storage
-              SCRYPTED_CLUSTER_MODE: server
               SCRYPTED_INSECURE_PORT: &httpPort 11080
-            envFrom:
-              - externalSecretRef:
-                  identifier: scrypted
             probes:
               liveness:
                 enabled: true
@@ -99,20 +76,6 @@ spec:
           scrypted:
             app:
               - path: /server/volume
-      nvr-0:
-        type: hostPath
-        hostPath: /var/mnt/nvr-0
-        advancedMounts:
-          scrypted:
-            app:
-              - path: /mnt/nvr-0
-      nvr-1:
-        type: hostPath
-        hostPath: /var/mnt/nvr-1
-        advancedMounts:
-          scrypted:
-            app:
-              - path: /mnt/nvr-1
     service:
       app:
         controller: scrypted
@@ -122,7 +85,7 @@ spec:
     route:
       app:
         hostnames:
-          - nvr.greyrock.io
+          - scrypted.greyrock.io
         parentRefs:
-          - name: envoy-external
+          - name: envoy-internal
             namespace: network
