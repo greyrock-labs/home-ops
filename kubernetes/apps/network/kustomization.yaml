@@ -15,6 +15,7 @@ resources:
   - ./envoy-gateway/ks.yaml
   - ./external-dns/ks.yaml
   - ./internal-greyrock-io-cert/ks.yaml
+  - ./jetkvm-cert-updater/ks.yaml
   - ./multus/ks.yaml
   - ./printer-cert-updater-brother/ks.yaml
   - ./router-containers/ks.yaml
