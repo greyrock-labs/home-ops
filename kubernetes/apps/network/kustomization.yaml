@@ -16,4 +16,3 @@ resources:
   - ./internal-greyrock-io-cert/ks.yaml
   - ./multus/ks.yaml
   - ./printer-cert-updater-brother/ks.yaml
-  - ./router-containers/ks.yaml
