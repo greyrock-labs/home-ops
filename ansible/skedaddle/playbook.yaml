@@ -269,8 +269,8 @@
           delegate_to: localhost
           become: false
           loop:
-            - automation/Skedaddle - Wireguard - MikroTik Public Edge/private_key
-            - automation/Skedaddle - Wireguard - MikroTik Public Edge/server_public_key
+            - automation/Skedaddle - Wireguard - UDM Public Edge/private_key
+            - automation/Skedaddle - Wireguard - UDM Public Edge/server_public_key
           check_mode: false
           changed_when: false
           no_log: true
