@@ -237,8 +237,9 @@ flooding.
 | 1/1/3 | rear-driveway | 60 |
 | 1/1/4 | rear-side-yard | 60 |
 | 1/1/5 | garage-andy | 60 |
+| 1/1/6 | side-yard | 60 |
 
-`1/1/6`-`1/1/8` and `1/2/1` are unused.
+`1/1/7`, `1/1/8` and `1/2/1` are unused.
 
 ## Game Room C08PF as-built
 
