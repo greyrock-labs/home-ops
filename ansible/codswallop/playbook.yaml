@@ -89,10 +89,3 @@
           retries: 30
           delay: 10
           when: not ansible_check_mode
-
-    # TrueNAS now issues its web UI certificate with its built-in Cloudflare
-    # authenticator, so the old ClouDNS shell-authenticator files go.
-    - name: Remove the ClouDNS ACME authenticator
-      ansible.builtin.file:
-        path: /mnt/tank/apps/acme
-        state: absent
