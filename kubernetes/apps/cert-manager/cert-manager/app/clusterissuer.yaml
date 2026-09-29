@@ -13,9 +13,10 @@ spec:
       name: letsencrypt-production
     solvers:
       - dns01:
-          webhook:
-            groupName: acme.ixon.cloud
-            solverName: cloudns
+          cloudflare:
+            apiTokenSecretRef:
+              name: cert-manager-cloudflare-secret
+              key: api_token
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/cert-manager.io/clusterissuer_v1.json
 apiVersion: cert-manager.io/v1
@@ -31,9 +32,10 @@ spec:
       name: letsencrypt-staging
     solvers:
       - dns01:
-          webhook:
-            groupName: acme.ixon.cloud
-            solverName: cloudns
+          cloudflare:
+            apiTokenSecretRef:
+              name: cert-manager-cloudflare-secret
+              key: api_token
 ---
 # yaml-language-server: $schema=https://k8s-schemas.home-operations.com/cert-manager.io/clusterissuer_v1.json
 apiVersion: cert-manager.io/v1
@@ -48,6 +50,7 @@ spec:
       name: letsencrypt-production-classic
     solvers:
       - dns01:
-          webhook:
-            groupName: acme.ixon.cloud
-            solverName: cloudns
+          cloudflare:
+            apiTokenSecretRef:
+              name: cert-manager-cloudflare-secret
+              key: api_token
