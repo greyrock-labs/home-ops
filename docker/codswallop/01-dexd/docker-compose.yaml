@@ -6,7 +6,7 @@ services:
     environment:
       DEFAULT_TARGET: 10.1.25.21
       UNIFI_API_KEY: ${UNIFI_API_KEY}
-      UNIFI_HOST: https://10.1.0.1
+      UNIFI_HOST: https://unifi.internal.greyrock.io
     image: ghcr.io/ishioni/dexd:0.4.4
     restart: unless-stopped
     volumes:
