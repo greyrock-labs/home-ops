@@ -21,6 +21,19 @@
     - name: Check host connectivity
       ansible.builtin.ping:
 
+    - name: users
+      tags:
+        - users
+      block:
+        - name: users | Grant passwordless sudo
+          ansible.builtin.copy:
+            dest: /etc/sudoers.d/todd
+            content: "todd ALL=(ALL) NOPASSWD:ALL\n"
+            owner: root
+            group: root
+            mode: "0440"
+            validate: visudo -cf %s
+
     - name: packages
       tags:
         - packages
