@@ -172,7 +172,22 @@
             owner: root
             group: root
             mode: "0644"
-          notify: Apply Tailscale routing sysctls
+          register: tailscale_forward_sysctls
+
+        - name: firewall | Read live Tailscale routing sysctls
+          ansible.builtin.command: sysctl -n net.ipv4.ip_forward net.ipv6.conf.all.forwarding
+          register: tailscale_forward_live
+          check_mode: false
+          changed_when: false
+
+        # Applied in place rather than from a handler: a run that fails later
+        # (e.g. before Tailscale is authenticated) would skip the handler and
+        # leave forwarding off until the next reboot.
+        - name: firewall | Apply Tailscale routing sysctls
+          ansible.builtin.command: sysctl -p /etc/sysctl.d/90-tailscale-forward.conf
+          when: >-
+            not ansible_check_mode and
+            (tailscale_forward_sysctls is changed or tailscale_forward_live.stdout_lines != ["1", "1"])
 
     - name: tailscale
       tags:
@@ -214,8 +229,3 @@
               - --netfilter-mode=on
               - --ssh=false
           changed_when: false
-
-  handlers:
-    - name: Apply Tailscale routing sysctls
-      ansible.builtin.command: sysctl -p /etc/sysctl.d/90-tailscale-forward.conf
-      when: not ansible_check_mode
