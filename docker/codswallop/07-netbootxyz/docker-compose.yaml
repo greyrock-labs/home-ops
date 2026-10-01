@@ -1,0 +1,55 @@
+---
+# dnsmasq serves TFTP with --tftp-secure, so local-vars.ipxe must be owned by
+# nbxyz (1000). A bind mount would be root-owned; an inline config is copied in.
+configs:
+  local_vars:
+    content: |
+      #!ipxe
+      set custom_url http://10.1.25.22/custom
+name: netbootxyz
+# TFTP replies leave from a new port, which Docker treats as a new outbound
+# connection. Without host_ipv4 they are masqueraded to the host's primary
+# address and the PXE client ignores them.
+networks:
+  netbootxyz:
+    driver: bridge
+    driver_opts:
+      com.docker.network.host_ipv4: 10.1.25.22
+services:
+  netbootxyz:
+    configs:
+      - source: local_vars
+        target: /config/menus/local-vars.ipxe
+        uid: '1000'
+        gid: '1000'
+        mode: 0444
+    container_name: netbootxyz
+    environment:
+      NGINX_PORT: '80'
+      WEB_APP_PORT: '3000'
+    image: ghcr.io/netbootxyz/netbootxyz:0.7.6-nbxyz24
+    networks:
+      - netbootxyz
+    ports:
+      - 10.1.25.22:69:69/udp
+      - 10.1.25.22:80:80
+      - 10.1.25.22:3000:3000
+    restart: unless-stopped
+    volumes:
+      - config:/config
+      - assets:/assets
+      - ./config/custom.ipxe:/assets/custom/custom.ipxe:ro
+      - ./config/fedora-iot-44.ks:/assets/custom/fedora-iot-44.ks:ro
+volumes:
+  assets:
+    driver: local
+    driver_opts:
+      device: /mnt/drone/apps/netbootxyz/assets
+      o: bind
+      type: none
+  config:
+    driver: local
+    driver_opts:
+      device: /mnt/drone/apps/netbootxyz/config
+      o: bind
+      type: none

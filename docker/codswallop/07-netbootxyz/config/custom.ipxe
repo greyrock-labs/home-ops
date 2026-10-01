@@ -1,0 +1,21 @@
+#!ipxe
+# Installer trees are served by netboot.xyz's own nginx from
+# /mnt/drone/apps/netbootxyz/assets, extracted from the release ISO.
+# Fedora's servers answer scripted downloads of alt/iot with a bot check.
+
+menu Custom
+item --gap Fedora IoT:
+item fedora-iot-44 ${space} Fedora IoT 44 installer
+item --gap
+item back ${space} Back to main menu
+choose item && goto ${item} || exit
+
+:fedora-iot-44
+set base http://10.1.25.22/fedora-iot/44
+imgfree
+kernel ${base}/images/pxeboot/vmlinuz initrd=initrd.magic inst.stage2=${base} inst.ks=http://10.1.25.22/custom/fedora-iot-44.ks ip=dhcp
+initrd ${base}/images/pxeboot/initrd.img
+boot
+
+:back
+exit
