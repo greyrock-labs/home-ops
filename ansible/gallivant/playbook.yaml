@@ -33,14 +33,14 @@
             group: root
             mode: "0644"
 
-        - name: packages | Check required packages
-          ansible.builtin.command: rpm -q tailscale firewalld NetworkManager qemu-guest-agent
+        - name: packages | Check required networking packages
+          ansible.builtin.command: rpm -q tailscale firewalld NetworkManager
           register: network_packages_installed
           check_mode: false
           failed_when: false
           changed_when: false
 
-        - name: packages | Stage required packages in the next rpm-ostree deployment
+        - name: packages | Stage required networking packages in the next rpm-ostree deployment
           ansible.builtin.command:
             argv:
               - rpm-ostree
@@ -52,7 +52,6 @@
               - tailscale
               - firewalld
               - NetworkManager
-              - qemu-guest-agent
           register: network_packages_layering
           failed_when: network_packages_layering.rc not in [0, 77]
           changed_when: network_packages_layering.rc == 0
@@ -60,24 +59,15 @@
 
         - name: packages | Reboot into the staged rpm-ostree deployment
           ansible.builtin.reboot:
-            msg: Rebooting Gallivant into the deployment containing required packages
+            msg: Rebooting Gallivant into the deployment containing required network packages
             reboot_timeout: 1800
             test_command: rpm-ostree status --booted
           when: not ansible_check_mode and network_packages_layering is changed
 
         - name: packages | Verify required packages after reboot
-          ansible.builtin.command: rpm -q tailscale firewalld NetworkManager qemu-guest-agent
+          ansible.builtin.command: rpm -q tailscale firewalld NetworkManager
           changed_when: false
           check_mode: false
-          when: not ansible_check_mode
-
-        # Lets the TrueNAS host ask the VM to shut down cleanly. The unit is
-        # started by udev when the VM has a guest-agent channel, so it is only
-        # started here, not enabled.
-        - name: packages | Start the QEMU guest agent
-          ansible.builtin.systemd:
-            name: qemu-guest-agent.service
-            state: started
           when: not ansible_check_mode
 
     - name: network
