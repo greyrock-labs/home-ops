@@ -17,3 +17,4 @@ resources:
   - ./jetkvm-cert-updater/ks.yaml
   - ./multus/ks.yaml
   - ./printer-cert-updater-brother/ks.yaml
+  - ./unifi-voucher-manager/ks.yaml
