@@ -32,6 +32,10 @@ is worse than saying "I don't know" — he will act on it.
 This covers guessing at causes, asserting the state of config you have not printed, and
 constructing risks that do not exist.
 
+It also runs the other way: do not call a change safe, harmless, or low-cost unless you
+have evidence for it. Suggesting an untested change is fine, but say plainly that it may
+or may not be safe for his devices.
+
 ## Prove it with data
 
 - Before saying "X won't work", run the query that shows it. An unproven constraint reads
