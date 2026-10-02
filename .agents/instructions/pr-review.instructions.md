@@ -1,7 +1,7 @@
 # Home-ops PR review conventions
 
-This file is the `system_prompt_file` for the AI PR Review workflow
-(`.forgejo/workflows/pr-reviewer.yaml`), used with `system_prompt_mode: append`:
+This file is the `system-prompt-file` for the AI PR Review workflow
+(`.forgejo/workflows/pr-reviewer.yaml`), used with `system-prompt-mode: append`:
 the action keeps its (conditionally-assembled) bundled default system prompt and
 appends this file as a repo-specific addendum. Only home-ops conventions live
 here — the base review instructions, output schema, and host-platform / digest
