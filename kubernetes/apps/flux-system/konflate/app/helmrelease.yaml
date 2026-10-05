@@ -14,6 +14,7 @@ spec:
       repo: forgejo://git.greyrock.io/todd/home-ops
       statusChecks: true
       prComments: true
+      verifyImages: true
       publicUrl: https://konflate.greyrock.io
       mcp: true
     secret:
