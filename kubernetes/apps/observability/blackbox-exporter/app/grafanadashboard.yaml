@@ -19,7 +19,7 @@ spec:
   allowCrossNamespaceImport: true
   datasources:
     - datasourceName: prometheus
-      inputName: DS_PROMETHEUS
+      inputName: DS_SIGNCL-PROMETHEUS
   folderRef: blackbox-exporter
   instanceSelector:
     matchLabels:
