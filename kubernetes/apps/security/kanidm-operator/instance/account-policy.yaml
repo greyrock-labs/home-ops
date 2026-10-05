@@ -17,6 +17,8 @@ spec:
   kanidmName: idm_all_accounts
   accountPolicy:
     authSessionExpiry: 2592000
+    # Kanidm restores this default when omitted; kaniop requires an exact match.
+    privilegeExpiry: 600
 ---
 apiVersion: kaniop.rs/v1beta1
 kind: KanidmGroup
