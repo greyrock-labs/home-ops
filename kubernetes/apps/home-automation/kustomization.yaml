@@ -20,5 +20,4 @@ patches:
           resource.kubernetes.io/admin-access: "true"
 resources:
   - ./bambuddy/ks.yaml
-  - ./home-assistant/ks.yaml
   - ./scrypted/ks.yaml
