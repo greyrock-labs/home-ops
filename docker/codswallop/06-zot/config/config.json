@@ -50,6 +50,32 @@
             "read"
           ]
         },
+        "todd/**": {
+          "policies": [
+            {
+              "users": [
+                "registry-push"
+              ],
+              "actions": [
+                "read",
+                "create",
+                "update"
+              ]
+            },
+            {
+              "groups": [
+                "registry-ui-users"
+              ],
+              "actions": [
+                "read",
+                "delete"
+              ]
+            }
+          ],
+          "defaultPolicy": [
+            "read"
+          ]
+        },
         "docker-hub/**": {
           "anonymousPolicy": [
             "read"
