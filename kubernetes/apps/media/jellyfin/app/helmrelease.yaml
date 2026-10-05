@@ -118,9 +118,8 @@ spec:
                 - name: gpu
               requests:
                 cpu: 100m
-                memory: 1Gi
               limits:
-                memory: 12Gi
+                memory: 6Gi
     persistence:
       config:
         existingClaim: jellyfin
