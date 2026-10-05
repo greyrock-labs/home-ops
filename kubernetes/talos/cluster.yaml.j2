@@ -35,6 +35,7 @@ kind: VLANConfig
 name: bond0.10
 vlanID: 10
 parent: bond0
+mtu: 9000
 ---
 # Video
 apiVersion: v1alpha1
@@ -51,9 +52,6 @@ hostDNS:
   resolveMemberNames: true
 nameservers:
   - address: 10.1.20.1
-searchDomains:
-  disableDefault: true
-  domains: []
 ---
 apiVersion: v1alpha1
 kind: DiscoveryServiceConfig
