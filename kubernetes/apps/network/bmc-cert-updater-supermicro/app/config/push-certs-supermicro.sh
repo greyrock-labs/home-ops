@@ -1,6 +1,6 @@
 #!/bin/sh
-# Pushes the *.internal.greyrock.io certificate to the SuperMicro IPMI BMC
-# at kvm-homeassistant.internal.greyrock.io via the BMC web API:
+# Pushes the *.internal.greyrock.io certificate to the SuperMicro IPMI BMCs
+# at kvm-homeassistant and kvm-gallivant via the BMC web API:
 # login (raw name/pwd) -> mandatory lang cookies -> cert page -> extract CSRF
 # (SmcCsrfInsert("CSRF_TOKEN", "...")) -> upload cert+key -> trigger
 # main_bmcreset (BMC web server doesn't auto-restart on cert load) ->
@@ -11,15 +11,17 @@ set -eu
 
 CERT_FILE="${CERT_FILE:-/certs/tls.crt}"
 KEY_FILE="${KEY_FILE:-/certs/tls.key}"
-TARGET="homeassistant|kvm-homeassistant.internal.greyrock.io"
-
-# URLs captured by Task 1 (recon.md). Edit only if recon finds different values.
-LOGIN_URL="${LOGIN_URL:-https://${TARGET#*|}/cgi/login.cgi}"
-CERT_PAGE_URL="${CERT_PAGE_URL:-https://${TARGET#*|}/cgi/url_redirect.cgi?url_name=config_ssl}"
-UPLOAD_URL="${UPLOAD_URL:-https://${TARGET#*|}/cgi/upload_ssl.cgi}"
-RESET_URL="${RESET_URL:-https://${TARGET#*|}/cgi/BMCReset.cgi}"
+TARGETS="homeassistant|kvm-homeassistant.internal.greyrock.io gallivant|kvm-gallivant.internal.greyrock.io"
 
 CURL="curl -k -sS --connect-timeout 15 --max-time 60"
+
+password_for() {
+    case "$1" in
+        homeassistant) printf '%s' "${HOMEASSISTANT_PASSWORD:?HOMEASSISTANT_PASSWORD not set}" ;;
+        gallivant) printf '%s' "${GALLIVANT_PASSWORD:?GALLIVANT_PASSWORD not set}" ;;
+        *) echo "no password configured for $1" >&2; return 1 ;;
+    esac
+}
 
 # Print only the first (leaf) certificate block of a PEM bundle on disk or stdin.
 first_leaf() {
@@ -71,7 +73,7 @@ trigger_reset() {
     # shellcheck disable=SC2086
     body=$(mktemp)
     http=$($CURL -b "$jar" -w '%{http_code}' -o "$body" \
-        -H "Origin: https://kvm-homeassistant.internal.greyrock.io" \
+        -H "Origin: $base" \
         -H "Referer: $CERT_PAGE_URL" \
         -H "X-Requested-With: XMLHttpRequest" \
         -H "CSRF_TOKEN: $csrf" \
@@ -112,9 +114,13 @@ push_one() {
     name="${1:?no bmc name}"
     host="${2:?no bmc host}"
     base="https://$host"
+    LOGIN_URL="$base/cgi/login.cgi"
+    CERT_PAGE_URL="$base/cgi/url_redirect.cgi?url_name=config_ssl"
+    UPLOAD_URL="$base/cgi/upload_ssl.cgi"
+    RESET_URL="$base/cgi/BMCReset.cgi"
     jar=$(mktemp /tmp/cookies.XXXXXX)
     username="${UPDATER_USERNAME:?UPDATER_USERNAME not set}"
-    password="${HOMEASSISTANT_PASSWORD:?HOMEASSISTANT_PASSWORD not set}"
+    password=$(password_for "$name") || return 1
 
     # Login (raw form-encoded name/pwd, no check field — confirmed against
     # this BMC's MegaRAC IPMI 03.95 firmware; base64+check=00 was rejected
@@ -278,7 +284,7 @@ esac
 [ -f "$KEY_FILE" ] || { echo "missing $KEY_FILE"; exit 1; }
 
 rc=0
-for entry in $TARGET; do
+for entry in $TARGETS; do
     name=${entry%%|*}
     host=${entry#*|}
     if (push_one "$name" "$host"); then

@@ -25,6 +25,10 @@ spec:
             remoteRef:
               key: Cert Updater
               property: homeassistant-password
+          - secretKey: GALLIVANT_PASSWORD
+            remoteRef:
+              key: Cert Updater
+              property: gallivant-password
     networkpolicies:
       bmc-cert-updater-supermicro:
         type: cilium
@@ -35,6 +39,7 @@ spec:
           # alone is what is needed. DNS comes from allow-dns-egress.
           - toCIDR:
               - 10.1.20.14/32
+              - 10.1.20.21/32
             toPorts:
               - ports:
                   - port: "443"
