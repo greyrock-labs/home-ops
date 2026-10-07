@@ -28,7 +28,7 @@ spec:
           - secretKey: GALLIVANT_PASSWORD
             remoteRef:
               key: Cert Updater
-              property: gallivant-updater
+              property: gallivant-password
     networkpolicies:
       bmc-cert-updater-supermicro:
         type: cilium
