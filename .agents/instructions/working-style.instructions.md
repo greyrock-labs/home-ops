@@ -63,8 +63,9 @@ instructions. He pastes, you fix.
 ## He runs the playbooks
 
 Never run `ansible-playbook` against his hosts. Commit and push the change, then hand him
-the exact command (e.g. `ansible-playbook -i <host>, playbook.yaml --tags <tag>` from
-`ansible/<host>/`) and verify the result afterwards with read-only checks.
+the exact command, run from the repo root (e.g.
+`ansible-playbook -i <host>, ansible/<host>/playbook.yaml --tags <tag>`), and verify the
+result afterwards with read-only checks.
 
 ## Delete means delete
 
