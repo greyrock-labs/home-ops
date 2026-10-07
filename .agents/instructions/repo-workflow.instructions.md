@@ -8,6 +8,9 @@ push to `main` is the deploy (see `gitops.instructions.md`), so a branch would n
 out.
 
 - One focused commit per concern, subject styled `type(appname): verb`.
+- Do not add upstream port attribution to commit messages: no "Port(s) ...",
+  source repository/commit references, or "cherry picked from commit" trailers.
+  Describe the change itself.
 - Ask before the push itself.
 - Do not open a PR unless asked.
 

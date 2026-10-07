@@ -1,4 +1,5 @@
 @.agents/instructions/gitops.instructions.md
+@.agents/instructions/porting.instructions.md
 @.agents/instructions/pr-review.instructions.md
 @.agents/instructions/remotes.instructions.md
 @.agents/instructions/repo-workflow.instructions.md
