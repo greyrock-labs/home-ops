@@ -7,7 +7,7 @@
     ansible_user: todd
     ansible_python_interpreter: auto_silent
     ansible_ssh_use_tty: false
-    gallivant_lan_interface: enp86s0
+    gallivant_lan_interface: eno1
     gallivant_lan_connection: Wired connection 1
     gallivant_tailscale_routes:
       - 10.1.0.0/24
