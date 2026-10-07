@@ -176,6 +176,7 @@ push_one() {
     # Upload: send CSRF as both an HTTP header and a multipart form field
     # (the X11 firmware accepts either, the community script sends both
     # for safety). Origin and Referer must match.
+    upload_page=$(mktemp)
     # shellcheck disable=SC2086
     $CURL -b "$jar_full" --fail \
         -H "Origin: $base" \
@@ -184,10 +185,32 @@ push_one() {
         -F "cert_file=@$CERT_FILE" \
         -F "key_file=@$KEY_FILE" \
         -F "CSRF_TOKEN=$csrf" \
-        "$UPLOAD_URL" >/dev/null || {
+        -o "$upload_page" \
+        "$UPLOAD_URL" || {
         echo "$name: certificate upload failed"
-        end_session; return 1
+        rm -f "$upload_page"; end_session; return 1
     }
+
+    # The upload only stages the files. Firmware 04.x installs them when the
+    # page returned by the upload posts SSL_VALIDATE.XML; without it the reset
+    # comes back on the old certificate. That page carries a fresh CSRF token.
+    csrf=$(grep -oE 'SmcCsrfInsert \("CSRF_TOKEN", "([^"]+)"' "$upload_page" | head -1 | sed -E 's/.*"([^"]+)"$/\1/')
+    rm -f "$upload_page"
+    # shellcheck disable=SC2086
+    validate=$($CURL -b "$jar_full" \
+        -H "Origin: $base" \
+        -H "Referer: $UPLOAD_URL" \
+        -H "X-Requested-With: XMLHttpRequest" \
+        -H "CSRF_TOKEN: $csrf" \
+        --data "SSL_VALIDATE.XML=(0,0)&time_stamp=$(date +%s)" \
+        "$base/cgi/ipmi.cgi" 2>/dev/null || true)
+    case "$validate" in
+        *'VALIDATE="1"'*) ;;
+        *)
+            echo "$name: BMC rejected the uploaded certificate"
+            end_session; return 1
+            ;;
+    esac
 
     # BMC web server doesn't auto-restart on cert load — trigger main_bmcreset.
     rh=$(trigger_reset "$jar_full" "$csrf")
