@@ -1,52 +1,55 @@
 # BMC Certificate Updater — SuperMicro — Design
 
-- **Date:** 2026-09-15
-- **Status:** Implemented and verified — LE cert active on kvm-homeassistant.internal.greyrock.io (subject CN=*.internal.greyrock.io, issuer Let's Encrypt), daily CronJob will keep it that way
-- **Scope:** Flux-managed CronJob that pushes the `*.internal.greyrock.io` Let's Encrypt certificate to the SuperMicro IPMI BMCs `kvm-homeassistant.internal.greyrock.io` (10.1.20.14) and `kvm-gallivant.internal.greyrock.io` (10.1.20.21).
+- **Status:** Implemented and verified on both BMCs (subject `CN=*.internal.greyrock.io`, issuer Let's Encrypt); the daily CronJob keeps them current.
+- **Scope:** Flux-managed CronJob that pushes the `*.internal.greyrock.io` Let's Encrypt certificate to the SuperMicro IPMI BMCs:
+
+| Name | Host | Address | Board | BMC firmware |
+|---|---|---|---|---|
+| `homeassistant` | `kvm-homeassistant.internal.greyrock.io` | 10.1.20.14 | A2SDV-16C-TLN5F | 04.07 |
+| `gallivant` | `kvm-gallivant.internal.greyrock.io` | 10.1.20.21 | A2SDi-4C-HLN4F | 04.07 |
 
 ## Goal
 
-Replace the BMC's self-signed cert with the cluster's existing `*.internal.greyrock.io` LE cert, on rotation, with no manual touch and no risk of bricking.
+Replace each BMC's self-signed cert with the cluster's existing `*.internal.greyrock.io` LE cert, on rotation, with no manual touch and no risk of bricking.
 
 ## Non-goals
 
 - No new Certificate or ClusterIssuer (reuse what's already in `network` ns).
-- No Redfish attempt — the older MegaRAC firmware 03.95 vendor cert upload flow via `/cgi/*` is reliable across generations; Redfish `CertificateService.ReplaceCertificate` is inconsistent at this vintage.
+- No Redfish — the vendor cert upload flow via `/cgi/*` is what the web UI itself uses on this firmware.
 - No DNS or CNP changes for other apps.
 
 ## Architecture
 
-A second Flux app `kubernetes/apps/network/bmc-cert-updater-supermicro/` parallel to `bmc-cert-updater-asrock`. Same `network` namespace, same upstream cert secret, separate runbook and CNP for fault isolation. The cert Secret `internal-greyrock-io-tls` (in `network` ns, owned by the `internal-greyrock-io-cert` Kustomization since #215) is mounted read-only. The 1Password item `Cert Updater` is the same; this app's ExternalSecret slices out the fields it needs.
+A Flux app `kubernetes/apps/network/bmc-cert-updater-supermicro/` parallel to `bmc-cert-updater-asrock`. Same `network` namespace, same upstream cert secret, separate script and network policy for fault isolation. The cert Secret `internal-greyrock-io-tls` (owned by the `internal-greyrock-io-cert` Kustomization) is mounted read-only. The 1Password item `Cert Updater` is shared with the other cert updaters; this app slices out the fields it needs.
 
 ## Components
 
-- `ks.yaml` — `targetNamespace: network`; `dependsOn: [{name: cert-manager, namespace: cert-manager}, {name: external-secrets, namespace: external-secrets}]` (explicit `namespace:` for cross-namespace deps, lesson from `b27e7dcffe`)
-- `app/ocirepository.yaml` — `oci://ghcr.io/bjw-s-labs/helm/app-template` tag `5.1.0`
-- `app/externalsecret.yaml` — ClusterSecretStore `onepassword-connect`, item `Cert Updater`, target `bmc-cert-supermicro-secret`: `UPDATER_USERNAME` ← `updater-username`, `HOMEASSISTANT_PASSWORD` ← `homeassistant-password`
+- `ks.yaml` — `targetNamespace: network`; `dependsOn` `cert-manager` and `external-secrets` (with explicit `namespace:` for the cross-namespace deps) and `internal-greyrock-io-cert`
+- `app/ocirepository.yaml` — `oci://ghcr.io/bjw-s-labs/helm/app-template`
 - `app/kustomization.yaml` — resources + `configMapGenerator` over `config/push-certs-supermicro.sh` with `disableNameSuffixHash: true`
-- `app/helmrelease.yaml` — app-template cronjob `@daily`, `backoffLimit: 0`, `concurrencyPolicy: Forbid`, `failedJobsHistory: 1`, `successfulJobsHistory: 1`, `ttlSecondsAfterFinished: 86400`, image `curlimages/curl:8.22.0@sha256:58adaa4e8dca9c988bae2aba4ab3434a0bb2da16bbe3f92dec39ec7785166777`, `envFrom: bmc-cert-supermicro-secret`, persistence: `internal-greyrock-io-tls` at `/certs` + script + `/tmp`
-- `app/ciliumnetworkpolicy.yaml` — egress to `10.1.20.14/32` TCP 443 only (DNS cluster-wide via `allow-dns-egress` CCNP)
-- `app/config/push-certs-supermicro.sh` — POSIX sh, `--self-test` mode
+- `app/helmrelease.yaml` — app-template:
+  - `externalSecrets` from ClusterSecretStore `onepassword-connect`, item `Cert Updater`: `UPDATER_USERNAME` ← `updater-username`, `HOMEASSISTANT_PASSWORD` ← `homeassistant-password`, `GALLIVANT_PASSWORD` ← `gallivant-password`
+  - Cilium `networkpolicies` egress to `10.1.20.14/32` and `10.1.20.21/32` TCP 443 only (DNS cluster-wide via `allow-dns-egress`); pod carries `egress.policy.home.arpa/block-all: "true"`
+  - cronjob `@daily`, `backoffLimit: 0`, `concurrencyPolicy: Forbid`, image `docker.io/curlimages/curl`, persistence: `internal-greyrock-io-tls` at `/certs`, script, `/tmp`
+- `app/config/push-certs-supermicro.sh` — POSIX sh, iterates `TARGETS` (`name|host` pairs), `--self-test` mode
 
-## Script flow (MegaRAC IPMI 03.95)
+## Script flow (per BMC, firmware 04.07)
 
-1. `POST /cgi/login.cgi` form-encoded `name=$UPDATER_USERNAME&pwd=$HOMEASSISTANT_PASSWORD` → save `Set-Cookie` to jar
-2. `GET /cgi/url_redirect.cgi?url_name=ssl_cert_upload` (or whichever the firmware exposes — verified in Task 1) with cookie → parse `_csrf_token` from hidden form field
-3. `curl %{certs}` against `https://kvm-homeassistant.internal.greyrock.io` → extract leaf; compare to `/certs/tls.crt` leaf (with `tr -d '\r'`)
-4. Skip upload if leaves match; else `POST /cgi/upload_ssl.cgi` multipart `cert_file=@/certs/tls.crt`, `key_file=@/certs/tls.key`, `_csrf_token=$csrf` with the session cookie
-5. Retry served-leaf comparison with `sleep 5 × 6` (the BMC web server restarts after upload); exit 0 only on match
+1. `POST /cgi/login.cgi` form-encoded `name=$UPDATER_USERNAME&pwd=<name>_PASSWORD` (raw, not base64), retried 5× with backoff → session cookie jar
+2. Append the `langSetFlag=0` / `language=English` cookies; without them the cert page returns a language-loader stub
+3. `GET /cgi/url_redirect.cgi?url_name=config_ssl` → CSRF token from `SmcCsrfInsert ("CSRF_TOKEN", "...")`
+4. `curl %{certs}` against the BMC → leaf; compare to the `/certs/tls.crt` leaf (`tr -d '\r'`). Match → log out, "certificate unchanged, skipping"
+5. `POST /cgi/upload_ssl.cgi` multipart `cert_file`, `key_file`, `CSRF_TOKEN` (also sent as a header, with matching `Origin`/`Referer`). This only stages the files
+6. `POST /cgi/ipmi.cgi` `SSL_VALIDATE.XML=(0,0)` with the fresh CSRF token from the upload response page. The BMC installs the staged cert only on this call and answers `VALIDATE="1"`; anything else fails the run. Without it, the reset comes back on the old cert
+7. `POST /cgi/BMCReset.cgi` — the BMC web server does not reload the cert on its own. Log out before the restart; each login holds a session slot until idle timeout
+8. Poll the served leaf (`sleep 5 × 12`); exit 0 only on match
 
 ## Failure / recovery
 
-- Web server restart after cert load is expected — verify-only retry loop
-- Brick (firmware-level, rare): `ipmitool mc reset cold` over LAN from any host
+- BMC restart after the reset is expected; the verify loop covers it
+- Brick (firmware-level, rare): `ipmitool mc reset cold` from the host OS or over LAN
 
-## Verification (plan Task 6)
+## Verification
 
-- Mac-side end-to-end run with creds from `bmc-cert-supermicro-secret`, mirroring the pod logic
-- Manual first CronJob run + browser check at `https://kvm-homeassistant.internal.greyrock.io`
-- Second run logs "certificate unchanged, skipping"
-
-## Open items
-
-- Exact `url_name=...` parameter for the cert-upload page and the actual form-field name the firmware uses for the CSRF will be confirmed against this specific BMC in plan Task 1.
+- Run the script from a throwaway pod in `network` using the app's own secret and the mounted cert; expect "certificate updated and verified" per BMC, then `openssl s_client` shows the LE leaf
+- A second run logs "certificate unchanged, skipping"
