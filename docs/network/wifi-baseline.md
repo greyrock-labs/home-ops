@@ -111,6 +111,7 @@ profile lists only hostnames that resolve:
 | AT&T | `epdg.epc.att.net`, `epdg.epc.mnc410.mcc310.pub.3gppnetwork.org`, `epdg.epc.mnc280.mcc310.pub.3gppnetwork.org`, `sentitlement2.mobile.att.net`, `vvm.mobile.att.net` |
 | Verizon | `wo.vzwwo.com`, `233.sub-141-207-229.myvzw.com` |
 | T-Mobile | `ss.epdg.epc.geo.mnc260.mcc310.pub.3gppnetwork.org`, `epdg.epc.mnc260.mcc310.pub.3gppnetwork.org`, `crl.t-mobile.com` |
+| US Cellular | `epdg.epc.mnc580.mcc311.pub.3gppnetwork.org` |
 | Others | `epdg.epc.mnc006.mcc454…`, `epdg.epc.mnc001.mcc505…`, `epdg.epc.mnc002.mcc505…`, `epdg.epc.mnc720.mcc302…` (all `.pub.3gppnetwork.org`) |
 
 There is no Sprint profile; its network is gone and its names do not resolve. The IP
