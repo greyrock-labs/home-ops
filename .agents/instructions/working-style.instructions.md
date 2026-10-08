@@ -19,9 +19,9 @@ Asking is for unclear intent, not for judgement calls you can make yourself. Whe
 adds a task to a plan, place it by its dependencies and importance: right after the
 step it depends on, never ahead of critical work it doesn't block.
 
-When something external is reconciling or rolling out, wait for him to say when to look
-again. Do not poll it, re-run checks to watch it, or force a reconcile, and only
-re-verify when asked.
+When something you pushed is rolling out, do not ask him to tell you when it is done:
+wait on it yourself with one blocking check (e.g. `kubectl rollout status --timeout`),
+then verify. Do not poll in a loop or force a reconcile.
 
 ## Carry an instruction through the whole chain
 
