@@ -17,3 +17,4 @@ resources:
   - ./multus/ks.yaml
   - ./printer-cert-updater-brother/ks.yaml
   - ./unifi-voucher-manager/ks.yaml
+  - ./wifi-cert-updater-ruckus/ks.yaml
