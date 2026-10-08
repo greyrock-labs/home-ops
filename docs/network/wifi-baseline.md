@@ -101,6 +101,26 @@ end
 `show` inside `config-wlan` prints the whole WLAN config, including the passphrase in
 plain text, so keep that output out of shared logs.
 
+## Wi-Fi Calling profiles
+
+The AP snoops DNS for each profile's hostnames to prioritise carrier ePDG traffic. Each
+profile lists only hostnames that resolve:
+
+| Profile | Hostnames |
+| --- | --- |
+| AT&T | `epdg.epc.att.net`, `epdg.epc.mnc410.mcc310.pub.3gppnetwork.org`, `epdg.epc.mnc280.mcc310.pub.3gppnetwork.org`, `sentitlement2.mobile.att.net`, `vvm.mobile.att.net` |
+| Verizon | `wo.vzwwo.com`, `233.sub-141-207-229.myvzw.com` |
+| T-Mobile | `ss.epdg.epc.geo.mnc260.mcc310.pub.3gppnetwork.org`, `epdg.epc.mnc260.mcc310.pub.3gppnetwork.org`, `crl.t-mobile.com` |
+| Others | `epdg.epc.mnc006.mcc454…`, `epdg.epc.mnc001.mcc505…`, `epdg.epc.mnc002.mcc505…`, `epdg.epc.mnc720.mcc302…` (all `.pub.3gppnetwork.org`) |
+
+There is no Sprint profile; its network is gone and its names do not resolve. The IP
+column is left blank: the ePDG names rotate between addresses, so a fixed IP is stale
+part of the time.
+
+The master AP logs `stamgr ... sta is not found by dst mac <router MAC> ... FQDN-IP
+wificalling, fail!` at severity error when one of these lookups is answered to the
+router rather than to a wireless client.
+
 ## Client names
 
 Unleashed shows whatever a device calls itself, which for IoT gear means many clients
