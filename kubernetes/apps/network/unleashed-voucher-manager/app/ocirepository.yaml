@@ -3,7 +3,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
-  name: unifi-voucher-manager
+  name: unleashed-voucher-manager
 spec:
   interval: 15m
   layerSelector:

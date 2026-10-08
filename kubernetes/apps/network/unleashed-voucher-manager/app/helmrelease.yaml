@@ -3,22 +3,22 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: unifi-voucher-manager
+  name: unleashed-voucher-manager
 spec:
   chartRef:
     kind: OCIRepository
-    name: unifi-voucher-manager
+    name: unleashed-voucher-manager
   interval: 30m
   values:
     controllers:
-      unifi-voucher-manager:
+      unleashed-voucher-manager:
         annotations:
           reloader.stakater.com/auto: "true"
         initContainers:
           seed-public:
             image:
-              repository: etiennecollin/unifi-voucher-manager
-              tag: 1.5.0
+              repository: ghcr.io/greyrock-labs/unleashed-voucher-manager
+              tag: 1.0.0@sha256:18d83cad5b844116b522f97547853151b73d06a96d9257a70b120e3e0263156c
             command:
               - sh
               - -c
@@ -26,21 +26,20 @@ spec:
         containers:
           app:
             image:
-              repository: etiennecollin/unifi-voucher-manager
-              tag: 1.5.0
+              repository: ghcr.io/greyrock-labs/unleashed-voucher-manager
+              tag: 1.0.0@sha256:18d83cad5b844116b522f97547853151b73d06a96d9257a70b120e3e0263156c
             env:
               GUEST_SUBNETWORK: 192.168.23.0/24
               TIMEZONE: America/New_York
-              UNIFI_CONTROLLER_URL: https://unifi.internal.greyrock.io
-              UNIFI_HAS_VALID_CERT: "true"
-              UNIFI_SITE_ID: default
+              UNLEASHED_SSID: Grey Rock Guest
+              UNLEASHED_URL: https://unleashed.internal.greyrock.io
               WIFI_HIDDEN: "false"
               WIFI_PASSWORD: ""
               WIFI_SSID: Grey Rock Guest
               WIFI_TYPE: nopass
             envFrom:
               - secretRef:
-                  name: unifi-voucher-manager-secret
+                  name: unleashed-voucher-manager-secret
             probes:
               liveness:
                 enabled: true
@@ -73,7 +72,7 @@ spec:
       tmpfs:
         type: emptyDir
         advancedMounts:
-          unifi-voucher-manager:
+          unleashed-voucher-manager:
             app:
               - path: /app/frontend/public
             seed-public:
