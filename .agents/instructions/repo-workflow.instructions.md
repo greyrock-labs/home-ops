@@ -11,7 +11,9 @@ out.
 - Do not add upstream port attribution to commit messages: no "Port(s) ...",
   source repository/commit references, or "cherry picked from commit" trailers.
   Describe the change itself.
-- Ask before the push itself.
+- Push without asking when the change is low-risk (docs, agent instructions, routine
+  fixes). Ask first only when the push is risky: it could take down a service, the
+  network, storage, or anything hard to roll back.
 - Do not open a PR unless asked.
 
 ## Forgejo CLI
