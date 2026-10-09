@@ -373,11 +373,8 @@ CRS309-1G-8S+, RouterOS 7.24. Management 10.1.0.20/24 on the bridge, RSTP priori
 | sfp-sfpplus3 | gameroom-c08zp |
 | sfp-sfpplus4 | gameroom-c08pf |
 
-This unit has **32MB flash (18.7MB free)** and `minimum-version: 7.11.2`; the Garage unit
-has **16MB with ~1.2MB free** and `minimum-version: 6.44.6` - a different board revision.
-That gap is the likely reason the Garage box crashed during an upgrade and had to be
-netinstalled: on a 16MB board there is barely room to stage a package. Check
-`total-hdd-space` before upgrading any of them.
+This unit is the 32MB board revision; the Office and Garage units are 16MB boards. See
+[CRS309 flash revisions](#crs309-flash-revisions) before upgrading any of them.
 
 ## Office CRS309 as-built
 
@@ -400,7 +397,7 @@ Two board revisions are in play, and it matters for upgrades:
 | --- | --- | --- | --- |
 | Office | 16MB | ~3.0MB | 6.44.6 |
 | Game Room | 32MB | ~18.7MB | 7.11.2 |
-| Garage | 16MB | ~1.2MB | 6.44.6 |
+| Garage | 16MB | ~3.0MB | 6.44.6 |
 
 On the 16MB units a ~17MB package cannot be staged at all, so a manual `.npk` upload is
 not possible there. CRS309 has no `/partitions` support either, so there is no fallback
