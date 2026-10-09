@@ -39,3 +39,18 @@ printf 'enable\nskip-page-display\nshow running-config\nexit\nexit\n' | command 
 - Config changes work the same way (`configure terminal` ... `end`, `write memory`).
 - To confirm everything is saved, diff `show running-config` against
   `show configuration`; only the header line should differ.
+
+## MikroTik CRS309s
+
+Todd gives the switch its bridge, address, route and his key on `admin` in Winbox, from a
+reset with no default config. After that, RouterOS runs a command passed on the `ssh`
+line and returns its output; no TTY is needed:
+
+```sh
+command ssh -o BatchMode=yes admin@10.1.0.10 '/system resource print; /export'
+```
+
+Apply a backup by writing it as a `.rsc` (`set` on objects the first step created, `add`
+for the rest), copying it with `scp -O`, and running `/import file-name=<file>`. Then diff
+`/export` against the backup, and remove the `.rsc` from the switch. Changes persist as
+they are made; there is no save step.
