@@ -20,6 +20,9 @@ After a firmware upgrade the switch updates its PoE firmware (`show logging | in
 shows the progress). Send it nothing but read-only commands until then, and do not reload
 it even once the log says the update is done: Todd gives the go-ahead for that reload.
 
+A command Todd rejects may already have reached the switch. After a rejection, read the
+affected config back before assuming nothing changed.
+
 ## How to run commands
 
 A command given on the `ssh` command line returns nothing. Pipe the commands into an
