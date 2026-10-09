@@ -269,7 +269,7 @@ Office CRS309. IGMP and MLD **passive** with flooding on all six VLANs.
 | 1/1/5 | kvm-hass | 20 |
 | 1/1/6 | kvm-nas | 20 |
 | 1/1/7 | kvm-k8s | 20 |
-| 1/1/8 | kvm-rubberneck | 20 |
+| 1/1/8 | kvm-gallivant | 20 |
 
 `1/2/1` is unused.
 
