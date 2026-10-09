@@ -71,9 +71,13 @@ does not, so the migration drops it.
   `224.0.0.0/24` and is never pruned, so only the IPv6 side is actually at risk.
 - **Never remove** `manager registrar` (Unleashed adoption), `logging host 10.1.20.2
   udp-port 6514`, or the `snmp-server community` line.
-- **SmartZone is off** (`no sz registrar`, `sz disable`) on every ICX. Nothing here uses
-  SmartZone. It is on by default and does not appear in `show running-config`, so a new
-  unit needs both commands even though nothing shows.
+- **Do not run `no sz registrar` or `sz disable`.** On 10.0 they land in the config as
+  `manager disable` with `manager registrar` removed, which cuts the switch off from
+  Unleashed. `no manager disable` plus `manager registrar` restores it.
+- **Stack ports**: a factory unit has both SFP+ ports as stack ports. To keep `1/2/2` as
+  the uplink, remove it under `stack unit 1` with `no stack-port ethernet 1/2/2`;
+  `stack-port ethernet 1/2/1` alone does not replace the pair, and `stack enable` refuses
+  while a tagged port is still a stack port.
 - Unleashed and the CLI co-manage these switches; the majority of config is done by CLI.
 
 ## Verifying a switch
