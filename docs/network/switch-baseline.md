@@ -126,10 +126,10 @@ slice of 10.1.0.0/24 where the switches take the low numbers and the APs run up 
 | `gameroom-ap` | 10.1.0.23 | Game Room (.20-.29) |
 | `livingroom-ap` | 10.1.0.24 | Game Room |
 | `garage-ap` | 10.1.0.33 | Garage (.30-.39) |
-| `rear-driveway-ap` | 10.1.0.34 | Garage |
-| `side-yard-ap` | 10.1.0.35 | Garage |
-| `side-driveway-ap` | 10.1.0.36 | Garage |
-| `kitchen-ap` | 10.1.0.37 | Garage |
+| `kitchen-ap` | 10.1.0.34 | Garage |
+| `rear-driveway-ap` | 10.1.0.35 | Garage |
+| `side-yard-ap` | 10.1.0.36 | Garage |
+| `side-driveway-ap` | 10.1.0.37 | Garage |
 
 The block is the address range, not the physical room - `kitchen-ap` and the driveway and
 side-yard APs all home to the Garage stack.

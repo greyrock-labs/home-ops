@@ -14,11 +14,11 @@ and the settings that deviate from defaults.
 | `office-ap` | 10.1.0.13 | R770 |
 | `upstairs-hallway-ap` | 10.1.0.14 | R770 |
 | `game-room-ap` | 10.1.0.23 | R770 |
-| `kitchen-ap` | 10.1.0.37 | R770 |
+| `kitchen-ap` | 10.1.0.34 | R770 |
 | `garage-ap` | 10.1.0.33 | R650 |
-| `side-yard-ap` | 10.1.0.35 | T750SE |
-| `rear-driveway-ap` | 10.1.0.34 | T750SE |
-| `side-driveway-ap` | 10.1.0.36 | T750SE |
+| `rear-driveway-ap` | 10.1.0.35 | T750SE |
+| `side-yard-ap` | 10.1.0.36 | T750SE |
+| `side-driveway-ap` | 10.1.0.37 | T750SE |
 
 ### AP groups
 
