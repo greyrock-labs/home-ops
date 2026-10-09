@@ -186,7 +186,6 @@ all six VLANs; PoE allocation is dynamic; 240W budget.
 
 | Port | Name | Untagged | Tagged |
 | --- | --- | --- | --- |
-| 1/1/1 | homeassistant | 10 | - |
 | 1/1/2 | rubberneck | 20 | - |
 | 1/1/5 | office-ap | 1 | 10, 20, 4000 |
 | 1/1/6 | uh-ap | 1 | 10, 20, 4000 |
