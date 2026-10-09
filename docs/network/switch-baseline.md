@@ -260,9 +260,12 @@ Uplink `1/2/2` to the Game Room CRS309. IGMP and MLD **passive** with flooding.
 
 ## Office C08PF as-built
 
-ICX8200-C08PF, FastIron `10.0.10g_cd6T253`, license `2X10G`. 8x 1G PoE+ (`1/1/1`-`1/1/8`)
-plus 2x SFP+ (`1/2/1`, `1/2/2`). Replaced the Office ICX7150 at `.12`. Uplink `1/2/2` to the
-Office CRS309. IGMP and MLD **passive** with flooding on all six VLANs.
+A two-unit stack of ICX8200-C08PF, FastIron `10.0.10g_cd6T253`, license `2X10G`, each
+with 8x 1G PoE+ plus 2x SFP+. Unit 1 is active (priority 128) and unit 2 standby. The
+stack link is `1/2/1`-`2/2/1`; those are the only stack ports, so `1/2/2` and `2/2/2` stay
+data ports. Stack ports reject all interface config, including `port-name`. Management is
+`.12`. Uplink `1/2/2` to the Office CRS309. IGMP and MLD **passive** with flooding on all
+six VLANs.
 
 | Port | Name | Untagged |
 | --- | --- | --- |
@@ -270,12 +273,18 @@ Office CRS309. IGMP and MLD **passive** with flooding on all six VLANs.
 | 1/1/2 | time2 | 20 |
 | 1/1/3 | time3 | 20 |
 | 1/1/4 | time4 | 20 |
-| 1/1/5 | kvm-hass | 20 |
-| 1/1/6 | kvm-nas | 20 |
-| 1/1/7 | kvm-k8s | 20 |
-| 1/1/8 | kvm-gallivant | 20 |
+| 1/1/5 | homeassistant | 10 |
+| 2/1/1 | kvm-hass | 20 |
+| 2/1/2 | kvm-nas | 20 |
+| 2/1/3 | kvm-k8s | 20 |
+| 2/1/4 | kvm-gallivant | 20 |
 
-`1/2/1` is unused.
+Unassigned ports are untagged in the default VLAN 1.
+
+A unit joins the stack on 10.0 without `stack secure-setup`, which does not exist: enable
+stacking on the active unit, then on the new unit set `stack suggested-id <n>` and
+`stack enable`. It reboots into the stack, and `write memory` on the active unit makes its
+config static.
 
 ### Upgrading a factory C08PF
 
