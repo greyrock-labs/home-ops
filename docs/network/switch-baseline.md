@@ -408,8 +408,6 @@ image and recovery is netinstall only.
 common to the platform or that version pair, not the board revision. Do not assume the
 roomier board is safe to upgrade in place.
 
-**RouterBOARD firmware stays at 7.23** on the CRS309s; `/system routerboard upgrade` is not run on them.
-
 **Use netinstall straight to the target version.** With the build blocks here, netinstall
 plus one paste restores a switch in a couple of minutes, which is both faster and more
 predictable than chasing an in-place upgrade that has failed three times out of three.
