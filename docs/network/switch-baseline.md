@@ -162,6 +162,7 @@ Each of these cost a round trip on the first switch. The published docs describe
 | `ipv6 mld version 2` | Accepted without error but **silently unreliable** — it applied on two units and left a third on MLDv1. Use the canonical `ipv6 multicast version 2` instead, and verify with `show ipv6 multicast`: want `Version=2`, `dft V2` and `(SG)` caches, not `V1` / `(*G)`. |
 | `global-rstp` | Does not exist. 802.1w is per-VLAN: `spanning-tree 802-1w`. Remove `global-stp`, and `no spanning-tree` on the VLAN before enabling 802.1w. |
 | `spanning-tree 802-1w priority 32768` | Accepted but absent from running-config, because it equals the default. Confirm via the bridge ID in `show 802-1w` — a leading `8000` is 32768. |
+| `ip mtu 9198` on `ve 1` before the `jumbo` reload | Rejected: the range is 1280-1500 until jumbo is live. Set it after the reload. `ip mtu` also sets the IPv6 MTU. |
 | `enable` at a `#` prompt | Rejected; already privileged. Needed only after a reload, which drops you to `>`. |
 | `?` in a pasted block | Swallowed. Help queries must be typed by hand. |
 
