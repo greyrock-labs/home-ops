@@ -79,6 +79,11 @@ does not, so the migration drops it.
   `stack-port ethernet 1/2/1` alone does not replace the pair, and `stack enable` refuses
   while a tagged port is still a stack port.
 - Unleashed and the CLI co-manage these switches; the majority of config is done by CLI.
+- **SSH public key** on every ICX: `todd.pub` from the laptop's TFTP root
+  (`/private/tftpboot`), loaded at the `#` prompt with
+  `copy tftp flash <laptop ip> todd.pub ssh-pub-key-file` and checked with
+  `show ip client-pub-key`. `ip ssh pub-key-file tftp` is gone on 10.0; only its
+  `remove` form is left.
 
 ## Verifying a switch
 
