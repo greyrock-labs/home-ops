@@ -16,6 +16,10 @@ List the UniFi device IPs from the UDM API (`stat/device`) while the UDM is stil
 place. After moving a conflicting device, ping the gateway and APs from the ICX to
 refresh their ARP entries.
 
+After a firmware upgrade the switch updates its PoE firmware (`show logging | include PoE`
+shows the progress). Send it nothing but read-only commands until then, and do not reload
+it even once the log says the update is done: Todd gives the go-ahead for that reload.
+
 ## How to run commands
 
 A command given on the `ssh` command line returns nothing. Pipe the commands into an
