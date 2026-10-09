@@ -234,9 +234,9 @@ load of the three: five APs against a 240W budget, dynamic allocation.
 
 ## Garage C08PF as-built
 
-Same hardware and firmware as the Office C08PF. Replaced the Garage ICX7150 at `.32`.
-Standalone for now - the second unit of the planned stack was DOA. Uplink `1/2/2` to the
-Garage CRS309, leaving `1/2/1` free to become the stack port. IGMP and MLD **passive** with
+Same hardware and firmware as the Office C08PF, at `.32`. Prepared as unit 1 of a two-unit
+stack whose second unit is on order: stacking is enabled, `1/2/1` is the only stack port,
+and priority is 128. Uplink `1/2/2` to the Garage CRS309. IGMP and MLD **passive** with
 flooding.
 
 | Port | Name | Untagged |
