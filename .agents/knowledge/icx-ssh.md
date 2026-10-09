@@ -30,6 +30,8 @@ printf 'enable\nskip-page-display\nshow running-config\nexit\nexit\n' | command 
 ```
 
 - `-tt` is required; without a TTY the CLI prints nothing.
+- End every piped block with `exit` lines back out of the session, and wrap it in
+  `timeout`. Without them the session stays open, and anything chained after it never runs.
 - `command ssh` skips the Ghostty `ssh` wrapper, which tries to install terminfo on the
   switch.
 - Login is by Todd's key from the agent; the username does not matter. `BatchMode=yes`
