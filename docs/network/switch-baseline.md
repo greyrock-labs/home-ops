@@ -341,9 +341,11 @@ RouterOS expresses the same trunk profile differently: a `pvid` on each bridge p
   `/ip route remove [find where dst-address="0.0.0.0/0" && gateway="10.1.0.1"]` immediately
   before the `add`.
 - **Netinstall leaves no default config at all** - `/export` comes back empty, with no
-  bridge and no bridge ports. The build has to create them rather than modify defconf, and
-  `auto-mac=no admin-mac=<previous>` is worth setting so the bridge MAC stays stable across
-  a rebuild.
+  bridge and no bridge ports. The build has to create them rather than modify defconf.
+- **The bridge MAC is the unit's own `ether1` MAC**, pinned with `auto-mac=no` so it stays
+  stable across a rebuild. The three units are interchangeable between rooms, so it is
+  derived on the box rather than carried over from a backup:
+  `/interface bridge set bridge auto-mac=no admin-mac=[/interface ethernet get ether1 mac-address]`
 
 ## Garage CRS309 as-built
 
@@ -376,12 +378,6 @@ has **16MB with ~1.2MB free** and `minimum-version: 6.44.6` - a different board 
 That gap is the likely reason the Garage box crashed during an upgrade and had to be
 netinstalled: on a 16MB board there is barely room to stage a package. Check
 `total-hdd-space` before upgrading any of them.
-
-Because netinstall leaves no defconf to copy a MAC from, `admin-mac` is derived on the box:
-
-```
-/interface bridge set bridge auto-mac=no admin-mac=[/interface ethernet get ether1 mac-address]
-```
 
 ## Office CRS309 as-built
 
@@ -434,8 +430,9 @@ advertising five prefixes, and codswallop advertising 10.1.25.21/32 once
 
 ## Planned: Garage stack
 
-garage-c08pf runs standalone; the second C08PF was DOA. When the replacement arrives, the
-two form one stack under the one name and address.
+garage-c08pf is prepared as unit 1 (see its as-built section); the second C08PF is on
+order. It joins the same way as the Office stack's unit 2, and the two run under the one
+name and address.
 
 
 The SFP+ ports are also the stacking ports, but a two-unit stack only consumes one per
