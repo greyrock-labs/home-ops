@@ -68,6 +68,9 @@ pastes real output; you respond with commands for that box only. No batch config
 devices, and no "if the output says X, do Y instead" — he will not follow branching
 instructions. He pastes, you fix.
 
+Exception: once an ICX switch has its address and Todd's SSH key, read its state and
+apply changes yourself over SSH (`.agents/knowledge/icx-ssh.md`), one switch at a time.
+
 ## He runs the playbooks
 
 Never run `ansible-playbook` against his hosts. Commit and push the change, then hand him
