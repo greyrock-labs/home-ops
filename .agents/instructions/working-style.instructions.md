@@ -105,6 +105,8 @@ or retry. When work runs in-cluster, let the pod read the Kubernetes secret inst
 - Include the closing `exit` if the block opened a config context.
 - Include `write memory` on FastIron when the change should persist.
 - On FastIron, omit the decorative `!` separators.
+- On FastIron, start a block of `show` commands with `skip-page-display`, and start the
+  first block after a reload with `enable`.
 
 ## Documentation
 
