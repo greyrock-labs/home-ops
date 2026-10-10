@@ -243,10 +243,10 @@ flooding.
 | --- | --- | --- |
 | 1/1/1 | courtyard-doorbell | 60 |
 | 1/1/2 | garage-todd | 60 |
-| 1/1/3 | rear-driveway | 60 |
-| 1/1/4 | rear-side-yard | 60 |
-| 1/1/5 | garage-andy | 60 |
-| 1/1/6 | side-yard | 60 |
+| 1/1/3 | rear-side-yard | 60 |
+| 1/1/4 | rear-driveway | 60 |
+| 1/1/5 | side-yard | 60 |
+| 1/1/6 | garage-andy | 60 |
 
 `1/1/7`, `1/1/8` and `1/2/1` are unused.
 
