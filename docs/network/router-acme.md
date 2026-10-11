@@ -1,7 +1,7 @@
 # Router certificates (acme.sh on the RB5009)
 
 `office-gw` gets a real Let's Encrypt certificate from a RouterOS container running
-acme.sh, validated over DNS-01 against ClouDNS and installed by acme.sh's `routeros`
+acme.sh, validated over DNS-01 against Cloudflare and installed by acme.sh's `routeros`
 deploy hook. Renewal is unattended.
 
 Adapted from https://gist.github.com/ergosteur/34a60e4c3c22a1ee399ee15e19026326, which
@@ -34,10 +34,9 @@ Issued for `greyrock.io` and `*.internal.greyrock.io`, EC P-256.
 
 ## Credentials
 
-ClouDNS, the same provider the cluster's `cert-manager-webhook-cloudns` uses. 1Password
-item `ClouDNS`, properties `cert-manager-auth-id` and `cert-manager-auth-password`. The
-webhook runs `authIdType: auth-id`, so acme.sh wants `CLOUDNS_AUTH_ID` — not the
-`CLOUDNS_SUB_AUTH_ID` variant.
+Cloudflare, with the same API token cert-manager uses, kept in 1Password. acme.sh's
+`dns_cf` reads it from `CF_Token`. With no account or zone ID set, it looks the zone up
+itself, so the token needs Zone:Read as well as DNS:Edit.
 
 ## As-built
 
@@ -73,7 +72,7 @@ needs `policy` and `test`. This is tighter than the gist's `group=full`.
 - USB paths are `usb1/...`, not `usb1-part1/...`.
 - `/container config` was already set for ctrld (`layer-dir=usb1/pull tmpdir=usb1/pull`)
   and is shared. Do not re-run step 0.
-- `--dns dns_cloudns` with `CLOUDNS_AUTH_ID` / `CLOUDNS_AUTH_PASSWORD`, not `dns_cf`.
+- `--dns dns_cf` with `CF_Token` only.
 - **No `/system scheduler` entry.** `cmd=daemon` makes the image run supercronic against
   a crontab it generates at `/acme.sh/crontab`, firing `acme.sh --cron` four times a
   day. With `start-on-boot=yes` that is the whole renewal mechanism. The gist's step 12
@@ -86,8 +85,7 @@ Container config, the veth, and the RouterOS user:
 ```
 /file add type=directory name=usb1/acme
 /container mounts add list=acme src=usb1/acme dst=/acme.sh
-/container envs add list=acme key=CLOUDNS_AUTH_ID value="<from 1Password>"
-/container envs add list=acme key=CLOUDNS_AUTH_PASSWORD value="<from 1Password>"
+/container envs add list=acme key=CF_Token value="<from 1Password>"
 /container envs add list=acme key=ROUTER_OS_USERNAME value="acme"
 /container envs add list=acme key=ROUTER_OS_HOST value="10.1.30.1"
 /container envs add list=acme key=ROUTER_OS_PORT value="22"
@@ -121,7 +119,7 @@ Issue and deploy, inside the container shell:
 
 ```
 acme.sh --set-default-ca --server letsencrypt
-acme.sh --issue --dns dns_cloudns --dnssleep 120 --keylength ec-256 -d greyrock.io -d "*.internal.greyrock.io"
+acme.sh --issue --dns dns_cf --dnssleep 120 --keylength ec-256 -d greyrock.io -d "*.internal.greyrock.io"
 acme.sh --deploy -d greyrock.io --ecc --deploy-hook routeros
 ```
 
@@ -142,12 +140,12 @@ Finally:
 ## Verifying
 
 Before issuing, from the container shell — this catches a bad key, no route out, or
-stale ClouDNS credentials before burning a Let's Encrypt attempt:
+a stale Cloudflare token before burning a Let's Encrypt attempt:
 
 ```
 ssh -i /acme.sh/.ssh/routeros -o UserKnownHostsFile=/acme.sh/.ssh/known_hosts -o StrictHostKeyChecking=accept-new acme@10.1.30.1 "/system identity print"
 curl -sI https://acme-v02.api.letsencrypt.org/directory | head -1
-curl -s "https://api.cloudns.net/dns/login.json?auth-id=$CLOUDNS_AUTH_ID&auth-password=$CLOUDNS_AUTH_PASSWORD"
+curl -s -H "Authorization: Bearer $CF_Token" https://api.cloudflare.com/client/v4/user/tokens/verify
 ```
 
 The first also seeds `known_hosts`, which `ROUTER_OS_SSH_CMD` points at. Without it the
@@ -184,3 +182,14 @@ days, so the scheduled date comes from the CA and moves between runs.
 `external-dns` reaches the router at `https://office-gw.internal.greyrock.io` with no
 `MIKROTIK_SKIP_TLS_VERIFY`. Verified from inside the cluster: the name resolves through
 CoreDNS and curl returns an HTTP status without `-k`.
+
+## Files on the USB stick
+
+- **Files copied in over SCP land as UID 65534, mode 600**, and the container's root
+  cannot read them. Anything acme.sh must read has to be written from inside the
+  container, for example by pulling it with `scp` as the `acme` user.
+- **`/certificate import` deletes the key file it imports.** Never import from
+  `usb1/acme/...` directly; acme.sh needs `greyrock.io_ecc/greyrock.io.key` for every
+  deploy.
+- Commands run in the container non-interactively with
+  `/container shell [find name=acme] cmd="..." no-sh`.
