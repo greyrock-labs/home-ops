@@ -13,7 +13,9 @@
 					upstream 127.0.0.1:8443
 				}
 			}
-			route {
+			# Only TLS crosses the tunnel; anything else on 443 is closed here.
+			@tls tls
+			route @tls {
 				proxy {
 					proxy_protocol v2
 					upstream 10.1.25.41:8443
@@ -36,7 +38,9 @@
 			}
 		}
 		:22 {
-			route {
+			# Only SSH crosses the tunnel; anything else on 22 is closed here.
+			@ssh ssh
+			route @ssh {
 				proxy {
 					proxy_protocol v2
 					upstream 10.1.25.41:8022
