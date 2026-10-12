@@ -10,6 +10,10 @@ spec:
       recordType: A
       targets:
         - &vps_ip 104.168.59.58
+    - dnsName: skedaddle.greyrock.io
+      recordType: A
+      targets:
+        - *vps_ip
     - dnsName: skedaddle-doco-cd.greyrock.io
       recordType: A
       targets:
