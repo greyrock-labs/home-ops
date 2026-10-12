@@ -1,7 +1,0 @@
----
-name: custom/home-allowlist
-description: "Allow home ISP (Charter/Spectrum - AS11351)"
-whitelist:
-  reason: "home ISP (Charter/Spectrum)"
-  expression:
-    - evt.Meta.ASNumber == "11351"

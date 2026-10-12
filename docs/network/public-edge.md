@@ -131,8 +131,8 @@ subscribed in the Console.
 ### skedaddle
 
 - The CrowdSec container (`docker/skedaddle/01-crowdsec/`) is agent-only. It parses host
-  sshd from journald, applies `custom/home-allowlist` (AS11351) and `custom/gafam-asn`, and
-  sends alerts to the cluster LAPI as machine `skedaddle`. Decisions from `gafam-asn` are
+  sshd from journald, applies `custom/gafam-asn` and the same `greyrock/home-wan` whitelist
+  as the cluster, and sends alerts to the cluster LAPI as machine `skedaddle`. Decisions from `gafam-asn` are
   enforced at Envoy too.
 - The host firewall bouncer (`crowdsec-firewall-bouncer-iptables`, Ansible tag `crowdsec`)
   pulls decisions from the same LAPI every 10s and drops banned addresses in iptables.

@@ -1,0 +1,7 @@
+---
+name: greyrock/home-wan
+description: Never ban the home WAN address
+whitelist:
+  reason: home WAN
+  expression:
+    - evt.Overflow.Alert.Source.IP in LookupHost("hmm0bddpjam.sn.mynetname.net")
