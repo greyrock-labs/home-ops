@@ -45,7 +45,7 @@ spec:
           source: appsec
       env:
         - name: COLLECTIONS
-          value: crowdsecurity/appsec-virtual-patching
+          value: crowdsecurity/appsec-generic-rules crowdsecurity/appsec-virtual-patching
       metrics:
         podMonitor:
           enabled: true
