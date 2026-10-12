@@ -186,17 +186,14 @@ all six VLANs; PoE allocation is dynamic; 240W budget.
 
 | Port | Name | Untagged | Tagged |
 | --- | --- | --- | --- |
-| 1/1/2 | rubberneck | 20 | - |
 | 1/1/5 | office-ap | 1 | 10, 20, 4000 |
 | 1/1/6 | uh-ap | 1 | 10, 20, 4000 |
 | 1/1/7 | codswallop | 20 | - |
 | 1/1/8 | kerfuffle | 20 | 10, 60 |
 
-`rubberneck` is a Mac mini Scrypted cluster node doing image processing; the Scrypted
-server in the cluster talks to the cameras and hands it work, so it needs VLAN 20 only.
-`codswallop` and `kerfuffle` are Talos control-plane hosts. Their `bond0` is
-`active-backup` over a single link, **not** LACP, so they take plain access ports with
-no LAG. Both take their VLAN 20 address by DHCP and resolve against 10.1.20.1.
+`kerfuffle` is the Talos node. Its `bond0` is `active-backup` over a single link,
+**not** LACP, so it takes a plain access port with no LAG, with VLANs 10 and 60 tagged for
+Multus. `codswallop` is the TrueNAS host, on a plain VLAN 20 access port.
 
 ## Game Room C08ZP as-built
 
