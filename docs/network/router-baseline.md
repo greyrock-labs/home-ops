@@ -181,6 +181,10 @@ deprecated.
 Leases are 8h everywhere except guest at 4h. Pools start at `.100` on VLAN 1, `.2` on
 guest, and `.6` on everything else.
 
+VLAN 10 also hands out a search list of `internal.greyrock.io` then `greyrock.io` (option
+119, `domain-search-internal`). RouterOS does not encode option 119 itself, so the value is
+the raw RFC 1035 label encoding in hex.
+
 Every known device has a **static lease** on the address it already had. The lease comment
 is its name as written in the CSV, and it has a `static-lease` DNS entry with the DNS name. ctrld resolves client names by
 reverse lookup against the router, so that one name per address is what shows up there.
