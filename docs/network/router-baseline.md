@@ -181,6 +181,9 @@ deprecated.
 Leases are 8h everywhere except guest at 4h. Pools start at `.100` on VLAN 1, `.2` on
 guest, and `.6` on everything else.
 
+Every network except VLAN 20 and guest hands out the domain name `internal.greyrock.io`.
+VLAN 20 has none, so DHCP clients there (Talos) get no search domain from it.
+
 VLAN 10 also hands out a search list of `internal.greyrock.io` then `greyrock.io` (option
 119, `domain-search-internal`). RouterOS does not encode option 119 itself, so the value is
 the raw RFC 1035 label encoding in hex.
