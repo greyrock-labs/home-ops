@@ -9,6 +9,8 @@ services:
     restart: unless-stopped
     environment:
       COLLECTIONS: "crowdsecurity/linux crowdsecurity/sshd crowdsecurity/iptables"
+      ENROLL_INSTANCE_NAME: skedaddle
+      ENROLL_KEY: ${CROWDSEC_ENROLL_KEY}
       PARSERS: "crowdsecurity/geoip-enrich"
       GID: "1000"
     volumes:

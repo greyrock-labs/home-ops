@@ -10,6 +10,7 @@ external_secrets:
   GATUS_REMOTE_DDNS_HOSTNAME: op://Infrastructure - Automation/Gatus/home_heartbeat_ddns_hostname
   GATUS_REMOTE_HEARTBEAT_TOKEN: op://Infrastructure - Automation/Gatus/skedaddle_home_heartbeat_token
   CADDY_ACME_EMAIL: op://Docker/Skedaddle - ACME/username
+  CROWDSEC_ENROLL_KEY: op://Infrastructure - Automation/CrowdSec/password
 force_recreate: false
 reconciliation:
   enabled: true
