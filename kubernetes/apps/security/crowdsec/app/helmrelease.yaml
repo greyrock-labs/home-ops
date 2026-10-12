@@ -59,7 +59,7 @@ spec:
     lapi:
       env:
         - name: ENROLL_INSTANCE_NAME
-          value: kubernetes
+          value: home-ops
         - name: ENROLL_KEY
           valueFrom:
             secretKeyRef:
