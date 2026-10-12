@@ -69,11 +69,12 @@ does not, so the migration drops it.
 - **Unregistered multicast floods.** Snooping otherwise prunes IPv6 link-local groups,
   which breaks Matter and HomeKit over `ff02::fb`. IPv4 mDNS (224.0.0.251) is inside
   `224.0.0.0/24` and is never pruned, so only the IPv6 side is actually at risk.
-- **Never remove** `manager registrar` (Unleashed adoption), `logging host 10.1.20.2
-  udp-port 6514`, or the `snmp-server community` line.
-- **Do not run `no sz registrar` or `sz disable`.** On 10.0 they land in the config as
-  `manager disable` with `manager registrar` removed, which cuts the switch off from
-  Unleashed. `no manager disable` plus `manager registrar` restores it.
+- **Never remove** `logging host 10.1.20.2 udp-port 6514` or the `snmp-server community`
+  line; Unleashed adds both.
+- **The RUCKUS One registrar is off** (`no manager registrar`, `manager disable`; 10.0's
+  names for `no sz registrar` and `sz disable`). Unleashed manages the switches over SSH
+  and does not use it. Left on, every switch polls `sw-registrar.ruckuswireless.com`
+  every few seconds and gets a 404.
 - **Stack ports**: a factory unit has both SFP+ ports as stack ports. To keep `1/2/2` as
   the uplink, remove it under `stack unit 1` with `no stack-port ethernet 1/2/2`;
   `stack-port ethernet 1/2/1` alone does not replace the pair, and `stack enable` refuses
@@ -141,7 +142,7 @@ AP-to-switch-port mapping lives in Unleashed and is not duplicated here.
 
 ## Unleashed config drift
 
-These switches carry `manager registrar` and are co-managed. Unleashed re-asserts parts of
+These switches are co-managed. Unleashed re-asserts parts of
 its own template, so some CLI settings revert across a reboot. Observed on both the Office
 ICX8200 and the Garage ICX7150 after reload, having been verified absent beforehand:
 
