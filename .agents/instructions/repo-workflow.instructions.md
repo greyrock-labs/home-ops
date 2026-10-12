@@ -3,9 +3,9 @@
 ## Commits
 
 Todd's own work is committed straight to `main` as linear commits and pushed to
-`forgejo`; there are no feature branches. Merge commits come only from Renovate PRs. A
-push to `main` is the deploy (see `gitops.instructions.md`), so a branch would not roll
-out.
+`forgejo`; there are no feature branches. History stays linear: Renovate PRs are
+rebased onto `main`, not merged with a merge commit. A push to `main` is the deploy (see
+`gitops.instructions.md`), so a branch would not roll out.
 
 - One focused commit per concern, subject styled `type(appname): verb`.
 - Do not add upstream port attribution to commit messages: no "Port(s) ...",
@@ -25,6 +25,12 @@ is installed and authenticated. Its flags differ from `gh`:
 - `tea comment <issue-number> "<body text>"`: the body is positional; `--body` and
   `--body-file` are rejected.
 - `tea issues ls --state all`
+- `tea pulls merge --style rebase <pr-number>` merges a PR the way the web UI does:
+  the commits keep `renovate[bot]` as author. `--style merge` makes Todd the author of
+  a merge commit; do not use it. Forgejo needs a few seconds after each merge before
+  the next PR is mergeable again, so merge one at a time.
+- After merging, delete the merged PR branches on `forgejo` and any stale local
+  remote-tracking refs.
 
 Write long bodies to a temp file first. Issues are used lightly (mostly Renovate's
 dashboard), so a filed issue is a real signal.
