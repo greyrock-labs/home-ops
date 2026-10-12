@@ -107,6 +107,11 @@ mirror its v4 policy - drop to `LAN`, drop to `RESTRICTED`, accept to `WAN`, in 
 order. Cameras need no equivalent: VLAN 60 has no v6 address and no RA, so the final drop
 covers it.
 
+The one exception to guest's `LAN` drop is `guest: voucher portal`, an accept above it for
+TCP 443 to envoy-internal (10.1.25.42), so the captive portal's redirect to
+`voucher.greyrock.io` loads. It has no connection-state match, because the drop below it
+has none either and would otherwise catch the rest of the connection.
+
 Newly added v6 rules can show the `I` (invalid) flag briefly while interface lists
 resolve. It clears on its own.
 
