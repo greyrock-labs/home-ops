@@ -8,4 +8,5 @@ components:
   - ../../components/kopiur/secret
   - ../../components/namespace
 resources:
+  - ./crowdsec/ks.yaml
   - ./kanidm-operator/ks.yaml

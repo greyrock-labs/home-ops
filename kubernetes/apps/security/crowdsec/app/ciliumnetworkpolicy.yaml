@@ -1,0 +1,27 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/cilium.io/ciliumnetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: crowdsec-ingress
+spec:
+  endpointSelector:
+    matchLabels:
+      k8s-app: crowdsec
+  ingress:
+    # LAPI: agent and AppSec pods register and push alerts.
+    - fromEndpoints:
+        - matchLabels:
+            k8s-app: crowdsec
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: observability
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "6060"
+              protocol: TCP

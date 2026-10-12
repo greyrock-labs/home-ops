@@ -1,0 +1,73 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: crowdsec
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: crowdsec
+  interval: 30m
+  values:
+    agent:
+      # Only the envoy container: shutdown-manager logs are not access logs.
+      additionalAcquisition:
+        - filenames:
+            - /var/log/containers/envoy-external-*_network_envoy-*.log
+          force_inotify: true
+          labels:
+            program: envoy
+            type: containerd
+          source: file
+      env:
+        - name: COLLECTIONS
+          value: crowdsecurity/http-cve yanis-kouidri/envoy
+        - name: PARSERS
+          value: crowdsecurity/cri-logs
+      metrics:
+        podMonitor:
+          enabled: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          memory: 256Mi
+    appsec:
+      enabled: true
+      acquisitions:
+        - appsec_config: crowdsecurity/appsec-default
+          labels:
+            type: appsec
+          listen_addr: 0.0.0.0:7422
+          path: /
+          source: appsec
+      env:
+        - name: COLLECTIONS
+          value: crowdsecurity/appsec-virtual-patching
+      metrics:
+        podMonitor:
+          enabled: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          memory: 256Mi
+    container_runtime: containerd
+    lapi:
+      metrics:
+        podMonitor:
+          enabled: true
+      persistentVolume:
+        config:
+          storageClassName: miroir-local
+        data:
+          storageClassName: miroir-local
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          memory: 512Mi
