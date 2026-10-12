@@ -10,6 +10,7 @@ resources:
   - ./clienttrafficpolicy-ssh-proxy.yaml
   - ./envoyextensionpolicy.yaml
   - ./gateway.yaml
+  - ./securitypolicy.yaml
 configMapGenerator:
   - name: envoy-external-extensions
     files:
