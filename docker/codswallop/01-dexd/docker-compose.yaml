@@ -5,9 +5,10 @@ services:
     container_name: dexd
     environment:
       DEFAULT_TARGET: 10.1.25.21
-      UNIFI_API_KEY: ${UNIFI_API_KEY}
-      UNIFI_HOST: https://unifi.internal.greyrock.io
-    image: ghcr.io/ishioni/dexd:0.4.4
+      MIKROTIK_BASEURL: https://office-gw.internal.greyrock.io
+      MIKROTIK_PASSWORD: ${MIKROTIK_PASSWORD}
+      MIKROTIK_USERNAME: ${MIKROTIK_USERNAME}
+    image: ghcr.io/greyrock-labs/dexd-mikrotik:1.0.0@sha256:38596d079e09e1cd37b357815fc414066035ee7d549b5629afae5727c29e0408
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
