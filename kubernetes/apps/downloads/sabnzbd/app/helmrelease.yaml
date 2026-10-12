@@ -24,11 +24,11 @@ spec:
         data:
           - secretKey: SABNZBD_API_KEY
             remoteRef:
-              key: sabnzbd
+              key: SABnzbd
               property: api_key
           - secretKey: SABNZBD__NZB_KEY
             remoteRef:
-              key: sabnzbd
+              key: SABnzbd
               property: nzb_key
     controllers:
       sabnzbd:

@@ -5,17 +5,17 @@ auto_discovery:
   depth: 1
   delete: true
 external_secrets:
-  CF_DNS_API_TOKEN: op://Automation/Cloudflare - Cert Manager/password
-  GARAGE_ADMIN_TOKEN: op://Services/Garage/admin_key
-  GARAGE_RPC_SECRET: op://Services/Garage/rpc_secret
-  GARAGE_UI_OIDC_CLIENT_ID: op://Automation/kanidm/garage_ui_client_id
-  GARAGE_UI_OIDC_CLIENT_SECRET: op://Automation/kanidm/garage_ui_client_secret
+  CF_DNS_API_TOKEN: op://Docker/Cloudflare - Traefik/password
+  GARAGE_ADMIN_TOKEN: op://Docker/Garage/admin_key
+  GARAGE_RPC_SECRET: op://Docker/Garage/rpc_secret
+  GARAGE_UI_OIDC_CLIENT_ID: op://Docker/Kanidm - Garage UI/client_id
+  GARAGE_UI_OIDC_CLIENT_SECRET: op://Docker/Kanidm - Garage UI/client_secret
   DEXD_MIKROTIK_PASSWORD: op://Docker/MikroTik - dexd/password
   DEXD_MIKROTIK_USERNAME: op://Docker/MikroTik - dexd/username
-  ZOT_HTPASSWD: op://Services/Zot/htpasswd
-  ZOT_OIDC_CLIENT_ID: op://Automation/kanidm/zot_oidc_client_id
-  ZOT_OIDC_CLIENT_SECRET: op://Automation/kanidm/zot_oidc_client_secret
-  ZOT_SESSION_KEYS: op://Services/Zot/session-keys
+  ZOT_HTPASSWD: op://Docker/Zot/htpasswd
+  ZOT_OIDC_CLIENT_ID: op://Docker/Kanidm - Zot/client_id
+  ZOT_OIDC_CLIENT_SECRET: op://Docker/Kanidm - Zot/client_secret
+  ZOT_SESSION_KEYS: op://Docker/Zot/session_keys
 force_recreate: false
 reconciliation:
   enabled: true

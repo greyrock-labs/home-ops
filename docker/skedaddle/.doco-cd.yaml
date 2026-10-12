@@ -5,11 +5,11 @@ auto_discovery:
   depth: 1
   delete: true
 external_secrets:
-  GATUS_PUSHOVER_TOKEN: op://Services/Pushover/gatus_token
-  GATUS_PUSHOVER_KEY: op://Services/Pushover/userkey_todd
-  GATUS_REMOTE_DDNS_HOSTNAME: op://automation/gatus/home_heartbeat_ddns_hostname
-  GATUS_REMOTE_HEARTBEAT_TOKEN: op://automation/gatus/skedaddle_home_heartbeat_token
-  CADDY_ACME_EMAIL: op://automation/Skedaddle - ACME/username
+  GATUS_PUSHOVER_TOKEN: op://Docker/Pushover - Gatus/password
+  GATUS_PUSHOVER_KEY: op://Infrastructure - Automation/Pushover/userkey_todd
+  GATUS_REMOTE_DDNS_HOSTNAME: op://Infrastructure - Automation/Gatus/home_heartbeat_ddns_hostname
+  GATUS_REMOTE_HEARTBEAT_TOKEN: op://Infrastructure - Automation/Gatus/skedaddle_home_heartbeat_token
+  CADDY_ACME_EMAIL: op://Docker/Skedaddle - ACME/username
 force_recreate: false
 reconciliation:
   enabled: true
