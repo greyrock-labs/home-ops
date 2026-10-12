@@ -29,6 +29,13 @@ is installed and authenticated. Its flags differ from `gh`:
 Write long bodies to a temp file first. Issues are used lightly (mostly Renovate's
 dashboard), so a filed issue is a real signal.
 
+## Removing things that use 1Password
+
+When a deletion removes the last reference to a 1Password item (an `ExternalSecret`
+`remoteRef.key`, a docker-compose secret, an Ansible lookup), delete that item from
+1Password as part of the same task. Grep the repo for the item name first; an item
+still referenced elsewhere stays.
+
 ## Environment
 
 The Kubernetes nodes are on wired Ethernet. An in-cluster job can safely do something
