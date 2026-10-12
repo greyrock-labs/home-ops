@@ -89,7 +89,8 @@ spec:
               # Configure redis integration
               PAPERLESS_REDIS: redis://paperless-dragonfly:6379
               # Configure user permissions
-              USERMAP_GID: "100" # codswallop:users
+              # Only affects local storage; NFS access is mapall'd to k8s:users (1000:100) on codswallop
+              USERMAP_GID: "100"
               # Configure admin user
               PAPERLESS_ADMIN_USER:
                 valueFrom:
