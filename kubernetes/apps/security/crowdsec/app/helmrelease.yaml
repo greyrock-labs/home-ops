@@ -82,6 +82,11 @@ spec:
             secretKeyRef:
               name: crowdsec-secret
               key: BOUNCER_KEY_envoy
+        - name: BOUNCER_KEY_skedaddle
+          valueFrom:
+            secretKeyRef:
+              name: crowdsec-secret
+              key: BOUNCER_KEY_skedaddle
         - name: ENROLL_INSTANCE_NAME
           value: home-ops
         - name: ENROLL_KEY

@@ -1,0 +1,23 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.envoyproxy.io/securitypolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: crowdsec-lapi
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: crowdsec-lapi
+  # Only skedaddle talks to LAPI from outside: its host (firewall bouncer) arrives as
+  # its public address, and its containers (agent) as the Docker bridge gateway.
+  # This route-level policy replaces the Gateway's ext_authz, so a ban on
+  # skedaddle cannot cut it off from its own decisions.
+  authorization:
+    defaultAction: Deny
+    rules:
+      - action: Allow
+        principal:
+          clientCIDRs:
+            - 104.168.59.58/32
+            - 172.18.0.1/32

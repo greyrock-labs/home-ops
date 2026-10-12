@@ -27,6 +27,15 @@ spec:
               protocol: TCP
             - port: "8080"
               protocol: TCP
+    # skedaddle's agent and firewall bouncer reach LAPI through envoy-external.
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: network
+            gateway.networking.k8s.io/gateway-name: envoy-external
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: observability
