@@ -49,7 +49,7 @@
           var: doco_api_secret
         - key: Infrastructure/Doco-CD/webhook_secret
           var: doco_webhook_secret
-        - key: Infrastructure/CrowdSec - Skedaddle Firewall Bouncer/password
+        - key: Infrastructure - Automation/CrowdSec/bouncer_key_skedaddle
           var: crowdsec_api_key
         - key: Developer/Personal SSH Key/public key
           var: todd_ssh_public_key
@@ -345,30 +345,8 @@
       tags:
         - crowdsec
       block:
-        - name: crowdsec | Wait for LAPI on loopback
-          ansible.builtin.wait_for:
-            host: 127.0.0.1
-            port: 8088
-            timeout: 180
-
-        - name: crowdsec | Register firewall bouncer (idempotent)
-          ansible.builtin.shell: |
-            set -e
-            if docker exec crowdsec cscli bouncers list -o json | jq -e '.[] | select(.name=="firewall")' >/dev/null; then
-              echo "ALREADY_REGISTERED"
-            else
-              docker exec crowdsec cscli bouncers add firewall --key "{{ crowdsec_api_key }}"
-            fi
-          register: bouncer_reg
-          changed_when: "'ALREADY_REGISTERED' not in bouncer_reg.stdout"
-
-        - name: crowdsec | Register CAPI (community blocklist)
-          ansible.builtin.shell: |
-            docker exec crowdsec cscli capi status >/dev/null 2>&1 \
-              || docker exec crowdsec cscli capi register
-          register: capi_reg
-          changed_when: "'Successfully' in capi_reg.stdout"
-
+        # The bouncer key is registered on the cluster LAPI through its
+        # BOUNCER_KEY_skedaddle env var, not here.
         - name: crowdsec | Ensure /etc/apt/keyrings exists
           ansible.builtin.file:
             path: /etc/apt/keyrings

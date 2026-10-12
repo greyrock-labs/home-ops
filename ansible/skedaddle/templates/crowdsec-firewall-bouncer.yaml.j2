@@ -2,7 +2,10 @@ mode: iptables
 log_mode: stdout
 log_level: info
 update_frequency: 10s
-api_url: http://127.0.0.1:8088/
+# Keep retrying instead of exiting (and flushing the ban rules) if the
+# cluster LAPI is unreachable when the bouncer starts.
+retry_initial_connect: true
+api_url: https://crowdsec-lapi.greyrock.io/
 api_key: {{ crowdsec_api_key }}
 disable_ipv6: false
 deny_action: DROP
