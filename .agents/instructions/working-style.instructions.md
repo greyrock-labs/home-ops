@@ -24,6 +24,10 @@ When something you pushed is rolling out, do not ask him to tell you when it is 
 wait on it yourself with one blocking check (e.g. `kubectl rollout status --timeout`),
 then verify. Do not poll in a loop or force a reconcile.
 
+Never block on a condition you have not confirmed can match. Read the current state
+first (logs, status) and wait only on a field or string you have seen in that output. A
+wait that times out because the pattern was wrong wastes his time.
+
 ## Carry an instruction through the whole chain
 
 An instruction to unstick something covers everything stuck behind it. "Suspend and
