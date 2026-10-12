@@ -1,0 +1,48 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/external-secrets.io/externalsecret_v1.json
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: forgejo-kanidm-provision
+spec:
+  refreshInterval: 30m
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: onepassword-connect
+  target:
+    name: forgejo-kanidm-provision
+    template:
+      type: Opaque
+      engineVersion: v2
+      data:
+        identity: "{{ .privateKey }}"
+        known_hosts: "git.greyrock.io ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCw+PmbhFxuAUGO0B1BaEajIW1riiobfAkt2raVwKLYDNyKkwLmxVsqmZcgkM5tQ2LOSN3T3g91MRCNY2pTmnFYpZgBPqaj0uaZQ6NR48jADU+U97l/TCo2fH/0ObamdK4bF3ESYt2FXVI5sbJbBwOsWf+VH2ljPuHowPLHHkGkpBI9HMhKyDYyjbHDTNCCNlU/w7RMpGKm49KquPaNPf32vIJyEmBmbBgJts33e0waOctG80/6pH+zS7Bm2gBK7xhqcGRMrsqD0Wa4aFazswAhlGv6Li44zUGygzfMImMyJZhSF9LCKu3aj3Hqq3diG8eRFsfT0NUH2srlazVjH8+Cp3qp8hJLAQEtPW/TxBBlqtXZKm7c1vujwgyLUY84pfX8iVwr7xUQilRSiapl54xbwYfGf/rjaaBvl0TKE4y1qPoV8LaD33ypIomKK7j0KwPYko7MVNg9tWJ78mU6f+RzsoWHVt0OXfd+y6OAs9x44Eqe3eRgKkRbZE1mFzgppzzwHJy/dA2qubn6Wi6B2vRPvz5eKOw5+3h8kDukHv1eslIvpMh2n4my+vYSoUBhopQg+l8f/g8qiE9gE2cIHOlIlOsdmlSpWf2EDhfK2yAqGvC6LZR1fGUHTGxeyDqVzTSjoN/eC79PHkohJykhEvLgP2GyPK72bCGtkMU4tE574w=="
+  data:
+    - secretKey: privateKey
+      remoteRef:
+        key: Forgejo - Kanidm Provision - Flux
+        property: private_key
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/source.toolkit.fluxcd.io/gitrepository_v1.json
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: kanidm-provision
+spec:
+  interval: 1h
+  url: ssh://git@git.greyrock.io/todd/kanidm-provision.git
+  ref:
+    branch: main
+  secretRef:
+    name: forgejo-kanidm-provision
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: kanidm-provision
+spec:
+  interval: 1h
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: kanidm-provision

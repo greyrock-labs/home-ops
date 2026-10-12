@@ -8,13 +8,13 @@ external_secrets:
   CF_DNS_API_TOKEN: op://Docker/Cloudflare - Traefik/password
   GARAGE_ADMIN_TOKEN: op://Docker/Garage/admin_key
   GARAGE_RPC_SECRET: op://Docker/Garage/rpc_secret
-  GARAGE_UI_OIDC_CLIENT_ID: op://Docker/Kanidm - Garage UI/client_id
-  GARAGE_UI_OIDC_CLIENT_SECRET: op://Docker/Kanidm - Garage UI/client_secret
+  GARAGE_UI_OIDC_CLIENT_ID: op://Infrastructure - Automation/Kanidm - Garage UI/client_id
+  GARAGE_UI_OIDC_CLIENT_SECRET: op://Infrastructure - Automation/Kanidm - Garage UI/client_secret
   DEXD_MIKROTIK_PASSWORD: op://Docker/MikroTik - dexd/password
   DEXD_MIKROTIK_USERNAME: op://Docker/MikroTik - dexd/username
   ZOT_HTPASSWD: op://Docker/Zot/htpasswd
-  ZOT_OIDC_CLIENT_ID: op://Docker/Kanidm - Zot/client_id
-  ZOT_OIDC_CLIENT_SECRET: op://Docker/Kanidm - Zot/client_secret
+  ZOT_OIDC_CLIENT_ID: op://Infrastructure - Automation/Kanidm - Zot/client_id
+  ZOT_OIDC_CLIENT_SECRET: op://Infrastructure - Automation/Kanidm - Zot/client_secret
   ZOT_SESSION_KEYS: op://Docker/Zot/session_keys
 force_recreate: false
 reconciliation:
