@@ -17,6 +17,16 @@ spec:
         - ports:
             - port: "8080"
               protocol: TCP
+    # The bouncer streams decisions from LAPI and forwards requests to AppSec.
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: envoy-proxy-bouncer
+      toPorts:
+        - ports:
+            - port: "7422"
+              protocol: TCP
+            - port: "8080"
+              protocol: TCP
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: observability

@@ -49,15 +49,39 @@ spec:
       metrics:
         podMonitor:
           enabled: true
+      postoverflows:
+        s01-whitelist:
+          home-wan.yaml: |
+            name: greyrock/home-wan
+            description: Never ban the home WAN address
+            whitelist:
+              reason: home WAN
+              expression:
+                - evt.Overflow.Alert.Source.IP in LookupHost("hmm0bddpjam.sn.mynetname.net")
       resources:
         requests:
           cpu: 50m
           memory: 128Mi
         limits:
           memory: 256Mi
+    config:
+      postoverflows:
+        s01-whitelist:
+          home-wan.yaml: |
+            name: greyrock/home-wan
+            description: Never ban the home WAN address
+            whitelist:
+              reason: home WAN
+              expression:
+                - evt.Overflow.Alert.Source.IP in LookupHost("hmm0bddpjam.sn.mynetname.net")
     container_runtime: containerd
     lapi:
       env:
+        - name: BOUNCER_KEY_envoy
+          valueFrom:
+            secretKeyRef:
+              name: crowdsec-secret
+              key: BOUNCER_KEY_envoy
         - name: ENROLL_INSTANCE_NAME
           value: home-ops
         - name: ENROLL_KEY

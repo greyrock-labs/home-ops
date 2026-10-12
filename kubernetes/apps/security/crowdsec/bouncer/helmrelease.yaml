@@ -1,0 +1,39 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: crowdsec-bouncer
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: crowdsec-bouncer
+  interval: 30m
+  values:
+    config:
+      bouncer:
+        apiKeySecretRef:
+          name: crowdsec-secret
+          key: BOUNCER_KEY_envoy
+        lapiURL: http://crowdsec-service:8080
+        metrics: true
+        name: envoy
+      waf:
+        enabled: true
+        apiKeySecretRef:
+          name: crowdsec-secret
+          key: BOUNCER_KEY_envoy
+        appSecURL: http://crowdsec-appsec-service:7422
+        # A WAF error lets the request through; LAPI bans still apply.
+        failOpen: true
+    fullnameOverride: crowdsec-bouncer
+    referenceGrant:
+      create: true
+      fromNamespaces:
+        - network
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
