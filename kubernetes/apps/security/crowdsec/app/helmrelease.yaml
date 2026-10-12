@@ -94,6 +94,9 @@ spec:
             secretKeyRef:
               name: crowdsec-secret
               key: ENROLL_KEY
+        # Without WAL, inserting the blocklists can stall LAPI.
+        - name: USE_WAL
+          value: "true"
       metrics:
         podMonitor:
           enabled: true
