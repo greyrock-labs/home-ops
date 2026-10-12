@@ -59,3 +59,9 @@ what is not obvious from the manifests.
   Envoy's `/stats/prometheus` (port 19001) must not move after
   `printf garbage | nc 104.168.59.58 443`. Garbage sent straight to `10.1.25.41:443` moves the
   `0.0.0.0_10443` counter, which shows the counter works.
+
+## Housekeeping
+
+- Stale `envoy@<ip>` bouncer entries are harmless; leave them. Do not enable
+  `db_config.flush.bouncers_autodelete`: a long tunnel outage would delete the `skedaddle`
+  bouncer, and env-registered keys only come back on a LAPI restart.
