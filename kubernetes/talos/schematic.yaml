@@ -10,3 +10,4 @@ customization:
       - siderolabs/amd-ucode
       - siderolabs/drbd
       - siderolabs/i915
+      - siderolabs/nfsrahead
