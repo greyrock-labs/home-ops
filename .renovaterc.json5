@@ -11,5 +11,6 @@
     "local>todd/home-ops//.renovate/apps/bambuddy.json5",
     "local>todd/home-ops//.renovate/apps/cloudnative-pg.json5",
     "local>todd/home-ops//.renovate/apps/scrypted.json5",
+    "local>todd/home-ops//.renovate/apps/unimus.json5",
   ]
 }

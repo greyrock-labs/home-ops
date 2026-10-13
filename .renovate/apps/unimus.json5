@@ -1,0 +1,12 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  packageRules: [
+    {
+      description: "Ignore Unimus same-version rebuilds; releases still update the tag and digest",
+      matchDatasources: ["docker"],
+      matchPackageNames: ["docker.io/croc/unimus"],
+      matchUpdateTypes: ["digest"],
+      enabled: false,
+    },
+  ],
+}
