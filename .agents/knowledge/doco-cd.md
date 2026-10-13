@@ -14,6 +14,6 @@ doco-cd's own image is upgraded by Ansible, not by restarting the container. Aft
 doco-cd bump lands on `main`, hand Todd the playbook for each host:
 
 ```sh
-ansible-playbook -i codswallop.internal.greyrock.io, ansible/codswallop/playbook.yaml
+ansible-playbook -i codswallop.internal.greyrock.io, ansible/codswallop/playbook.yaml --tags doco-cd
 ansible-playbook -i skedaddle.greyrock.io, ansible/skedaddle/playbook.yaml --tags doco-cd
 ```
