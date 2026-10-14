@@ -239,6 +239,11 @@ the `/interface bridge vlan` entry for 30 needs no `untagged=` edit.
 writes to that directory. Clients outside `LAN` reach them through the `dns to ctrld`
 forward accepts, which match the `ctrld` address list holding both addresses.
 
+`[service]` sets `cache_enable = true` and `cache_serve_stale = true`. ctrld does not
+cache by default, so without it every query goes out to Control D. Each instance keeps its
+own cache, and a container restart empties it. ctrld has no logging configured, so neither
+container writes to the router's log.
+
 ### Image updates
 
 The image each container runs is pinned in
