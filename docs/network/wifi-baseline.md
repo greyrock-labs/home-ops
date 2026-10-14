@@ -100,8 +100,7 @@ show
 end
 ```
 
-`show` inside `config-wlan` prints the whole WLAN config, including the passphrase in
-plain text, so keep that output out of shared logs.
+`show` inside `config-wlan` prints the whole WLAN config.
 
 ## Wi-Fi Calling profiles
 
@@ -142,9 +141,6 @@ replayed against `/admin/_cmdstat.jsp` from a logged-in session:
 
 Names must be XML-escaped (`&apos;` for apostrophes). Verify afterwards with a `getstat`
 request for `<client LEVEL='1' client-type='3'/>`, which returns each client's `hostname`.
-
-That client record also carries the WLAN passphrase in plain text (`wpa-passphrase`).
-Filter it out before printing or saving the response.
 
 ## Monitoring
 
