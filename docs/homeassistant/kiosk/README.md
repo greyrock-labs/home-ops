@@ -25,7 +25,14 @@ Edge.
   `--app` uses `kiosk`'s normal Edge profile, so the Home Assistant login ("Keep me logged
   in") survives reboots.
 
+- **No lock screen:** `NoLockScreen` = 1 (DWORD) under
+  `HKLM\SOFTWARE\Policies\Microsoft\Windows\Personalization`. Without it, waking the
+  display shows the lock screen over the dashboard. The policy works on Windows 11 Pro.
+
 ## Gotchas
+
+- **Touch does not wake the display** after it times out; Surface devices no longer
+  support touch to wake.
 
 - **Edge Startup boost must be off** (`edge://settings/system`, along with "Continue
   running background extensions and apps when Microsoft Edge is closed"). With it on, Edge
