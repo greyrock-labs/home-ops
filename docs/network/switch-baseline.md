@@ -115,6 +115,9 @@ instance from the other is the same statement twice: RSTP replaced 802.1D on VLA
 | `show ipv6 multicast` | 8200s: `dft V2`, Flooding Enabled. 7150s: no VLANs listed at all |
 | `show ntp status` | synchronized, server mode disabled, client mode enabled |
 
+On the ICX8200, a port whose link is up shows a yellow LED once its error counters are
+non-zero; one CRC error is enough. `clear statistics ethernet <port>` turns it green again.
+
 ## Unleashed APs
 
 Static addresses, assigned in the same room blocks as the switches: each room gets a /24
@@ -175,7 +178,6 @@ Each of these cost a round trip on the first switch. The published docs describe
 | `ip mtu 9198` on `ve 1` before the `jumbo` reload | Rejected: the range is 1280-1500 until jumbo is live. Set it after the reload. `ip mtu` also sets the IPv6 MTU. |
 | `enable` at a `#` prompt | Rejected; already privileged. Needed only after a reload, which drops you to `>`. |
 | `?` in a pasted block | Swallowed. Help queries must be typed by hand. |
-| A yellow port LED on an ICX8200 with the link up | A single CRC error in the port's counters turned it yellow. `clear statistics ethernet <port>` turned it green again. |
 
 ## Office C08ZP as-built
 
