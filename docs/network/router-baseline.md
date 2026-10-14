@@ -136,7 +136,7 @@ nothing else does. There is no DHCPv6 server and no PD to downstream routers.
 The router runs `allow-remote-requests` with Quad9 upstream, but clients are pointed at
 `ctrld` on 10.1.30.2 and `ctrld-b` on 10.1.30.4, which forward `greyrock.io` and `10.in-addr.arpa` back to the
 router at 10.1.30.1:53. That split is what makes internal names resolve while everything
-else goes out over DoH. `mdns-repeat-ifaces` covers `vlan10-internal` and
+else goes out to Control D over DoH3 (QUIC, UDP 443). `mdns-repeat-ifaces` covers `vlan10-internal` and
 `vlan20-servers`.
 
 Every static entry is either hand-made and commented, or created by automation that tracks
