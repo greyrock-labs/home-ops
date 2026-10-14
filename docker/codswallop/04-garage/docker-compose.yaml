@@ -58,6 +58,8 @@ services:
     networks:
       - apps
     restart: unless-stopped
+    volumes:
+      - garage-ui-data:/app/data
 volumes:
   data:
     driver: local
@@ -71,3 +73,4 @@ volumes:
       device: /mnt/drone/apps/garage/meta
       o: bind
       type: none
+  garage-ui-data:
