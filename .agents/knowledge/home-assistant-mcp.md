@@ -6,9 +6,9 @@ the Assist API: it has no config or dashboard tools, so it cannot read or write 
 automations and dashboard in `docs/homeassistant/ha-config/`.
 
 - The ha-mcp URL embeds a secret. Never print it, echo it, or commit it.
-- It is registered only as a local-scope MCP server in the
-  `~/src/greyrock-labs/homeassistant` project directory, so its `ha_*` tools are not
-  available from a session started in home-ops.
+- It is registered as a local-scope MCP server for the home-ops project, so its `ha_*`
+  tools are available in sessions started in this repo. A session that was already
+  running when it was added needs `/mcp` or a restart to see it.
 - `ha_config_set_dashboard` requires a `BestPracticeKey`. Get it from
   `ha_get_skill_guide(file='references/dashboard-guide.md')` right before the write;
   the key rotates hourly, so a key from earlier in the session may be rejected.
