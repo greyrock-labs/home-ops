@@ -241,8 +241,13 @@ forward accepts, which match the `ctrld` address list holding both addresses.
 
 `[service]` sets `cache_enable = true` and `cache_serve_stale = true`. ctrld does not
 cache by default, so without it every query goes out to Control D. Each instance keeps its
-own cache, and a container restart empties it. ctrld has no logging configured, so neither
-container writes to the router's log.
+own cache, and a container restart empties it.
+
+It also sets `log_level = "warn"`, `metrics_listener = "0.0.0.0:9603"` and
+`metrics_query_stats = true`. Container output goes to the router log under the
+`container` topic, which a logging rule forwards to VictoriaLogs. The metrics carry
+per-client query counts by hostname, and Prometheus scrapes both instances through the
+`ctrld` ScrapeConfig.
 
 ### Image updates
 
