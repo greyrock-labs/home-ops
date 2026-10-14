@@ -143,6 +143,9 @@ replayed against `/admin/_cmdstat.jsp` from a logged-in session:
 Names must be XML-escaped (`&apos;` for apostrophes). Verify afterwards with a `getstat`
 request for `<client LEVEL='1' client-type='3'/>`, which returns each client's `hostname`.
 
+That client record also carries the WLAN passphrase in plain text (`wpa-passphrase`).
+Filter it out before printing or saving the response.
+
 ## Monitoring
 
 - **Syslog** from the APs lands in VictoriaLogs — see [syslog.md](syslog.md) for the

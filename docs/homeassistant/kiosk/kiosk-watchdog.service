@@ -1,7 +1,0 @@
-[Unit]
-Description=Kiosk watchdog (Wi-Fi recovery, TouchKio reload after HA outage)
-After=NetworkManager.service
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/bin/kiosk-watchdog
