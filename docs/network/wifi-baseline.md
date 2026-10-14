@@ -100,8 +100,6 @@ show
 end
 ```
 
-`show` inside `config-wlan` prints the whole WLAN config.
-
 ## Wi-Fi Calling profiles
 
 The AP snoops DNS for each profile's hostnames to prioritise carrier ePDG traffic. Each
