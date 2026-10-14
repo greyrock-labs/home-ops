@@ -175,6 +175,7 @@ Each of these cost a round trip on the first switch. The published docs describe
 | `ip mtu 9198` on `ve 1` before the `jumbo` reload | Rejected: the range is 1280-1500 until jumbo is live. Set it after the reload. `ip mtu` also sets the IPv6 MTU. |
 | `enable` at a `#` prompt | Rejected; already privileged. Needed only after a reload, which drops you to `>`. |
 | `?` in a pasted block | Swallowed. Help queries must be typed by hand. |
+| A yellow port LED on an ICX8200 with the link up | A single CRC error in the port's counters turned it yellow. `clear statistics ethernet <port>` turned it green again. |
 
 ## Office C08ZP as-built
 
