@@ -235,9 +235,9 @@ load of the three: five APs against a 240W budget, dynamic allocation.
 
 ## Garage C08PF as-built
 
-Same hardware and firmware as the Office C08PF, at `.32`. Prepared as unit 1 of a two-unit
-stack whose second unit is on order: stacking is enabled, `1/2/1` is the only stack port,
-and priority is 128. Uplink `1/2/2` to the Garage CRS309. IGMP and MLD **passive** with
+Same hardware and firmware as the Office C08PF, at `.32`. A two-unit stack: unit 1 is
+active (priority 128) and unit 2 standby. The stack link is `1/2/1`-`2/2/1`; those are the
+only stack ports, so `2/2/2` stays a data port. Uplink `1/2/2` to the Garage CRS309. IGMP and MLD **passive** with
 flooding.
 
 | Port | Name | Untagged |
@@ -426,11 +426,10 @@ and its three listeners are in place, and both BGP sessions are established - ke
 advertising five prefixes, and codswallop advertising 10.1.25.21/32 once
 `docker/codswallop/00-frr/config/frr.conf` peered with 10.1.0.1.
 
-## Planned: Garage stack
+## Garage stack
 
-garage-c08pf is prepared as unit 1 (see its as-built section); the second C08PF is on
-order. It joins the same way as the Office stack's unit 2, and the two run under the one
-name and address.
+garage-c08pf is a two-unit stack (see its as-built section). Unit 2 joined the same way as
+the Office stack's unit 2, and the two run under the one name and address.
 
 
 The SFP+ ports are also the stacking ports, but a two-unit stack only consumes one per
