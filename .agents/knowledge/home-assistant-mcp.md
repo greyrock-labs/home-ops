@@ -9,8 +9,8 @@ automations and dashboard in `docs/homeassistant/ha-config/`.
 - It is registered as a local-scope MCP server for the home-ops project, so its `ha_*`
   tools are available in sessions started in this repo. A session that was already
   running when it was added needs `/mcp` or a restart to see it.
-- `ha_config_set_dashboard` requires a `BestPracticeKey`. Get it from
-  `ha_get_skill_guide(file='references/dashboard-guide.md')` right before the write;
-  the key rotates hourly, so a key from earlier in the session may be rejected.
+- `ha_config_set_dashboard` and `ha_config_set_automation` require a `BestPracticeKey`.
+  It is printed at the top of `ha_get_skill_guide()`; get it right before the write. The
+  key rotates hourly, so a key from earlier in the session may be rejected.
 
 Export and restore of the snapshot is in `docs/homeassistant/ha-config/README.md`.
