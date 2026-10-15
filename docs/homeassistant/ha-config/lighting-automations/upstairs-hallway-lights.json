@@ -1,0 +1,47 @@
+{
+  "id": "1733511752896",
+  "alias": "Upstairs Hallway Lights",
+  "description": "",
+  "use_blueprint": {
+    "path": "Blackshome/sensor-light.yaml",
+    "input": {
+      "motion_trigger": [
+        "binary_sensor.sensor_light_upstairs_hallway"
+      ],
+      "light_switch": {
+        "entity_id": "light.upstairs_hallway_upstairs_hallway_ceiling"
+      },
+      "include_light_control": [
+        "use_transition"
+      ],
+      "include_light_colour_control": "disable_colour_control",
+      "dynamic_lighting_max_lux": 400,
+      "dynamic_lighting_min_lux": 40,
+      "dynamic_lighting_min_brightness": 0,
+      "dynamic_lighting_min_colour_temp": 2000,
+      "include_night_lights": "night_lights_disabled",
+      "night_lights_conditions": [],
+      "night_lights_entity_state": [],
+      "include_night_light_control": [],
+      "night_light_brightness": 1,
+      "include_night_light_colour_control": "use_colour_temperature",
+      "night_light_colour_temperature": 2200,
+      "include_dynamic_lighting": "disable_dynamic_lighting",
+      "dynamic_lighting_lux_sensor": "sensor.upstairs_hallway_upstairs_hallway_hall_occupancy_sensor_illuminance",
+      "dynamic_lighting_boolean": "input_boolean.dynamic_lighting_upstairs_hallway",
+      "night_light_rgb_colour": [
+        255,
+        65,
+        0
+      ],
+      "dynamic_lighting_max_colour_temp": 6500,
+      "night_time_delay": 0,
+      "include_bypass": [
+        "bypass_enabled_turn_off"
+      ],
+      "motion_bypass_lights_off": [
+        "input_boolean.sleep"
+      ]
+    }
+  }
+}

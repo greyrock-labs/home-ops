@@ -1,0 +1,24 @@
+{
+  "id": "1674329566990",
+  "alias": "Breezeway - Light",
+  "description": "",
+  "use_blueprint": {
+    "path": "Blackshome/sensor-light.yaml",
+    "input": {
+      "motion_trigger": [
+        "binary_sensor.breezeway_breezeway_occupancy_sensor_occupancy"
+      ],
+      "light_switch": {
+        "entity_id": "light.breezeway_breezeway_ceiling"
+      },
+      "include_light_control": [
+        "use_transition"
+      ],
+      "include_light_colour_control": "disable_colour_control",
+      "include_dynamic_lighting": "disable_dynamic_lighting",
+      "dynamic_lighting_lux_sensor": "sensor.breezeway_breezeway_occupancy_sensor_illuminance",
+      "dynamic_lighting_boolean": "input_boolean.dynamic_lighting_breezeway",
+      "dynamic_lighting_state_control_activation_state": "off"
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "id": "1792077386263",
+  "alias": "Adaptive Lighting - Sleep Mode (21:00-07:00 rooms)",
+  "description": "Mirrors the blueprint night-light conditions (sleep on AND 21:00-07:00) for rooms whose night lights use the time window.",
+  "triggers": [
+    {
+      "trigger": "state",
+      "entity_id": [
+        "input_boolean.sleep"
+      ],
+      "to": [
+        "on",
+        "off"
+      ]
+    },
+    {
+      "trigger": "time",
+      "at": "21:00:00"
+    },
+    {
+      "trigger": "time",
+      "at": "07:00:00"
+    },
+    {
+      "trigger": "homeassistant",
+      "event": "start"
+    }
+  ],
+  "conditions": [],
+  "actions": [
+    {
+      "if": [
+        {
+          "condition": "state",
+          "entity_id": "input_boolean.sleep",
+          "state": "on"
+        },
+        {
+          "condition": "time",
+          "after": "21:00:00",
+          "before": "07:00:00"
+        }
+      ],
+      "then": [
+        {
+          "action": "switch.turn_on",
+          "target": {
+            "entity_id": [
+              "switch.adaptive_lighting_dining_room_sleep_mode",
+              "switch.adaptive_lighting_downstairs_bathroom_sleep_mode",
+              "switch.adaptive_lighting_downstairs_hallway_sleep_mode",
+              "switch.adaptive_lighting_kitchen_sleep_mode",
+              "switch.adaptive_lighting_laundry_sleep_mode",
+              "switch.adaptive_lighting_living_room_sleep_mode",
+              "switch.adaptive_lighting_porch_hallway_sleep_mode"
+            ]
+          }
+        }
+      ],
+      "else": [
+        {
+          "action": "switch.turn_off",
+          "target": {
+            "entity_id": [
+              "switch.adaptive_lighting_dining_room_sleep_mode",
+              "switch.adaptive_lighting_downstairs_bathroom_sleep_mode",
+              "switch.adaptive_lighting_downstairs_hallway_sleep_mode",
+              "switch.adaptive_lighting_kitchen_sleep_mode",
+              "switch.adaptive_lighting_laundry_sleep_mode",
+              "switch.adaptive_lighting_living_room_sleep_mode",
+              "switch.adaptive_lighting_porch_hallway_sleep_mode"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "mode": "restart"
+}

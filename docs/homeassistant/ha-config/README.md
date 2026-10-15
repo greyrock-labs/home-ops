@@ -1,7 +1,7 @@
 # HA Config Snapshots
 
 This directory contains point-in-time snapshots of Home Assistant (HA) config
-for the HVAC project. The live source of truth is HA itself; this is the
+for the HVAC and lighting projects. The live source of truth is HA itself; this is the
 restore path if HA gets blown away.
 
 ## What's in here
@@ -10,12 +10,17 @@ restore path if HA gets blown away.
   slug (e.g. `hvac-apply-mode.json`, `hvac-office-ac-on.json`).
 - `hvac-dashboard/hvac-control.json` — the `hvac-control` Lovelace dashboard
   (Overview / Setpoints / Automations tabs).
+- `lighting-automations/` — the Sensor Light blueprint automations, the sleep
+  automations and the Adaptive Lighting sleep-mode automation, one JSON file per
+  automation. Design and the Adaptive Lighting entry settings are in
+  [`../lighting.md`](../lighting.md); those entries are config-flow options and
+  are not exported here.
 
 ## When to refresh
 
-After any change to the HVAC automations or the HVAC dashboard, export a
-fresh snapshot. Self-imposed task: at the end of any session that touches
-HVAC, run the export and commit.
+After any change to the HVAC or lighting automations or the HVAC dashboard,
+export a fresh snapshot. Self-imposed task: at the end of any session that
+touches them, run the export and commit.
 
 ## How to export
 

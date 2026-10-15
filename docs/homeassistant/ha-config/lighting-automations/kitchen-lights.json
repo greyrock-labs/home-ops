@@ -1,0 +1,59 @@
+{
+  "id": "1735497517230",
+  "alias": "Kitchen Lights",
+  "description": "",
+  "use_blueprint": {
+    "path": "Blackshome/sensor-light.yaml",
+    "input": {
+      "motion_trigger": [
+        "binary_sensor.kitchen_kitchen_occupancy_sensor_occupancy"
+      ],
+      "light_switch": {
+        "entity_id": [
+          "light.kitchen_kitchen_sink",
+          "light.kitchen_kitchen_ceiling_1",
+          "light.kitchen_kitchen_ceiling_2"
+        ]
+      },
+      "include_light_control": [
+        "use_transition"
+      ],
+      "include_light_colour_control": "disable_colour_control",
+      "include_dynamic_lighting": "disable_dynamic_lighting",
+      "dynamic_lighting_lux_sensor": "sensor.kitchen_kitchen_occupancy_sensor_illuminance",
+      "dynamic_lighting_boolean": "input_boolean.dynamic_lighting_kitchen",
+      "dynamic_lighting_max_colour_temp": 6500,
+      "dynamic_lighting_min_colour_temp": 2000,
+      "include_night_lights": "night_lights_enabled",
+      "night_lights_conditions": [
+        "entity_state_enabled",
+        "time_enabled"
+      ],
+      "night_lights_entity_state": [
+        "input_boolean.sleep"
+      ],
+      "night_lights": {
+        "entity_id": [
+          "light.kitchen_kitchen_sink",
+          "light.kitchen_kitchen_ceiling_1",
+          "light.kitchen_kitchen_ceiling_2"
+        ]
+      },
+      "include_night_light_control": [
+        "use_transition",
+        "if_lights_are_on_adjust_when_crossing_over"
+      ],
+      "night_light_brightness": 1,
+      "include_night_light_colour_control": "disable_colour_control",
+      "night_light_rgb_colour": [
+        255,
+        65,
+        0
+      ],
+      "time_delay": 15,
+      "night_light_colour_temperature": 2200,
+      "night_lights_after_time": "21:00:00",
+      "night_lights_before_time": "07:00:00"
+    }
+  }
+}

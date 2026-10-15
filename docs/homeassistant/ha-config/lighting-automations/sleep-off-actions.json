@@ -1,0 +1,39 @@
+{
+  "id": "1678629907132",
+  "alias": "Sleep - Off (Actions)",
+  "description": "",
+  "triggers": [
+    {
+      "entity_id": [
+        "input_boolean.sleep"
+      ],
+      "to": "off",
+      "trigger": "state"
+    }
+  ],
+  "conditions": [],
+  "actions": [
+    {
+      "action": "switch.turn_off",
+      "metadata": {},
+      "data": {},
+      "target": {
+        "entity_id": [
+          "switch.adaptive_lighting_office_sleep_mode",
+          "switch.adaptive_lighting_game_room_sleep_mode"
+        ]
+      }
+    },
+    {
+      "action": "switch.turn_off",
+      "metadata": {},
+      "data": {},
+      "target": {
+        "entity_id": [
+          "switch.plug_master_bedroom_fan"
+        ]
+      }
+    }
+  ],
+  "mode": "single"
+}

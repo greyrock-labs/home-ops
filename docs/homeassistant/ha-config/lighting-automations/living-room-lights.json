@@ -1,0 +1,62 @@
+{
+  "id": "1734974496263",
+  "alias": "Living Room Lights",
+  "description": "",
+  "use_blueprint": {
+    "path": "Blackshome/sensor-light.yaml",
+    "input": {
+      "motion_trigger": [
+        "binary_sensor.living_room_living_room_occupancy_sensor_occupancy"
+      ],
+      "light_switch": {
+        "entity_id": [
+          "light.living_room_living_room_front",
+          "light.living_room_living_room_side"
+        ]
+      },
+      "include_light_control": [
+        "use_transition"
+      ],
+      "include_light_colour_control": "disable_colour_control",
+      "dynamic_lighting_min_colour_temp": 2000,
+      "include_night_lights": "night_lights_enabled",
+      "night_lights_conditions": [
+        "entity_state_enabled",
+        "time_enabled"
+      ],
+      "night_lights_entity_state": [
+        "input_boolean.sleep"
+      ],
+      "include_night_light_control": [
+        "use_transition",
+        "if_lights_are_on_adjust_when_crossing_over"
+      ],
+      "night_light_brightness": 1,
+      "include_night_light_colour_control": "disable_colour_control",
+      "night_light_colour_temperature": 2200,
+      "time_delay": 15,
+      "dynamic_lighting_min_brightness": 0,
+      "include_dynamic_lighting": "disable_dynamic_lighting",
+      "dynamic_lighting_lux_sensor": "sensor.living_room_living_room_occupancy_sensor_illuminance",
+      "dynamic_lighting_boolean": "input_boolean.dynamic_lighting_living_room",
+      "dynamic_lighting_max_colour_temp": 6500,
+      "night_lights": {
+        "entity_id": [
+          "light.living_room_living_room_front",
+          "light.living_room_living_room_side"
+        ]
+      },
+      "night_time_delay": 1,
+      "night_light_rgb_colour": [
+        255,
+        65,
+        0
+      ],
+      "include_bypass": [],
+      "motion_bypass_lights_on": [],
+      "dynamic_lighting_state_control_activation_state": "on",
+      "night_lights_after_time": "21:00:00",
+      "night_lights_before_time": "07:00:00"
+    }
+  }
+}
