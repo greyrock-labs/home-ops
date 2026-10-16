@@ -78,19 +78,19 @@ Apply Mode has 11 entry points, all of which call
 `skip_condition: true`. This keeps the engine as a pure "commit" body
 and makes every code path that runs it explicit and traceable.
 
-| Entry point                                                  | Triggers when                                          |
-|--------------------------------------------------------------|--------------------------------------------------------|
-| `hvac_apply_mode_re_apply_on_season_change`                 | `input_select.hvac_season` changes                      |
-| `hvac_apply_mode_re_apply_on_oil_heat_change`                | `input_boolean.use_oil_heat` changes                   |
-| `hvac_apply_mode_re_apply_on_presence_change`                | `input_boolean.any_home` changes                       |
-| `hvac_schedule_awake`                                        | 07:00 weekday / 07:30 weekend                          |
-| `hvac_schedule_asleep_heat`                                  | 23:00, only if season=Heat                             |
-| `hvac_schedule_asleep_cool`                                  | 23:30, only if season=Cool                             |
-| `hvac_mbr_pre_cool`                                          | 22:00, only if season=Cool and anyone home             |
-| `hvac_office_work_schedule_re_apply_mode`                    | `schedule.office_work` changes (start/end of work window) |
-| `hvac_apply_mode_re_apply_on_game_room_schedule`            | `schedule.game_room_cool` changes (start/end of cool window) |
-| `hvac_ac_overrides_auto_off_on_heat_season`                 | season flips to Heat (also turns off overrides first)  |
-| Dashboard "Apply Settings Now" button                        | User tap                                               |
+| Entry point                                      | Triggers when                                                |
+| ------------------------------------------------ | ------------------------------------------------------------ |
+| `hvac_apply_mode_re_apply_on_season_change`      | `input_select.hvac_season` changes                           |
+| `hvac_apply_mode_re_apply_on_oil_heat_change`    | `input_boolean.use_oil_heat` changes                         |
+| `hvac_apply_mode_re_apply_on_presence_change`    | `input_boolean.any_home` changes                             |
+| `hvac_schedule_awake`                            | 07:00 weekday / 07:30 weekend                                |
+| `hvac_schedule_asleep_heat`                      | 23:00, only if season=Heat                                   |
+| `hvac_schedule_asleep_cool`                      | 23:30, only if season=Cool                                   |
+| `hvac_mbr_pre_cool`                              | 22:00, only if season=Cool and anyone home                   |
+| `hvac_office_work_schedule_re_apply_mode`        | `schedule.office_work` changes (start/end of work window)    |
+| `hvac_apply_mode_re_apply_on_game_room_schedule` | `schedule.game_room_cool` changes (start/end of cool window) |
+| `hvac_ac_overrides_auto_off_on_heat_season`      | season flips to Heat (also turns off overrides first)        |
+| Dashboard "Apply Settings Now" button            | User tap                                                     |
 
 > **Known issue (2026-07-15):** the `schedule.game_room_cool` re-apply
 > automation is missing the `not_from: [unavailable, unknown]` and
@@ -180,12 +180,12 @@ In `hvac_season == Off`, Apply Mode's override logic is a 4-way choose
 that considers both booleans independently. The engine turns OFF every
 room that is *not* explicitly overridden:
 
-| `office_ac` | `master_bedroom_ac` | Rooms turned off                       |
-|-------------|---------------------|----------------------------------------|
-| off         | off                 | dining, game, kitchen, MBR, office     |
+| `office_ac` | `master_bedroom_ac` | Rooms turned off                             |
+| ----------- | ------------------- | -------------------------------------------- |
+| off         | off                 | dining, game, kitchen, MBR, office           |
 | on          | off                 | dining, game, kitchen, MBR (office stays on) |
 | off         | on                  | dining, game, kitchen, office (MBR stays on) |
-| on          | on                  | dining, game, kitchen (both stay on)   |
+| on          | on                  | dining, game, kitchen (both stay on)         |
 
 This 4-way table exists in **both** the any_home-off and home branches of
 the choose tree; if you change one, change the other.
@@ -247,17 +247,17 @@ is unchanged.
 The values below are the as-of 2026-07-14 defaults. Editable from
 the dashboard; this table is a snapshot for traceability.
 
-| Helper                          | Used when                                         | Value |
-|---------------------------------|---------------------------------------------------|------:|
-| `setpoint_cool_awake`           | Main-floor 3 rooms during awake window             | 74 °F |
-| `setpoint_cool_sleep`           | Dining, Game, Kitchen during asleep window        | 80 °F |
-| `setpoint_cool_away`            | All 5 mini-splits when no one is home             | 80 °F |
-| `setpoint_cool_sleep_mbr`       | Master Bedroom during asleep window               | 68 °F |
-| `setpoint_cool_upstairs_default`| MBR and office during awake/away (no override)    | 80 °F |
-| `setpoint_cool_office_work`     | Office during awake + `schedule.office_work` on   | 72 °F |
-| `setpoint_cool_mbr_override`    | MBR while `master_bedroom_ac` is on                | 68 °F |
-| `setpoint_cool_office_override` | Office while `office_ac` is on                     | 72 °F |
-| `setpoint_cool_game_room`       | Game Room while `schedule.game_room_cool` is on    | 72 °F |
+| Helper                           | Used when                                       | Value |
+| -------------------------------- | ----------------------------------------------- | ----: |
+| `setpoint_cool_awake`            | Main-floor 3 rooms during awake window          | 74 °F |
+| `setpoint_cool_sleep`            | Dining, Game, Kitchen during asleep window      | 80 °F |
+| `setpoint_cool_away`             | All 5 mini-splits when no one is home           | 80 °F |
+| `setpoint_cool_sleep_mbr`        | Master Bedroom during asleep window             | 68 °F |
+| `setpoint_cool_upstairs_default` | MBR and office during awake/away (no override)  | 80 °F |
+| `setpoint_cool_office_work`      | Office during awake + `schedule.office_work` on | 72 °F |
+| `setpoint_cool_mbr_override`     | MBR while `master_bedroom_ac` is on             | 68 °F |
+| `setpoint_cool_office_override`  | Office while `office_ac` is on                  | 72 °F |
+| `setpoint_cool_game_room`        | Game Room while `schedule.game_room_cool` is on | 72 °F |
 
 The two `_override` setpoints always win when the corresponding boolean
 is on, regardless of season (Cool or Off) or time of day (awake or asleep).

@@ -13,25 +13,25 @@ and the settings that deviate from defaults.
 
 `show ap all` lists five APs:
 
-| Name | IP | Model |
-| --- | --- | --- |
-| `office-ap` | 10.1.0.13 | R770 |
-| `upstairs-hallway-ap` | 10.1.0.14 | R770 |
-| `game-room-ap` | 10.1.0.23 | R770 |
-| `kitchen-ap` | 10.1.0.34 | R770 |
-| `garage-ap` | 10.1.0.33 | R650 |
+| Name                  | IP        | Model |
+| --------------------- | --------- | ----- |
+| `office-ap`           | 10.1.0.13 | R770  |
+| `upstairs-hallway-ap` | 10.1.0.14 | R770  |
+| `game-room-ap`        | 10.1.0.23 | R770  |
+| `kitchen-ap`          | 10.1.0.34 | R770  |
+| `garage-ap`           | 10.1.0.33 | R650  |
 
 All five are in the System Default AP group; per-AP overrides carry the 2.4 GHz settings.
 
 ### Radios
 
-| AP | 2.4 GHz | 5 GHz | 6 GHz |
-| --- | --- | --- | --- |
-| `kitchen-ap` | ch 1, Full | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
-| `upstairs-hallway-ap` | ch 6, Full | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
-| `garage-ap` | ch 11, Full | Auto, 80 MHz, -9 dB | — |
-| `office-ap` | off | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
-| `game-room-ap` | off | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
+| AP                    | 2.4 GHz     | 5 GHz               | 6 GHz         |
+| --------------------- | ----------- | ------------------- | ------------- |
+| `kitchen-ap`          | ch 1, Full  | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
+| `upstairs-hallway-ap` | ch 6, Full  | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
+| `garage-ap`           | ch 11, Full | Auto, 80 MHz, -9 dB | —             |
+| `office-ap`           | off         | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
+| `game-room-ap`        | off         | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
 
 ChannelFly manages 5 and 6 GHz with Channel Change Frequency 66 and the full-optimization
 period at 02:00–03:00. It is off for 2.4 GHz.
@@ -56,28 +56,28 @@ moved to another AP in the meantime stay there.
 
 ## WLANs
 
-| SSID | Encryption | VLAN | Bands |
-| --- | --- | --- | --- |
-| Grey Rock | WPA3 (SAE) | 10 | 5 / 6 GHz |
-| Grey Rock IoT | WPA2 (PSK) | 10 | 2.4 GHz only |
-| Grey Rock Guest | OWE, managed guest pass | 4000 | 5 / 6 GHz |
+| SSID            | Encryption              | VLAN | Bands        |
+| --------------- | ----------------------- | ---- | ------------ |
+| Grey Rock       | WPA3 (SAE)              | 10   | 5 / 6 GHz    |
+| Grey Rock IoT   | WPA2 (PSK)              | 10   | 2.4 GHz only |
+| Grey Rock Guest | OWE, managed guest pass | 4000 | 5 / 6 GHz    |
 
 Only Grey Rock IoT uses 2.4 GHz.
 
 ### Grey Rock IoT settings
 
-| Setting | Value | Why |
-| --- | --- | --- |
-| OFDM-Only | Enabled | keeps 802.11b rates (1–11 Mbps) off the air |
-| BSS Min Rate | Default (floor is 6 Mbps) | |
-| Inactivity Timeout | 60 min | see below |
-| DTIM | 2 | |
-| Directed MC/BC | Disabled | |
-| Background Scanning | Enabled | ChannelFly needs it for 5 / 6 GHz |
-| Radio Resource Management | Enabled | |
-| Wi-Fi 6/7 | Enabled | |
-| Application Visibility | Enabled, `No_Policy` | |
-| QoS Mirroring | Enabled via Protocol | |
+| Setting                   | Value                     | Why                                         |
+| ------------------------- | ------------------------- | ------------------------------------------- |
+| OFDM-Only                 | Enabled                   | keeps 802.11b rates (1–11 Mbps) off the air |
+| BSS Min Rate              | Default (floor is 6 Mbps) |                                             |
+| Inactivity Timeout        | 60 min                    | see below                                   |
+| DTIM                      | 2                         |                                             |
+| Directed MC/BC            | Disabled                  |                                             |
+| Background Scanning       | Enabled                   | ChannelFly needs it for 5 / 6 GHz           |
+| Radio Resource Management | Enabled                   |                                             |
+| Wi-Fi 6/7                 | Enabled                   |                                             |
+| Application Visibility    | Enabled, `No_Policy`      |                                             |
+| QoS Mirroring             | Enabled via Protocol      |                                             |
 
 The CLI's `show wlan` prints `Directed Multicast= Enabled` for this WLAN while the UI's
 Directed MC/BC toggle is off; they are separate settings.
@@ -97,13 +97,13 @@ the field accepts is 4200 minutes.
 username and password are in the 1Password item "Ruckus Unleashed". Key auth does not work.
 `enable` needs no further password. Read-only commands worth knowing:
 
-| Command | Shows |
-| --- | --- |
-| `show ap all` | every AP's radios: channel, channelization, Tx power, WLAN service |
-| `show ap-group name "System Default"` | group radio defaults |
-| `show wlan name "Grey Rock IoT"` | WLAN settings, including some the UI does not show |
-| `show current-active-clients all` | every client: AP MAC, channel, signal, connect time, IP, hostname |
-| `show performance ap-radio2-4 mac <ap mac>` | per-radio RF pollution, estimated capacity, client count |
+| Command                                     | Shows                                                              |
+| ------------------------------------------- | ------------------------------------------------------------------ |
+| `show ap all`                               | every AP's radios: channel, channelization, Tx power, WLAN service |
+| `show ap-group name "System Default"`       | group radio defaults                                               |
+| `show wlan name "Grey Rock IoT"`            | WLAN settings, including some the UI does not show                 |
+| `show current-active-clients all`           | every client: AP MAC, channel, signal, connect time, IP, hostname  |
+| `show performance ap-radio2-4 mac <ap mac>` | per-radio RF pollution, estimated capacity, client count           |
 
 Output pages with `--More--`; script it with `expect` and send a space on each prompt.
 
@@ -112,13 +112,13 @@ Output pages with `--More--`; script it with `expect` and send a space on each p
 The AP snoops DNS for each profile's hostnames to prioritise carrier ePDG traffic. Each
 profile lists only hostnames that resolve:
 
-| Profile | Hostnames |
-| --- | --- |
-| AT&T | `epdg.epc.att.net`, `epdg.epc.mnc410.mcc310.pub.3gppnetwork.org`, `epdg.epc.mnc280.mcc310.pub.3gppnetwork.org`, `sentitlement2.mobile.att.net`, `vvm.mobile.att.net` |
-| Verizon | `wo.vzwwo.com`, `233.sub-141-207-229.myvzw.com` |
-| T-Mobile | `ss.epdg.epc.geo.mnc260.mcc310.pub.3gppnetwork.org`, `epdg.epc.mnc260.mcc310.pub.3gppnetwork.org`, `crl.t-mobile.com` |
-| US Cellular | `epdg.epc.mnc580.mcc311.pub.3gppnetwork.org` |
-| Others | `epdg.epc.mnc006.mcc454…`, `epdg.epc.mnc001.mcc505…`, `epdg.epc.mnc002.mcc505…`, `epdg.epc.mnc720.mcc302…` (all `.pub.3gppnetwork.org`) |
+| Profile     | Hostnames                                                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AT&T        | `epdg.epc.att.net`, `epdg.epc.mnc410.mcc310.pub.3gppnetwork.org`, `epdg.epc.mnc280.mcc310.pub.3gppnetwork.org`, `sentitlement2.mobile.att.net`, `vvm.mobile.att.net` |
+| Verizon     | `wo.vzwwo.com`, `233.sub-141-207-229.myvzw.com`                                                                                                                      |
+| T-Mobile    | `ss.epdg.epc.geo.mnc260.mcc310.pub.3gppnetwork.org`, `epdg.epc.mnc260.mcc310.pub.3gppnetwork.org`, `crl.t-mobile.com`                                                |
+| US Cellular | `epdg.epc.mnc580.mcc311.pub.3gppnetwork.org`                                                                                                                         |
+| Others      | `epdg.epc.mnc006.mcc454…`, `epdg.epc.mnc001.mcc505…`, `epdg.epc.mnc002.mcc505…`, `epdg.epc.mnc720.mcc302…` (all `.pub.3gppnetwork.org`)                              |
 
 There is no Sprint profile; its network is gone and its names do not resolve. The IP
 column is left blank: the ePDG names rotate between addresses, so a fixed IP is stale

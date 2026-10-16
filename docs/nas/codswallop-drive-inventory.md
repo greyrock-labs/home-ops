@@ -13,7 +13,7 @@ not this front backplane — not inventoried here yet.
 Recorded 2026-09-15.
 
 | Position | Device | Serial   | Model                 | Vdev     | ZFS GUID             | Partition UUID                       |
-|----------|--------|----------|-----------------------|----------|----------------------|--------------------------------------|
+| -------- | ------ | -------- | --------------------- | -------- | -------------------- | ------------------------------------ |
 | 1,1      | sdi    | 6AGDBBDS | WDC WD142KFGX-68AFPN0 | raidz2-0 | 11573725303957118005 | a5cf8548-cfb8-41ec-a9a5-0e0e6c3c6a5c |
 | 1,2      | sdb    | 9LK5GHUG | WDC WD140EFGX-68B0GN0 | raidz2-0 | 15302533131966421756 | 273c1402-c81b-4b6a-93e2-94fb98b6b46f |
 | 1,3      | sdp    | 6AGB6RPU | WDC WD142KFGX-68AFPN0 | raidz2-0 | 15252783339504975017 | 2ed988b6-6100-48e4-86ca-b844b484658a |

@@ -8,16 +8,16 @@ See [router-baseline.md](router-baseline.md) and
 
 ## Addressing and ownership
 
-| Item | RB5009 | Office CRS309 |
-| --- | --- | --- |
-| Management | 10.1.0.1/24 | 10.1.0.10/24 |
-| VLAN 10 gateway | disabled for rollback | 10.1.10.1/24 |
-| VLAN 20 gateway | disabled for rollback | 10.1.20.1/24 |
-| Transit VLAN 4090 | 10.255.0.1/30 | 10.255.0.2/30 |
-| Transit ULA | fdc0:ffee:215:fe::1/64 | fdc0:ffee:215:fe::2/64 |
-| ASN | 64513 | 64516 |
-| IPv4 default | WAN | 10.255.0.1 |
-| IPv6 default | ISP | fdc0:ffee:215:fe::1 |
+| Item              | RB5009                 | Office CRS309          |
+| ----------------- | ---------------------- | ---------------------- |
+| Management        | 10.1.0.1/24            | 10.1.0.10/24           |
+| VLAN 10 gateway   | disabled for rollback  | 10.1.10.1/24           |
+| VLAN 20 gateway   | disabled for rollback  | 10.1.20.1/24           |
+| Transit VLAN 4090 | 10.255.0.1/30          | 10.255.0.2/30          |
+| Transit ULA       | fdc0:ffee:215:fe::1/64 | fdc0:ffee:215:fe::2/64 |
+| ASN               | 64513                  | 64516                  |
+| IPv4 default      | WAN                    | 10.255.0.1             |
+| IPv6 default      | ISP                    | fdc0:ffee:215:fe::1    |
 
 Transit is tagged on bridge and sfp-sfpplus1 only, on both devices. Other
 switches remain L2. Bridge and routed VLAN MTUs on the CRS309 are 9000; its
@@ -161,10 +161,10 @@ Verified during preparation and cutover:
 - IPv4 iperf3 from the Mac on 6 GHz VLAN 10 Wi-Fi (10.1.10.9) to the NAS
   (10.1.20.12), 20 measured seconds per test after two seconds omitted:
 
-  | Direction | One TCP stream | Four TCP streams |
-  | --- | ---: | ---: |
-  | Mac to NAS | 738 Mbps | 813 Mbps |
-  | NAS to Mac | 863 Mbps | 818 Mbps |
+  | Direction  | One TCP stream | Four TCP streams |
+  | ---------- | -------------: | ---------------: |
+  | Mac to NAS |       738 Mbps |         813 Mbps |
+  | NAS to Mac |       863 Mbps |         818 Mbps |
 
   CRS309 sampled CPU averaged 0.4–0.6%, peaking at 2%. All 20 RB5009
   connection-table samples found no matching Mac-to-NAS connection, and its

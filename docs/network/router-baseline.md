@@ -14,16 +14,16 @@ running config cannot explain about itself.
 
 ## Interfaces and addressing
 
-| Interface | IPv4 | Purpose |
-| --- | --- | --- |
-| `ether1` | DHCP (Spectrum) | WAN |
-| `bridge` | 10.1.0.1/24 | VLAN 1, management |
-| `vlan4090-transit` | 10.255.0.1/30 | Office CRS309 at 10.255.0.2 |
-| `vlan30-container` | 10.1.30.1/24 | Router containers |
-| `vlan50-iot` | 10.1.50.1/24 | IoT |
-| `vlan60-cameras` | 10.1.60.1/24 | Cameras |
-| `vlan4000-guest` | 192.168.23.1/24 | Guest |
-| `wg-public-edge` | 10.254.45.1/24 | WireGuard to skedaddle, see [public-edge.md](public-edge.md) |
+| Interface          | IPv4            | Purpose                                                      |
+| ------------------ | --------------- | ------------------------------------------------------------ |
+| `ether1`           | DHCP (Spectrum) | WAN                                                          |
+| `bridge`           | 10.1.0.1/24     | VLAN 1, management                                           |
+| `vlan4090-transit` | 10.255.0.1/30   | Office CRS309 at 10.255.0.2                                  |
+| `vlan30-container` | 10.1.30.1/24    | Router containers                                            |
+| `vlan50-iot`       | 10.1.50.1/24    | IoT                                                          |
+| `vlan60-cameras`   | 10.1.60.1/24    | Cameras                                                      |
+| `vlan4000-guest`   | 192.168.23.1/24 | Guest                                                        |
+| `wg-public-edge`   | 10.254.45.1/24  | WireGuard to skedaddle, see [public-edge.md](public-edge.md) |
 
 `192.168.88.1/24` also sits on the bridge for Netinstall. Nothing reaches it unless a
 CRS309's `ether1` is patched to a local ICX for recovery, so it stays configured rather
@@ -78,11 +78,11 @@ Public and ULA subnet IDs match. The Office CRS309 receives IDs `10`-`1f` as a
 single /60 within the ISP /56. IDs are hexadecimal: VLAN 10 deliberately uses
 `10`, replacing its old `0a`; VLAN 20 retains `14` and guest retains `ff`.
 
-| VLAN | Subnet ID | Public /64 example | ULA | Gateway owner |
-| --- | --- | --- | --- | --- |
-| 10 | `10` | `…:1d10::1/64` | `fdc0:ffee:215:10::1/64` | Office CRS309 |
-| 20 | `14` | `…:1d14::1/64` | `fdc0:ffee:215:14::1/64` | Office CRS309 |
-| 4000 | `ff` | `…:1dff::1/64` | `fdc0:ffee:215:ff::1/64` | RB5009 |
+| VLAN | Subnet ID | Public /64 example | ULA                      | Gateway owner |
+| ---- | --------- | ------------------ | ------------------------ | ------------- |
+| 10   | `10`      | `…:1d10::1/64`     | `fdc0:ffee:215:10::1/64` | Office CRS309 |
+| 20   | `14`      | `…:1d14::1/64`     | `fdc0:ffee:215:14::1/64` | Office CRS309 |
+| 4000 | `ff`      | `…:1dff::1/64`     | `fdc0:ffee:215:ff::1/64` | RB5009        |
 
 The public examples assume an illustrative parent ending `1d00::/56`; the
 actual ISP prefix is dynamic. VLANs 1/30/50/60 remain IPv4-only.
@@ -167,16 +167,16 @@ Client DNS still crosses transit because both ctrld containers live on the RB500
 Every static entry is either hand-made and commented, or created by automation that tracks
 it with a TXT ownership record:
 
-| Comment | Source | Notes |
-| --- | --- | --- |
-| `static-lease` | Hand-made | One per static DHCP lease, named from the MAC address list in 1Password |
-| `switch` | Hand-made | Nine switches, 10.1.0.10-.12/.20-.22/.30-.32 |
-| `ap` | Hand-made | Nine Unleashed APs, plus `unleashed` (10.1.20.2), the management address that follows the master |
-| `router` | Hand-made | `office-gw.internal.greyrock.io` → 10.1.0.1 |
-| `service` | Hand-made | `k8s.internal.greyrock.io` → 10.1.25.50, the Kubernetes API |
-| `camera` | Hand-made | `courtyard-porch-doorbell` |
-| *(none)* | `external-dns` | Owned via TXT registry, `txtPrefix: k8s.main.%{record_type}-` |
-| *(none)* | `dexd` on codswallop | Owned via `a-<name>` TXT records; all point at 10.1.25.21 |
+| Comment        | Source               | Notes                                                                                            |
+| -------------- | -------------------- | ------------------------------------------------------------------------------------------------ |
+| `static-lease` | Hand-made            | One per static DHCP lease, named from the MAC address list in 1Password                          |
+| `switch`       | Hand-made            | Nine switches, 10.1.0.10-.12/.20-.22/.30-.32                                                     |
+| `ap`           | Hand-made            | Nine Unleashed APs, plus `unleashed` (10.1.20.2), the management address that follows the master |
+| `router`       | Hand-made            | `office-gw.internal.greyrock.io` → 10.1.0.1                                                      |
+| `service`      | Hand-made            | `k8s.internal.greyrock.io` → 10.1.25.50, the Kubernetes API                                      |
+| `camera`       | Hand-made            | `courtyard-porch-doorbell`                                                                       |
+| *(none)*       | `external-dns`       | Owned via TXT registry, `txtPrefix: k8s.main.%{record_type}-`                                    |
+| *(none)*       | `dexd` on codswallop | Owned via `a-<name>` TXT records; all point at 10.1.25.21                                        |
 
 To find an unlabelled hand-made entry, filter on `!comment` - `comment=""` does not match an
 unset comment.
@@ -249,11 +249,11 @@ machine needs them.
 
 Three, all on `vlan30-container` via veth, with layers and tmpdir shared on `usb1/pull`.
 
-| Container | veth | Address | Purpose |
-| --- | --- | --- | --- |
-| `ctrld` | `veth-ctrld` | 10.1.30.2 | DNS, split-horizon to the router |
-| `ctrld-b` | `veth-ctrld-b` | 10.1.30.4 | Second DNS, same config |
-| `acme` | `veth-acme` | 10.1.30.3 | Let's Encrypt, see `router-acme.md` |
+| Container | veth           | Address   | Purpose                             |
+| --------- | -------------- | --------- | ----------------------------------- |
+| `ctrld`   | `veth-ctrld`   | 10.1.30.2 | DNS, split-horizon to the router    |
+| `ctrld-b` | `veth-ctrld-b` | 10.1.30.4 | Second DNS, same config             |
+| `acme`    | `veth-acme`    | 10.1.30.3 | Let's Encrypt, see `router-acme.md` |
 
 VLAN 30 is in the `LAN` interface list, so containers reach the router without a
 dedicated firewall rule. Bridge membership comes from `pvid=30` on the bridge port alone -
@@ -308,9 +308,9 @@ is rejected with 400 while the container is busy. A container that already match
 Local AS 64513, router-id 10.1.0.1 from `/routing id` - the dynamic `main` entry had
 selected 192.168.23.1 on its own, which is why the entry is explicit.
 
-| Peer | Address | AS | Source |
-| --- | --- | --- | --- |
-| kerfuffle | 10.1.20.10 | 64514 | Cilium, `CiliumBGPClusterConfig` |
+| Peer       | Address    | AS    | Source                                          |
+| ---------- | ---------- | ----- | ----------------------------------------------- |
+| kerfuffle  | 10.1.20.10 | 64514 | Cilium, `CiliumBGPClusterConfig`                |
 | codswallop | 10.1.20.12 | 64515 | FRR, `docker/codswallop/00-frr/config/frr.conf` |
 
 The Cilium config selects all linux nodes with one `localASN` and `peerAddress: 10.1.0.1`,

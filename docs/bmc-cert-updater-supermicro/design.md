@@ -3,10 +3,10 @@
 - **Status:** Implemented and verified on both BMCs (subject `CN=*.internal.greyrock.io`, issuer Let's Encrypt); the daily CronJob keeps them current.
 - **Scope:** Flux-managed CronJob that pushes the `*.internal.greyrock.io` Let's Encrypt certificate to the SuperMicro IPMI BMCs:
 
-| Name | Host | Address | Board | BMC firmware |
-|---|---|---|---|---|
-| `homeassistant` | `kvm-homeassistant.internal.greyrock.io` | 10.1.20.14 | A2SDV-16C-TLN5F | 04.07 |
-| `gallivant` | `kvm-gallivant.internal.greyrock.io` | 10.1.20.21 | A2SDi-4C-HLN4F | 04.07 |
+| Name            | Host                                     | Address    | Board           | BMC firmware |
+| --------------- | ---------------------------------------- | ---------- | --------------- | ------------ |
+| `homeassistant` | `kvm-homeassistant.internal.greyrock.io` | 10.1.20.14 | A2SDV-16C-TLN5F | 04.07        |
+| `gallivant`     | `kvm-gallivant.internal.greyrock.io`     | 10.1.20.21 | A2SDi-4C-HLN4F  | 04.07        |
 
 ## Goal
 

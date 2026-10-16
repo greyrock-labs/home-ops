@@ -76,14 +76,14 @@ certificate page on `window.privilege == "rw"`.
 
 Controller under test: **Unleashed 200.19.7.112 build 238**, model R770.
 
-| Behaviour | Consequence |
-|---|---|
-| Each upload is validated against what is **already staged**, not against the file being sent. | The reference's cert-then-key order reports `E_CertNotMatchPKey` on a first run even when both files are good. Only the **second** upload's `msg` describes the pair, so only that one is trusted. A script that failed on the first message would break on every fresh controller. |
-| Login success is a 302; the body looks normal either way. | Status must be checked, not content. |
-| The CSRF token arrives as `HTTP_X_CSRF_TOKEN` (literal header name, value space-padded) but must be sent back as `X-CSRF-Token`. | Asymmetric naming; easy to mirror wrongly. |
-| `replace-cert` installs the intermediates from the uploaded fullchain. | **No separate intermediate import is needed.** Verified by measurement: the controller serves a 3-certificate chain that validates without `-k`. The UI's `uploadintermediate` / `replace-intermediate` path exists but is not required here. |
-| `replace-cert` takes effect immediately; only serving waits for the reboot. | Confirmed because an intermediate upload flips from `E_CertNotMatchIC` to `I_LoadICOptions` straight after `replace-cert` — which also proves the account has `rw`. |
-| The ECC-support version check in the reference is unreachable here. | The key is RSA 2048, and 200.19 is far past the 200.13 ECC threshold. Dropped rather than ported. |
+| Behaviour                                                                                                                        | Consequence                                                                                                                                                                                                                                                                         |
+| -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Each upload is validated against what is **already staged**, not against the file being sent.                                    | The reference's cert-then-key order reports `E_CertNotMatchPKey` on a first run even when both files are good. Only the **second** upload's `msg` describes the pair, so only that one is trusted. A script that failed on the first message would break on every fresh controller. |
+| Login success is a 302; the body looks normal either way.                                                                        | Status must be checked, not content.                                                                                                                                                                                                                                                |
+| The CSRF token arrives as `HTTP_X_CSRF_TOKEN` (literal header name, value space-padded) but must be sent back as `X-CSRF-Token`. | Asymmetric naming; easy to mirror wrongly.                                                                                                                                                                                                                                          |
+| `replace-cert` installs the intermediates from the uploaded fullchain.                                                           | **No separate intermediate import is needed.** Verified by measurement: the controller serves a 3-certificate chain that validates without `-k`. The UI's `uploadintermediate` / `replace-intermediate` path exists but is not required here.                                       |
+| `replace-cert` takes effect immediately; only serving waits for the reboot.                                                      | Confirmed because an intermediate upload flips from `E_CertNotMatchIC` to `I_LoadICOptions` straight after `replace-cert` — which also proves the account has `rw`.                                                                                                                 |
+| The ECC-support version check in the reference is unreachable here.                                                              | The key is RSA 2048, and 200.19 is far past the 200.13 ECC threshold. Dropped rather than ported.                                                                                                                                                                                   |
 
 For a wildcard certificate the web UI composes the common name as
 `redirCn + wildcardDN` — for us `unleashed.internal.greyrock.io` — which matches the
@@ -114,12 +114,12 @@ Both would have failed silently, and are covered by fixtures now:
 
 ## Failure / recovery
 
-| Failure | Detection | Recovery |
-|---|---|---|
-| Credentials rejected | Job logs "login failed: credentials rejected" (HTTP 200) | Check `ruckus-unleashed-password`; confirm `certupdater` still has `rw` |
-| Pair rejected | Job logs the controller's `E_*` message | Inspect the secret; the controller keeps serving the old certificate |
-| Controller does not return within 10m | Verification poll fails, job exits non-zero | Check the controller physically; the previous certificate is still in place until a successful replace |
-| Setup wizard incomplete / controller rebuilding | Login redirect lands on `wizard.jsp` / `index.html` | Job reports it and exits; retry later |
+| Failure                                         | Detection                                                | Recovery                                                                                               |
+| ----------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Credentials rejected                            | Job logs "login failed: credentials rejected" (HTTP 200) | Check `ruckus-unleashed-password`; confirm `certupdater` still has `rw`                                |
+| Pair rejected                                   | Job logs the controller's `E_*` message                  | Inspect the secret; the controller keeps serving the old certificate                                   |
+| Controller does not return within 10m           | Verification poll fails, job exits non-zero              | Check the controller physically; the previous certificate is still in place until a successful replace |
+| Setup wizard incomplete / controller rebuilding | Login redirect lands on `wizard.jsp` / `index.html`      | Job reports it and exits; retry later                                                                  |
 
 ## Verification
 

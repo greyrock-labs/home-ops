@@ -19,13 +19,13 @@ Raising it would re-grab the whole library.
 Language custom formats are `LanguageSpecification`, so they only fire when the indexer
 populates languages. Measured on identical releases:
 
-| Indexer | Full language list |
-| --- | --- |
-| NZBgeek | 5/5 |
-| Nzb.life | 1/4 |
-| DrunkenSlug | 0/4 |
-| NinjaCentral | 0/2 |
-| DOGnzb | 0/2 |
+| Indexer      | Full language list |
+| ------------ | ------------------ |
+| NZBgeek      | 5/5                |
+| Nzb.life     | 1/4                |
+| DrunkenSlug  | 0/4                |
+| NinjaCentral | 0/2                |
+| DOGnzb       | 0/2                |
 
 Raising NZBgeek's priority in Prowlarr does not help: Radarr accepts or rejects each
 listing before ranking, so priority only orders listings that already passed. Only

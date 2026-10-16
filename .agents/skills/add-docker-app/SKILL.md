@@ -7,10 +7,10 @@ description: Use when deploying or changing an application on the docker hosts (
 
 Apps live in `docker/<host>/NN-<app>/docker-compose.yaml`, deployed GitOps-style by [doco-cd](https://github.com/kimdre/doco-cd) (config: `docker/<host>/.doco-cd.yaml`): it polls this repo's `main` hourly, auto-discovers stacks one directory deep, and **`delete: true` means removing (or renaming) a directory deletes the running stack**. Mirror an existing app rather than inventing structure:
 
-| Host | Proxy | Network | Reference apps |
-|---|---|---|---|
-| `codswallop` (TrueNAS) | traefik (`01-traefik`, docker provider, `exposedByDefault: false`, wildcard `*.greyrock.io`) | `apps`, or `network_mode: host` | `03-garage` (bind-mount storage), `02-exporters` (host network) |
-| `skedaddle` (VPS) | caddy-l4 (`03-caddy-l4`, Caddyfile) | external `edge` (no published ports for HTTP) | `04-gatus` (config file, secrets), `03-caddy-l4` (published ports) |
+| Host                   | Proxy                                                                                        | Network                                       | Reference apps                                                     |
+| ---------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------ |
+| `codswallop` (TrueNAS) | traefik (`01-traefik`, docker provider, `exposedByDefault: false`, wildcard `*.greyrock.io`) | `apps`, or `network_mode: host`               | `03-garage` (bind-mount storage), `02-exporters` (host network)    |
+| `skedaddle` (VPS)      | caddy-l4 (`03-caddy-l4`, Caddyfile)                                                          | external `edge` (no published ports for HTTP) | `04-gatus` (config file, secrets), `03-caddy-l4` (published ports) |
 
 ## Steps
 

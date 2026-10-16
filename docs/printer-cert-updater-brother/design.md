@@ -72,14 +72,14 @@ would rather not have restarting unattended at night.
 
 Each of these was established against the device, and each fails **silently** if ignored:
 
-| Behaviour | Consequence |
-|---|---|
-| Every POST must carry a `Referer`. `Origin` alone is not enough. | Without it the printer answers "Your request was rejected. Please try again." curl sends no `Referer` on its own. |
-| The PKCS#12 must contain the **leaf only**. A bundle carrying the CA chain is refused. | cert-manager's `keystores.pkcs12` cannot be used at all — it always embeds the chain. The initContainer strips to the leaf and uses SHA-1/3DES (`-macalg sha1 -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES`), which this firmware predates AES/PBKDF2 defaults for. |
-| The "Please wait" page returned by an import is **not** a success signal. | It comes back even for a request with no file attached. Only the certificate list is worth believing — this invalidated roughly a dozen A/B tests scored on that page before it was caught. |
-| Importing does not put a certificate into service. | The HTTPS server keeps serving the old one until the selection is changed, so the job must also set it. Without this step the certificate would have to be assigned by hand every renewal, defeating the purpose. |
+| Behaviour                                                                                    | Consequence                                                                                                                                                                                                                                                                  |
+| -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Every POST must carry a `Referer`. `Origin` alone is not enough.                             | Without it the printer answers "Your request was rejected. Please try again." curl sends no `Referer` on its own.                                                                                                                                                            |
+| The PKCS#12 must contain the **leaf only**. A bundle carrying the CA chain is refused.       | cert-manager's `keystores.pkcs12` cannot be used at all — it always embeds the chain. The initContainer strips to the leaf and uses SHA-1/3DES (`-macalg sha1 -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES`), which this firmware predates AES/PBKDF2 defaults for.          |
+| The "Please wait" page returned by an import is **not** a success signal.                    | It comes back even for a request with no file attached. Only the certificate list is worth believing — this invalidated roughly a dozen A/B tests scored on that page before it was caught.                                                                                  |
+| Importing does not put a certificate into service.                                           | The HTTPS server keeps serving the old one until the selection is changed, so the job must also set it. Without this step the certificate would have to be assigned by hand every renewal, defeating the purpose.                                                            |
 | Deleting a certificate does not renumber the remaining ones, and freed low slots are reused. | The new slot is read back by diffing the ID set before and after, never guessed or assumed to be "highest" or "next". Matching on the certificate *name* instead would only prove that some certificate with this CN is listed — which an older copy satisfies just as well. |
-| The certificate-select field is `B15e8` on the MFC-L8900CDW. | `justjanne/brother-client` hardcodes `B12c9`, which is what the QL series calls the same field. |
+| The certificate-select field is `B15e8` on the MFC-L8900CDW.                                 | `justjanne/brother-client` hardcodes `B12c9`, which is what the QL series calls the same field.                                                                                                                                                                              |
 
 ## Known limitation
 
@@ -90,11 +90,11 @@ may not. Verified 2026-09-16: served chain length 1.
 
 ## Failure / recovery
 
-| Failure | Detection | Recovery |
-|---|---|---|
-| Import rejected (wrong p12 shape) | Job logs the certificate list unchanged | Rebuild the p12 leaf-only; check the initContainer's openssl flags |
-| Login rejected | Job fails at login | Check `brother-password` in `Cert Updater` |
-| Web server does not come back after activation | Verification poll fails | Power-cycle the printer; the previous certificate is still installed |
+| Failure                                        | Detection                               | Recovery                                                             |
+| ---------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------- |
+| Import rejected (wrong p12 shape)              | Job logs the certificate list unchanged | Rebuild the p12 leaf-only; check the initContainer's openssl flags   |
+| Login rejected                                 | Job fails at login                      | Check `brother-password` in `Cert Updater`                           |
+| Web server does not come back after activation | Verification poll fails                 | Power-cycle the printer; the previous certificate is still installed |
 
 ## Verification
 

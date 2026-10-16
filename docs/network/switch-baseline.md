@@ -30,14 +30,14 @@ which retains all other gateways and WAN/WireGuard duties. See the completed
 
 ## VLANs
 
-| VLAN | Name | Subnet |
-| --- | --- | --- |
-| 1 | Default (mgmt) | 10.1.0.0/24 |
-| 10 | Internal | 10.1.10.0/24 |
-| 20 | Servers | 10.1.20.0/24 |
-| 50 | IoT | 10.1.50.0/24 |
-| 60 | Cameras | 10.1.60.0/24 |
-| 4000 | Guest | 192.168.23.0/24 |
+| VLAN | Name           | Subnet          |
+| ---- | -------------- | --------------- |
+| 1    | Default (mgmt) | 10.1.0.0/24     |
+| 10   | Internal       | 10.1.10.0/24    |
+| 20   | Servers        | 10.1.20.0/24    |
+| 50   | IoT            | 10.1.50.0/24    |
+| 60   | Cameras        | 10.1.60.0/24    |
+| 4000 | Guest          | 192.168.23.0/24 |
 
 `10.1.25.0/24` is the Cilium load-balancer pool. It is **not** a VLAN — those /32s are
 BGP-announced to both 10.1.0.1 and the Office CRS309 at 10.1.20.1. The old UniFi controller required a VLAN for it; MikroTik
@@ -108,14 +108,14 @@ for separate protocols - 802.1D and RSTP. Wanting "not configured" from one and 
 instance from the other is the same statement twice: RSTP replaced 802.1D on VLAN 1.
 
 
-| Command | Want to see |
-| --- | --- |
-| `show running-config \| include global-stp` | nothing |
-| `show span` | "not configured" on every VLAN - this command reports 802.1D only |
-| `show 802-1w` | the RSTP counterpart: VLAN 1 only, bridge ID starting `8000`, uplink ROOT/FORWARDING |
-| `show ip multicast` | all VLANs `cfg V3`, `vlan cfg passive` (active on the Office 8200), Flooding Enabled |
-| `show ipv6 multicast` | 8200s: `dft V2`, Flooding Enabled. 7150s: no VLANs listed at all |
-| `show ntp status` | synchronized, server mode disabled, client mode enabled |
+| Command                                     | Want to see                                                                          |
+| ------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `show running-config \| include global-stp` | nothing                                                                              |
+| `show span`                                 | "not configured" on every VLAN - this command reports 802.1D only                    |
+| `show 802-1w`                               | the RSTP counterpart: VLAN 1 only, bridge ID starting `8000`, uplink ROOT/FORWARDING |
+| `show ip multicast`                         | all VLANs `cfg V3`, `vlan cfg passive` (active on the Office 8200), Flooding Enabled |
+| `show ipv6 multicast`                       | 8200s: `dft V2`, Flooding Enabled. 7150s: no VLANs listed at all                     |
+| `show ntp status`                           | synchronized, server mode disabled, client mode enabled                              |
 
 On the ICX8200, a port whose link is up shows a yellow LED once its error counters are
 non-zero; one CRC error is enough. `clear statistics ethernet <port>` turns it green again.
@@ -125,17 +125,17 @@ non-zero; one CRC error is enough. `clear statistics ethernet <port>` turns it g
 Static addresses, assigned in the same room blocks as the switches: each room gets a /24
 slice of 10.1.0.0/24 where the switches take the low numbers and the APs run up from `.3`.
 
-| AP | Address | Room block |
-| --- | --- | --- |
-| `office-ap` | 10.1.0.13 | Office (.10-.19) |
-| `upstairs-hallway-ap` | 10.1.0.14 | Office |
-| `gameroom-ap` | 10.1.0.23 | Game Room (.20-.29) |
-| `livingroom-ap` | 10.1.0.24 | Game Room |
-| `garage-ap` | 10.1.0.33 | Garage (.30-.39) |
-| `kitchen-ap` | 10.1.0.34 | Garage |
-| `rear-driveway-ap` | 10.1.0.35 | Garage |
-| `side-yard-ap` | 10.1.0.36 | Garage |
-| `side-driveway-ap` | 10.1.0.37 | Garage |
+| AP                    | Address   | Room block          |
+| --------------------- | --------- | ------------------- |
+| `office-ap`           | 10.1.0.13 | Office (.10-.19)    |
+| `upstairs-hallway-ap` | 10.1.0.14 | Office              |
+| `gameroom-ap`         | 10.1.0.23 | Game Room (.20-.29) |
+| `livingroom-ap`       | 10.1.0.24 | Game Room           |
+| `garage-ap`           | 10.1.0.33 | Garage (.30-.39)    |
+| `kitchen-ap`          | 10.1.0.34 | Garage              |
+| `rear-driveway-ap`    | 10.1.0.35 | Garage              |
+| `side-yard-ap`        | 10.1.0.36 | Garage              |
+| `side-driveway-ap`    | 10.1.0.37 | Garage              |
 
 The block is the address range, not the physical room - `kitchen-ap` and the driveway and
 side-yard APs all home to the Garage stack.
@@ -151,11 +151,11 @@ These switches are co-managed. Unleashed re-asserts parts of
 its own template, so some CLI settings revert across a reboot. Observed on both the Office
 ICX8200 and the Garage ICX7150 after reload, having been verified absent beforehand:
 
-| Setting | Reverts to | Impact |
-| --- | --- | --- |
-| `global-stp` | re-added | **None.** Verified inert: `show span` still reports "not configured" on every VLAN and RSTP keeps VLAN 1. Cosmetic only. |
-| `cli timeout 240` | `cli timeout 0` | Cosmetic - no idle timeout. |
-| `snmp-server community` | an extra community appended | Seen on the Garage ICX7150 only. Leave both in place. |
+| Setting                 | Reverts to                  | Impact                                                                                                                   |
+| ----------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `global-stp`            | re-added                    | **None.** Verified inert: `show span` still reports "not configured" on every VLAN and RSTP keeps VLAN 1. Cosmetic only. |
+| `cli timeout 240`       | `cli timeout 0`             | Cosmetic - no idle timeout.                                                                                              |
+| `snmp-server community` | an extra community appended | Seen on the Garage ICX7150 only. Leave both in place.                                                                    |
 
 Decision: do not fight the template. `global-stp` does nothing here, so re-clear it if you
 care about a tidy config and otherwise ignore it. What matters is that none of the
@@ -166,20 +166,20 @@ functional config - VLANs, trunks, RSTP, multicast, jumbo, static addressing, NT
 Each of these cost a round trip on the first switch. The published docs describe the
 08.0.x/09.0.x behaviour and are wrong for 10.0.
 
-| Doing this | Actual 10.0 behaviour |
-| --- | --- |
-| `no ip dhcp-client enable` | Rejected. Use `ip dhcp-client disable`. |
-| Removing the per-VE binding first | Refused while the client is on globally. Disable globally, *then* `no ip dhcp-client ve default`, *then* set the static address. |
-| `dual-mode` / `dual-mode 1` | Deprecated since 08.0.80. Unnecessary — a port tagged into other VLANs keeps its untagged VLAN 1 membership. Verify with `Tag=Yes, Pvid=1`. |
-| `no ip multicast disable-flooding` | Deprecated. Use `ip multicast flood-unregistered` and `ipv6 multicast flood-unregistered`. The IPv6 form of `disable-flooding` does not exist at all. |
-| A global command after a `vlan`/`interface` stanza | Silently ignored or misfiled into the sub-context. `no global-stp` landed nowhere; `no ip dhcp-client enable` was written into an interface. **Always `exit` to global config first.** |
-| `no global-stp` before VLAN 1 is on 802.1w | Silently does not stick. Removal only takes once `spanning-tree 802-1w` is active on VLAN 1, so sequence it *after* the VLAN 1 stanza. Confirm with `show running-config | include global-stp` printing nothing. |
-| `ipv6 mld version 2` | Accepted without error but **silently unreliable** — it applied on two units and left a third on MLDv1. Use the canonical `ipv6 multicast version 2` instead, and verify with `show ipv6 multicast`: want `Version=2`, `dft V2` and `(SG)` caches, not `V1` / `(*G)`. |
-| `global-rstp` | Does not exist. 802.1w is per-VLAN: `spanning-tree 802-1w`. Remove `global-stp`, and `no spanning-tree` on the VLAN before enabling 802.1w. |
-| `spanning-tree 802-1w priority 32768` | Accepted but absent from running-config, because it equals the default. Confirm via the bridge ID in `show 802-1w` — a leading `8000` is 32768. |
-| `ip mtu 9198` on `ve 1` before the `jumbo` reload | Rejected: the range is 1280-1500 until jumbo is live. Set it after the reload. `ip mtu` also sets the IPv6 MTU. |
-| `enable` at a `#` prompt | Rejected; already privileged. Needed only after a reload, which drops you to `>`. |
-| `?` in a pasted block | Swallowed. Help queries must be typed by hand. |
+| Doing this                                         | Actual 10.0 behaviour                                                                                                                                                                                                                                                 |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `no ip dhcp-client enable`                         | Rejected. Use `ip dhcp-client disable`.                                                                                                                                                                                                                               |
+| Removing the per-VE binding first                  | Refused while the client is on globally. Disable globally, *then* `no ip dhcp-client ve default`, *then* set the static address.                                                                                                                                      |
+| `dual-mode` / `dual-mode 1`                        | Deprecated since 08.0.80. Unnecessary — a port tagged into other VLANs keeps its untagged VLAN 1 membership. Verify with `Tag=Yes, Pvid=1`.                                                                                                                           |
+| `no ip multicast disable-flooding`                 | Deprecated. Use `ip multicast flood-unregistered` and `ipv6 multicast flood-unregistered`. The IPv6 form of `disable-flooding` does not exist at all.                                                                                                                 |
+| A global command after a `vlan`/`interface` stanza | Silently ignored or misfiled into the sub-context. `no global-stp` landed nowhere; `no ip dhcp-client enable` was written into an interface. **Always `exit` to global config first.**                                                                                |
+| `no global-stp` before VLAN 1 is on 802.1w         | Silently does not stick. Removal only takes once `spanning-tree 802-1w` is active on VLAN 1, so sequence it *after* the VLAN 1 stanza. Confirm with `show running-config | include global-stp` printing nothing.                                                      |
+| `ipv6 mld version 2`                               | Accepted without error but **silently unreliable** — it applied on two units and left a third on MLDv1. Use the canonical `ipv6 multicast version 2` instead, and verify with `show ipv6 multicast`: want `Version=2`, `dft V2` and `(SG)` caches, not `V1` / `(*G)`. |
+| `global-rstp`                                      | Does not exist. 802.1w is per-VLAN: `spanning-tree 802-1w`. Remove `global-stp`, and `no spanning-tree` on the VLAN before enabling 802.1w.                                                                                                                           |
+| `spanning-tree 802-1w priority 32768`              | Accepted but absent from running-config, because it equals the default. Confirm via the bridge ID in `show 802-1w` — a leading `8000` is 32768.                                                                                                                       |
+| `ip mtu 9198` on `ve 1` before the `jumbo` reload  | Rejected: the range is 1280-1500 until jumbo is live. Set it after the reload. `ip mtu` also sets the IPv6 MTU.                                                                                                                                                       |
+| `enable` at a `#` prompt                           | Rejected; already privileged. Needed only after a reload, which drops you to `>`.                                                                                                                                                                                     |
+| `?` in a pasted block                              | Swallowed. Help queries must be typed by hand.                                                                                                                                                                                                                        |
 
 ## Office C08ZP as-built
 
@@ -194,12 +194,12 @@ lines on both SFP+ ports are inert and `1/2/2` works as an ordinary data port.
 Uplink `1/2/2` to the Office CRS309. This switch is the **active** IGMP/MLD querier for
 all six VLANs; PoE allocation is dynamic; 240W budget.
 
-| Port | Name | Untagged | Tagged |
-| --- | --- | --- | --- |
-| 1/1/5 | office-ap | 1 | 10, 20, 4000 |
-| 1/1/6 | uh-ap | 1 | 10, 20, 4000 |
-| 1/1/7 | codswallop | 20 | - |
-| 1/1/8 | kerfuffle | 20 | 10, 60 |
+| Port  | Name       | Untagged | Tagged       |
+| ----- | ---------- | -------- | ------------ |
+| 1/1/5 | office-ap  | 1        | 10, 20, 4000 |
+| 1/1/6 | uh-ap      | 1        | 10, 20, 4000 |
+| 1/1/7 | codswallop | 20       | -            |
+| 1/1/8 | kerfuffle  | 20       | 10, 60       |
 
 `kerfuffle` is the Talos node. Its `bond0` is `active-backup` over a single link,
 **not** LACP, so it takes a plain access port with no LAG, with VLANs 10 and 60 tagged for
@@ -213,12 +213,12 @@ relevant if the Office-Game Room hop, which also carries Garage traffic, ever sa
 
 Uplink `1/2/2` to the Game Room CRS309. IGMP/MLD **passive** on all six VLANs.
 
-| Port | Name | Untagged | Tagged |
-| --- | --- | --- | --- |
-| 1/1/1 | andys-desktop | 10 | - |
-| 1/1/5 | todds-desktop | 10 | - |
-| 1/1/7 | game-room-ap | 1 | 10, 20, 4000 |
-| 1/1/8 | lr-ap | 1 | 10, 20, 4000 |
+| Port  | Name          | Untagged | Tagged       |
+| ----- | ------------- | -------- | ------------ |
+| 1/1/1 | andys-desktop | 10       | -            |
+| 1/1/5 | todds-desktop | 10       | -            |
+| 1/1/7 | game-room-ap  | 1        | 10, 20, 4000 |
+| 1/1/8 | lr-ap         | 1        | 10, 20, 4000 |
 
 `1/1/6` is unused.
 
@@ -232,13 +232,13 @@ Office CRS309 for trusted-network routing instead.
 Uplink `1/2/2` to the Garage CRS309. IGMP/MLD **passive** on all six VLANs. Heaviest PoE
 load of the three: five APs against a 240W budget, dynamic allocation.
 
-| Port | Name | Untagged | Tagged |
-| --- | --- | --- | --- |
-| 1/1/1 | garage-ap | 1 | 10, 20, 4000 |
-| 1/1/2 | rd-ap | 1 | 10, 20, 4000 |
-| 1/1/3 | sy-ap | 1 | 10, 20, 4000 |
-| 1/1/4 | sd-ap | 1 | 10, 20, 4000 |
-| 1/1/5 | kitchen-ap | 1 | 10, 20, 4000 |
+| Port  | Name       | Untagged | Tagged       |
+| ----- | ---------- | -------- | ------------ |
+| 1/1/1 | garage-ap  | 1        | 10, 20, 4000 |
+| 1/1/2 | rd-ap      | 1        | 10, 20, 4000 |
+| 1/1/3 | sy-ap      | 1        | 10, 20, 4000 |
+| 1/1/4 | sd-ap      | 1        | 10, 20, 4000 |
+| 1/1/5 | kitchen-ap | 1        | 10, 20, 4000 |
 
 ## Garage C08PF as-built
 
@@ -247,14 +247,14 @@ active (priority 128) and unit 2 standby. The stack link is `1/2/1`-`2/2/1`; tho
 only stack ports, so `2/2/2` stays a data port. Uplink `1/2/2` to the Garage CRS309. IGMP and MLD **passive** with
 flooding.
 
-| Port | Name | Untagged |
-| --- | --- | --- |
-| 1/1/1 | courtyard-doorbell | 60 |
-| 1/1/2 | garage-todd | 60 |
-| 1/1/3 | rear-side-yard | 60 |
-| 1/1/4 | rear-driveway | 60 |
-| 1/1/5 | side-yard | 60 |
-| 1/1/6 | garage-andy | 60 |
+| Port  | Name               | Untagged |
+| ----- | ------------------ | -------- |
+| 1/1/1 | courtyard-doorbell | 60       |
+| 1/1/2 | garage-todd        | 60       |
+| 1/1/3 | rear-side-yard     | 60       |
+| 1/1/4 | rear-driveway      | 60       |
+| 1/1/5 | side-yard          | 60       |
+| 1/1/6 | garage-andy        | 60       |
 
 `1/1/7`, `1/1/8` and `1/2/1` are unused.
 
@@ -263,10 +263,10 @@ flooding.
 Same hardware and firmware as the Office C08PF. Replaced the Game Room ICX7150 at `.22`.
 Uplink `1/2/2` to the Game Room CRS309. IGMP and MLD **passive** with flooding.
 
-| Port | Name | Untagged |
-| --- | --- | --- |
-| 1/1/1 | solaredge | 50 |
-| 1/1/2 | zigbee | 10 |
+| Port  | Name      | Untagged |
+| ----- | --------- | -------- |
+| 1/1/1 | solaredge | 50       |
+| 1/1/2 | zigbee    | 10       |
 
 `1/1/3`-`1/1/8` and `1/2/1` are unused.
 
@@ -279,17 +279,17 @@ data ports. Stack ports reject all interface config, including `port-name`. Mana
 `.12`. Uplink `1/2/2` to the Office CRS309. IGMP and MLD **passive** with flooding on all
 six VLANs.
 
-| Port | Name | Untagged |
-| --- | --- | --- |
-| 1/1/1 | time1 | 20 |
-| 1/1/2 | time2 | 20 |
-| 1/1/3 | time3 | 20 |
-| 1/1/4 | time4 | 20 |
-| 1/1/5 | homeassistant | 10 |
-| 2/1/1 | kvm-hass | 20 |
-| 2/1/2 | kvm-nas | 20 |
-| 2/1/3 | kvm-k8s | 20 |
-| 2/1/4 | kvm-gallivant | 20 |
+| Port  | Name          | Untagged |
+| ----- | ------------- | -------- |
+| 1/1/1 | time1         | 20       |
+| 1/1/2 | time2         | 20       |
+| 1/1/3 | time3         | 20       |
+| 1/1/4 | time4         | 20       |
+| 1/1/5 | homeassistant | 10       |
+| 2/1/1 | kvm-hass      | 20       |
+| 2/1/2 | kvm-nas       | 20       |
+| 2/1/3 | kvm-k8s       | 20       |
+| 2/1/4 | kvm-gallivant | 20       |
 
 Unassigned ports are untagged in the default VLAN 1.
 
@@ -360,11 +360,11 @@ RouterOS expresses the same trunk profile differently: a `pvid` on each bridge p
 CRS309-1G-8S+, RouterOS 7.24. Management 10.1.0.30/24 on the bridge interface, RSTP
 priority `0x3000` (12288), hardware offload active on all ports.
 
-| Port | Comment |
-| --- | --- |
+| Port         | Comment                |
+| ------------ | ---------------------- |
 | sfp-sfpplus1 | uplink-gameroom-crs309 |
-| sfp-sfpplus2 | garage-c08zp |
-| sfp-sfpplus3 | garage-c08pf |
+| sfp-sfpplus2 | garage-c08zp           |
+| sfp-sfpplus3 | garage-c08pf           |
 
 `ether1` and `sfp-sfpplus4`-`8` stay in the bridge at pvid 1, so any unused port is an
 untagged VLAN 1 access port - a way back in if management is lost.
@@ -374,12 +374,12 @@ untagged VLAN 1 access port - a way back in if management is lost.
 CRS309-1G-8S+, RouterOS 7.24. Management 10.1.0.20/24 on the bridge, RSTP priority
 `0x2000` (8192). Mid-chain, so four tagged ports rather than three.
 
-| Port | Comment |
-| --- | --- |
-| sfp-sfpplus1 | uplink-office-crs309 |
+| Port         | Comment                |
+| ------------ | ---------------------- |
+| sfp-sfpplus1 | uplink-office-crs309   |
 | sfp-sfpplus2 | downlink-garage-crs309 |
-| sfp-sfpplus3 | gameroom-c08zp |
-| sfp-sfpplus4 | gameroom-c08pf |
+| sfp-sfpplus3 | gameroom-c08zp         |
+| sfp-sfpplus4 | gameroom-c08pf         |
 
 This unit is the 32MB board revision; the Office and Garage units are 16MB boards. See
 [CRS309 flash revisions](#crs309-flash-revisions) before upgrading any of them.
@@ -390,12 +390,12 @@ CRS309-1G-8S+, RouterOS 7.24. Management 10.1.0.10/24 on the bridge, RSTP priori
 `0x1000` (4096) - the **root bridge** for the whole fabric, which is where the RB5009
 attaches.
 
-| Port | Comment |
-| --- | --- |
+| Port         | Comment                   |
+| ------------ | ------------------------- |
 | sfp-sfpplus1 | uplink-office-gw (RB5009) |
-| sfp-sfpplus2 | downlink-gameroom-crs309 |
-| sfp-sfpplus3 | office-c08zp |
-| sfp-sfpplus4 | office-c08pf |
+| sfp-sfpplus2 | downlink-gameroom-crs309  |
+| sfp-sfpplus3 | office-c08zp              |
+| sfp-sfpplus4 | office-c08pf              |
 
 ### Office routing as-built (2026-10-16)
 
@@ -438,11 +438,11 @@ input filters protect its own control plane.
 
 Two board revisions are in play, and it matters for upgrades:
 
-| Unit | Flash | Free | minimum-version |
-| --- | --- | --- | --- |
-| Office | 16MB | ~3.0MB | 6.44.6 |
-| Game Room | 32MB | ~18.7MB | 7.11.2 |
-| Garage | 16MB | ~3.0MB | 6.44.6 |
+| Unit      | Flash | Free    | minimum-version |
+| --------- | ----- | ------- | --------------- |
+| Office    | 16MB  | ~3.0MB  | 6.44.6          |
+| Game Room | 32MB  | ~18.7MB | 7.11.2          |
+| Garage    | 16MB  | ~3.0MB  | 6.44.6          |
 
 On the 16MB units a ~17MB package cannot be staged at all, so a manual `.npk` upload is
 not possible there. CRS309 has no `/partitions` support either, so there is no fallback
@@ -550,25 +550,25 @@ Omitting `version` installs the latest in the Check for Updates channel.
 
 ### Listener parameters
 
-| Parameter | Meaning / default |
-| --- | --- |
-| `interface` | Interface the server listens on |
-| `allow-etherboot` | yes/no, default yes |
-| `allow-flashfig` | yes/no, default yes |
-| `mac-address` | Restrict to one target MAC |
-| `ip-range` | BOOTP range handed to the target |
-| `version` | RouterOS version to install |
-| `auto-reboot` | none/reboot/shutdown, default reboot |
-| `extra-packages` | Beyond the system package, which installs automatically |
-| `keep-old-configuration` | yes/no, default yes |
-| `apply-default-configuration` | yes/no, default no |
-| `install-once` | yes/no, default yes |
-| `mode-file` | First-boot script, auto-removed after it runs |
-| `script-file` | Default configuration script |
-| `remove-branding` | yes/no, default no |
-| `wait` | yes/no, default no |
-| `etherboot-image` | Select a cached package |
-| `etherboot-image-arch` | CPU architecture |
+| Parameter                     | Meaning / default                                       |
+| ----------------------------- | ------------------------------------------------------- |
+| `interface`                   | Interface the server listens on                         |
+| `allow-etherboot`             | yes/no, default yes                                     |
+| `allow-flashfig`              | yes/no, default yes                                     |
+| `mac-address`                 | Restrict to one target MAC                              |
+| `ip-range`                    | BOOTP range handed to the target                        |
+| `version`                     | RouterOS version to install                             |
+| `auto-reboot`                 | none/reboot/shutdown, default reboot                    |
+| `extra-packages`              | Beyond the system package, which installs automatically |
+| `keep-old-configuration`      | yes/no, default yes                                     |
+| `apply-default-configuration` | yes/no, default no                                      |
+| `install-once`                | yes/no, default yes                                     |
+| `mode-file`                   | First-boot script, auto-removed after it runs           |
+| `script-file`                 | Default configuration script                            |
+| `remove-branding`             | yes/no, default no                                      |
+| `wait`                        | yes/no, default no                                      |
+| `etherboot-image`             | Select a cached package                                 |
+| `etherboot-image-arch`        | CPU architecture                                        |
 
 Also `/tool/netinstall/cache/` (arch mandatory, packages, version) and
 `/tool/netinstall/devices/` (device state; clear the list, or install with
@@ -589,14 +589,14 @@ auto-reboot / extra-packages / numbers / version).
 
 ### boot-device options
 
-| Option | Behaviour |
-| --- | --- |
-| `nand-if-fail-then-ethernet` | Factory default. Boots NAND; if RouterOS will not boot, goes to Etherboot automatically |
-| `nand-only` | NAND only, no fallback |
-| `try-ethernet-once-then-nand` | Tries Etherboot next boot, falls back to NAND if nothing answers |
-| `ethernet` | Stays in Etherboot |
-| `flash-boot` | Flashfig mode; reverts to NAND after a config change or user login |
-| `flash-boot-once-then-nand` | Flashfig for one boot, then reverts to `nand-if-fail-then-ethernet` |
+| Option                        | Behaviour                                                                               |
+| ----------------------------- | --------------------------------------------------------------------------------------- |
+| `nand-if-fail-then-ethernet`  | Factory default. Boots NAND; if RouterOS will not boot, goes to Etherboot automatically |
+| `nand-only`                   | NAND only, no fallback                                                                  |
+| `try-ethernet-once-then-nand` | Tries Etherboot next boot, falls back to NAND if nothing answers                        |
+| `ethernet`                    | Stays in Etherboot                                                                      |
+| `flash-boot`                  | Flashfig mode; reverts to NAND after a config change or user login                      |
+| `flash-boot-once-then-nand`   | Flashfig for one boot, then reverts to `nand-if-fail-then-ethernet`                     |
 
 `boot-protocol` is `bootp` (default) or `dhcp`.
 

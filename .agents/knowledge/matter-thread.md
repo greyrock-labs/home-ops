@@ -32,11 +32,11 @@
 3. **Read the Matter Server log for the node** (`ha_get_logs source=supervisor
    slug=core_matter_server search=@1:<hex>`):
 
-   | Log line | Meaning |
-   | --- | --- |
-   | `Connecting ... attempt #: N` with nothing after it | the handshake timed out |
+   | Log line                                                               | Meaning                                                |
+   | ---------------------------------------------------------------------- | ------------------------------------------------------ |
+   | `Connecting ... attempt #: N` with nothing after it                    | the handshake timed out                                |
    | `Peer error ... (Failure (1) / InvalidParam (2)) ... (Sigma3-Success)` | the plug answered but rejected the last handshake step |
-   | `New session with @1:<hex>` / `is online` | connected |
+   | `New session with @1:<hex>` / `is online`                              | connected                                              |
 
    On a lossy link the same plug cycles through all three; the Sigma3 rejection comes from
    handshake messages arriving lost, late or out of order. Fix the radio first.

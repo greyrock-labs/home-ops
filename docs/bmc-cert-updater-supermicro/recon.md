@@ -52,10 +52,10 @@ reading that the probe run was measured against.
 
 **Form input fields (`name` → source-of-value):**
 
-| `name`     | source-of-value                                                |
-|------------|----------------------------------------------------------------|
-| `cert_file`| user-selected file, `<input type="file">` (`id="sslcrt_file"`) |
-| `key_file` | user-selected file, `<input type="file">` (`id="privkey_file"`)|
+| `name`       | source-of-value                                                                                                                                                                                                |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cert_file`  | user-selected file, `<input type="file">` (`id="sslcrt_file"`)                                                                                                                                                 |
+| `key_file`   | user-selected file, `<input type="file">` (`id="privkey_file"`)                                                                                                                                                |
 | `CSRF_TOKEN` | injected at page-load time by JS: `SmcCsrfInsert("CSRF_TOKEN", "<base64>")` → `_doCsrfInsert` in `/js/utils.js` appends a hidden `<input type="hidden" name="CSRF_TOKEN" value="…">` to every form on the page |
 
 The CSRF field name is **`CSRF_TOKEN`** (uppercase, no underscore
@@ -126,14 +126,14 @@ matched. The correct extraction is:
 
 ## Discrepancies from design assumptions
 
-| design.md assumption                | recon finding                                                                 |
-|-------------------------------------|-------------------------------------------------------------------------------|
-| Login URL = `/cgi/login.cgi`        | **matches.**                                                                  |
-| Cert page URL = `url_name=ssl_cert_upload` | **WRONG.** Actual: `url_name=config_ssl`. The brief's `ssl_cert_upload` and `certificate_upload` candidates both 404. |
-| CSRF field name = `_csrf_token`     | **WRONG.** Actual field name: `CSRF_TOKEN` (uppercase, no underscore prefix). The token is injected client-side via `SmcCsrfInsert` in `/js/utils.js`, not present in the static HTML. |
-| Upload URL = `/cgi/upload_ssl.cgi`  | **matches.**                                                                  |
-| Upload form fields = `cert_file`, `key_file`, `_csrf_token` | **partly WRONG.** Field names are `cert_file`, `key_file`, `CSRF_TOKEN`. CSRF must be a multipart field (not a header) because `uploadCert()` uses `form.submit()`, not XHR. |
-| Failure response shape (any)        | **WRONG.** BMC returns `200 OK` with a re-rendered config page; failure is detected client-side via `SSL_VALIDATE.XML` AJAX. The script's retry loop should not rely on HTTP status alone. |
+| design.md assumption                                        | recon finding                                                                                                                                                                              |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Login URL = `/cgi/login.cgi`                                | **matches.**                                                                                                                                                                               |
+| Cert page URL = `url_name=ssl_cert_upload`                  | **WRONG.** Actual: `url_name=config_ssl`. The brief's `ssl_cert_upload` and `certificate_upload` candidates both 404.                                                                      |
+| CSRF field name = `_csrf_token`                             | **WRONG.** Actual field name: `CSRF_TOKEN` (uppercase, no underscore prefix). The token is injected client-side via `SmcCsrfInsert` in `/js/utils.js`, not present in the static HTML.     |
+| Upload URL = `/cgi/upload_ssl.cgi`                          | **matches.**                                                                                                                                                                               |
+| Upload form fields = `cert_file`, `key_file`, `_csrf_token` | **partly WRONG.** Field names are `cert_file`, `key_file`, `CSRF_TOKEN`. CSRF must be a multipart field (not a header) because `uploadCert()` uses `form.submit()`, not XHR.               |
+| Failure response shape (any)                                | **WRONG.** BMC returns `200 OK` with a re-rendered config page; failure is detected client-side via `SSL_VALIDATE.XML` AJAX. The script's retry loop should not rely on HTTP status alone. |
 
 All five discrepancies propagate into Task 4's upload script; the
 script must use `url_name=config_ssl`, multipart field

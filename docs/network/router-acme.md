@@ -40,16 +40,16 @@ itself, so the token needs Zone:Read as well as DNS:Edit.
 
 ## As-built
 
-| | |
-| --- | --- |
-| Container | `acme`, image pinned by `router-containers`, see `router-baseline.md` |
-| Root dir | `usb1/acme-root` |
-| Mount list | `acme` — `usb1/acme` to `/acme.sh` |
-| Env list | `acme` |
-| veth | `veth-acme`, 10.1.30.3/24, gateway 10.1.30.1, bridge port `pvid=30` |
-| Container DNS | 10.1.30.2 (ctrld) |
-| RouterOS user | `acme`, group `acme`, key-only |
-| Bound service | `www-ssl` (443). `www` (80) stays disabled. |
+|               |                                                                       |
+| ------------- | --------------------------------------------------------------------- |
+| Container     | `acme`, image pinned by `router-containers`, see `router-baseline.md` |
+| Root dir      | `usb1/acme-root`                                                      |
+| Mount list    | `acme` — `usb1/acme` to `/acme.sh`                                    |
+| Env list      | `acme`                                                                |
+| veth          | `veth-acme`, 10.1.30.3/24, gateway 10.1.30.1, bridge port `pvid=30`   |
+| Container DNS | 10.1.30.2 (ctrld)                                                     |
+| RouterOS user | `acme`, group `acme`, key-only                                        |
+| Bound service | `www-ssl` (443). `www` (80) stays disabled.                           |
 
 VLAN 30 is the container VLAN and is a member of the `LAN` interface list, so input
 rule 7 (`drop all not coming from LAN`) does not block the container's SSH to

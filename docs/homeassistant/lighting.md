@@ -17,23 +17,23 @@ Snapshots of every automation below are in
 
 One entry per room, each listing that room's lights. All share these settings:
 
-| Setting | Value | Why |
-| --- | --- | --- |
-| Colour range | 2000–6500 K | All bulbs are the same IKEA KAJPLATS family |
-| Max brightness | 100% (Game Room 50%) | |
-| Sleep brightness / colour | 1% / 2200 K | Matches the old night lights; the lamp's warmest is 2202 K |
-| `take_over_control_mode` | `pause_changed` | A brightness-only command (e.g. dim-before-off) pauses brightness only; colour keeps adapting |
-| `autoreset_control_seconds` | 3600 | A paused light rejoins the curve after an hour |
-| `skip_redundant_commands` | off | Re-sending every 90 s corrects any light that missed a command |
-| `transition_until_sleep` | off | Colour stops at 2000 K at sunset instead of fading toward sleep |
+| Setting                     | Value                | Why                                                                                           |
+| --------------------------- | -------------------- | --------------------------------------------------------------------------------------------- |
+| Colour range                | 2000–6500 K          | All bulbs are the same IKEA KAJPLATS family                                                   |
+| Max brightness              | 100% (Game Room 50%) |                                                                                               |
+| Sleep brightness / colour   | 1% / 2200 K          | Matches the old night lights; the lamp's warmest is 2202 K                                    |
+| `take_over_control_mode`    | `pause_changed`      | A brightness-only command (e.g. dim-before-off) pauses brightness only; colour keeps adapting |
+| `autoreset_control_seconds` | 3600                 | A paused light rejoins the curve after an hour                                                |
+| `skip_redundant_commands`   | off                  | Re-sending every 90 s corrects any light that missed a command                                |
+| `transition_until_sleep`    | off                  | Colour stops at 2000 K at sunset instead of fading toward sleep                               |
 
 Minimum brightness per room:
 
-| Min | Rooms |
-| --- | --- |
+| Min | Rooms                                                                   |
+| --- | ----------------------------------------------------------------------- |
 | 80% | Breezeway, Downstairs Hallway, Upstairs Hallway, Porch Hallway, Laundry |
-| 60% | Office, Dining Room, Downstairs Bathroom, Kitchen, Living Room |
-| 20% | Game Room |
+| 60% | Office, Dining Room, Downstairs Bathroom, Kitchen, Living Room          |
+| 20% | Game Room                                                               |
 
 With `brightness_mode: default`, brightness is `max_brightness` for the whole time the sun is up
 and only falls after sunset, reaching `min_brightness` at solar midnight. Colour follows a
@@ -63,11 +63,11 @@ Each Adaptive Lighting entry has a sleep switch,
 `switch.adaptive_lighting_<room>_sleep_mode`. They mirror the conditions the rooms' night
 lights use:
 
-| Rooms | Condition | Driven by |
-| --- | --- | --- |
-| Office, Game Room | `input_boolean.sleep` on | Sleep - On (Actions) / Sleep - Off (Actions) |
+| Rooms                                                                                              | Condition                    | Driven by                                          |
+| -------------------------------------------------------------------------------------------------- | ---------------------------- | -------------------------------------------------- |
+| Office, Game Room                                                                                  | `input_boolean.sleep` on     | Sleep - On (Actions) / Sleep - Off (Actions)       |
 | Dining Room, Downstairs Bathroom, Downstairs Hallway, Kitchen, Laundry, Living Room, Porch Hallway | sleep on **and** 21:00–07:00 | Adaptive Lighting - Sleep Mode (21:00-07:00 rooms) |
-| Breezeway, Upstairs Hallway | none (no night lights) | — |
+| Breezeway, Upstairs Hallway                                                                        | none (no night lights)       | —                                                  |
 
 Sleep is usually still on after 07:00 (it is turned off around 09:00), so the window rooms
 need the time condition or they would sit at 1% until then.

@@ -74,10 +74,10 @@ transit nor the switch adds NAT.
 
 `envoy-external` has two sets of listeners:
 
-| Listener | Port | PROXY protocol | Used by |
-| --- | --- | --- | --- |
-| `http` / `https` / `ssh` | 80 / 443 / 22 | not accepted | direct connections to 10.1.25.41 |
-| `http-proxy` / `https-proxy` / `ssh-proxy` | 8080 / 8443 / 8022 | required | skedaddle |
+| Listener                                   | Port               | PROXY protocol | Used by                          |
+| ------------------------------------------ | ------------------ | -------------- | -------------------------------- |
+| `http` / `https` / `ssh`                   | 80 / 443 / 22      | not accepted   | direct connections to 10.1.25.41 |
+| `http-proxy` / `https-proxy` / `ssh-proxy` | 8080 / 8443 / 8022 | required       | skedaddle                        |
 
 Each proxy listener has its own ClientTrafficPolicy with `proxyProtocol.optional: false`.
 The http-proxy and https-proxy policies strip any incoming `x-forwarded-for`, so the client
@@ -151,12 +151,12 @@ subscribed in the Console.
 
 All in the 1Password item `Infrastructure - Automation/CrowdSec`:
 
-| Field | Used by |
-| --- | --- |
-| `password` | Console enrollment key (`ENROLL_KEY` on LAPI) |
-| `bouncer_key_envoy` | envoy bouncer; registered on LAPI by `BOUNCER_KEY_envoy` |
-| `bouncer_key_skedaddle` | skedaddle firewall bouncer; registered by `BOUNCER_KEY_skedaddle` |
-| `skedaddle_machine_password` | skedaddle agent (`AGENT_PASSWORD` via doco-cd) |
+| Field                        | Used by                                                           |
+| ---------------------------- | ----------------------------------------------------------------- |
+| `password`                   | Console enrollment key (`ENROLL_KEY` on LAPI)                     |
+| `bouncer_key_envoy`          | envoy bouncer; registered on LAPI by `BOUNCER_KEY_envoy`          |
+| `bouncer_key_skedaddle`      | skedaddle firewall bouncer; registered by `BOUNCER_KEY_skedaddle` |
+| `skedaddle_machine_password` | skedaddle agent (`AGENT_PASSWORD` via doco-cd)                    |
 
 Bouncer keys are re-registered from the env vars on every LAPI start. The `skedaddle` machine
 is not: it lives in the LAPI database. If that PVC is lost, add it again:

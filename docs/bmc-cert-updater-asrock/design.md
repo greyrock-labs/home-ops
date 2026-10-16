@@ -15,10 +15,10 @@ schedule, uploading only when the certificate changes.
 
 ## Targets
 
-| Board (host) | BMC URL | BMC IP |
-|---|---|---|
-| codswallop (TrueNAS NAS) | `https://kvm-codswallop.internal.greyrock.io` | 10.1.20.13 |
-| kerfuffle (Talos controlplane host) | `https://kvm-kerfuffle.internal.greyrock.io` | 10.1.20.11 |
+| Board (host)                        | BMC URL                                       | BMC IP     |
+| ----------------------------------- | --------------------------------------------- | ---------- |
+| codswallop (TrueNAS NAS)            | `https://kvm-codswallop.internal.greyrock.io` | 10.1.20.13 |
+| kerfuffle (Talos controlplane host) | `https://kvm-kerfuffle.internal.greyrock.io`  | 10.1.20.11 |
 
 The hostnames already resolve to the BMC IPs and are covered by the
 `*.internal.greyrock.io` wildcard SAN. No DNS records are created by this work.
@@ -71,11 +71,11 @@ Follows the house pattern (`refreshInterval: 12h`, ClusterSecretStore
 `bmc-cert-updater-asrock-secret` from a single 1Password item **`Cert Updater`** (must live in one
 of the ClusterSecretStore vaults: Kubernetes / Automation / Services):
 
-| secretKey (env var name) | 1Password item | property (field) |
-|---|---|---|
-| `UPDATER_USERNAME` | Cert Updater | `updater-username` |
-| `CODSWALLOP_PASSWORD` | Cert Updater | `codswallop-password` |
-| `KERFUFFLE_PASSWORD` | Cert Updater | `kerfuffle-password` |
+| secretKey (env var name) | 1Password item | property (field)      |
+| ------------------------ | -------------- | --------------------- |
+| `UPDATER_USERNAME`       | Cert Updater   | `updater-username`    |
+| `CODSWALLOP_PASSWORD`    | Cert Updater   | `codswallop-password` |
+| `KERFUFFLE_PASSWORD`     | Cert Updater   | `kerfuffle-password`  |
 
 Note: the 1Password field names keep their hyphens; the Secret keys use underscores
 because `envFrom` requires valid environment-variable names. A single shared
@@ -158,12 +158,12 @@ first successful push). No openssl/jq dependency — string handling only.
 
 ## Failure modes and runbook
 
-| Failure | Detection | Recovery |
-|---|---|---|
+| Failure                                                    | Detection                       | Recovery                                                                                                                                                             |
+| ---------------------------------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Upload wedges BMC web UI (known X570D4U-2L2T firmware bug) | Web UI unreachable after a push | `ipmitool mc reset cold` — local on codswallop (fan duty reverts until CoolerControl re-applies it; expect a brief fan ramp), over-LAN from codswallop for kerfuffle |
-| Login failure (locked account / password drift) | Job fails at login step | Fix the account or the `Cert Updater` item; ExternalSecret refreshes within 12h |
-| Cert Secret missing / not yet issued | Pod mount or file check fails | `dependsOn` ordering makes this a first-rollout edge only; next run self-heals |
-| BMC unreachable | curl timeout, job fails | Investigate BMC/network manually |
+| Login failure (locked account / password drift)            | Job fails at login step         | Fix the account or the `Cert Updater` item; ExternalSecret refreshes within 12h                                                                                      |
+| Cert Secret missing / not yet issued                       | Pod mount or file check fails   | `dependsOn` ordering makes this a first-rollout edge only; next run self-heals                                                                                       |
+| BMC unreachable                                            | curl timeout, job fails         | Investigate BMC/network manually                                                                                                                                     |
 
 Mitigations baked in: upload only on change, always upload a freshly-issued
 fullchain+key pair, verify after upload, and `backoffLimit: 0` so a wedged BMC never

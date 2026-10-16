@@ -44,20 +44,20 @@ is 16 (local0), and severity comes from the topic.
 `office-gw` only, with `/system logging add topics=firewall action=victorialogs`. Rules
 carry `log=yes` and a `log-prefix`, and **the prefix arrives as `app_name`**:
 
-| Chain | Rule | Prefix |
-| --- | --- | --- |
-| input | drop invalid | `in-invalid` |
-| forward | cameras: no forwarding out of vlan 60 | `cam-block` |
-| forward | guest: no lan | `guest-lan` |
-| forward | guest: no cameras | `guest-cam` |
-| forward | drop invalid | `fwd-invalid` |
-| input (v6) | drop invalid | `in6-invalid` |
-| forward (v6) | drop invalid | `fwd6-invalid` |
-| forward (v6) | drop packets with bad src ipv6 | `bad6-src` |
-| forward (v6) | drop packets with bad dst ipv6 | `bad6-dst` |
-| forward (v6) | rfc4890 drop hop-limit=1 | `rfc4890` |
-| forward (v6) | guest: no lan | `guest6-lan` |
-| forward (v6) | guest: no cameras | `guest6-cam` |
+| Chain        | Rule                                  | Prefix         |
+| ------------ | ------------------------------------- | -------------- |
+| input        | drop invalid                          | `in-invalid`   |
+| forward      | cameras: no forwarding out of vlan 60 | `cam-block`    |
+| forward      | guest: no lan                         | `guest-lan`    |
+| forward      | guest: no cameras                     | `guest-cam`    |
+| forward      | drop invalid                          | `fwd-invalid`  |
+| input (v6)   | drop invalid                          | `in6-invalid`  |
+| forward (v6) | drop invalid                          | `fwd6-invalid` |
+| forward (v6) | drop packets with bad src ipv6        | `bad6-src`     |
+| forward (v6) | drop packets with bad dst ipv6        | `bad6-dst`     |
+| forward (v6) | rfc4890 drop hop-limit=1              | `rfc4890`      |
+| forward (v6) | guest: no lan                         | `guest6-lan`   |
+| forward (v6) | guest: no cameras                     | `guest6-cam`   |
 
 The WAN-facing drops are deliberately **not** logged - v4 `drop all not coming from LAN`
 and `drop all from WAN not DSTNATed`, and both v6 `drop everything else not coming from
