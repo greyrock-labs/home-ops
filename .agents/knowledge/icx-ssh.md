@@ -10,9 +10,11 @@
 3. Everything else is done directly over SSH, without him pasting output.
 
 Check that nothing else holds the target address before assigning it: no ping reply is
-not proof. Another switch that kept `.12` once answered SSH in place of the ICX, which
-showed up as two different host keys. After moving a conflicting device, ping the gateway
-and APs from the ICX to refresh their ARP entries.
+not proof. A UniFi switch that kept `.12` once answered SSH in place of the ICX, which
+showed up as two different host keys (ED25519 from the UniFi switch, ECDSA from the ICX).
+List the UniFi device IPs from the UDM API (`stat/device`) while the UDM is still in
+place. After moving a conflicting device, ping the gateway and APs from the ICX to
+refresh their ARP entries.
 
 After a firmware upgrade the switch updates its PoE firmware (`show logging | include PoE`
 shows the progress). Send it nothing but read-only commands until then, and do not reload

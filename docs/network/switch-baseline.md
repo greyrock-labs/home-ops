@@ -38,7 +38,8 @@ capped by the RB5009's single SFP+ and its CPU.
 | 4000 | Guest | 192.168.23.0/24 |
 
 `10.1.25.0/24` is the Cilium load-balancer pool. It is **not** a VLAN — those /32s are
-BGP-announced to 10.1.0.1.
+BGP-announced to 10.1.0.1. The old UniFi controller required a VLAN for it; MikroTik
+does not, so the migration drops it.
 
 ## Conventions
 
