@@ -154,10 +154,12 @@ Verified during preparation and cutover:
   public Forgejo returned HTTP 200 through the VPS/WireGuard path.
 - Both DNS servers returned the API address. 58 VLAN 10 leases had recent DHCP
   activity after relay cutover. The user confirmed phone Internet on VLAN 10.
+- After returning the Mac to VLAN 10 Wi-Fi, native DNS, hostname-based kubectl,
+  internal echo HTTP 200 and NAS SSH all passed. Routes to NAS and API used
+  en1 through the unchanged 10.1.10.1 gateway.
 
-Not measured: client-to-NAS transfer speed, application-level ingress behavior
-from VLAN 10, actual netboot, mDNS device discovery, and guest/camera negative
-runtime tests. Firewall rules and affected paths were inspected, but those tests
+Not measured: client-to-NAS transfer speed, actual netboot, mDNS device discovery,
+and guest/camera negative runtime tests. Firewall rules and affected paths were inspected, but those tests
 must not be reported as passed. No production ISP release or router reboot was
 performed to simulate lease loss.
 
