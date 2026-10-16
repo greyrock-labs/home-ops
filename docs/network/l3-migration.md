@@ -158,8 +158,23 @@ Verified during preparation and cutover:
   internal echo HTTP 200 and NAS SSH all passed. Routes to NAS and API used
   en1 through the unchanged 10.1.10.1 gateway.
 
-Not measured: client-to-NAS transfer speed, actual netboot, mDNS device discovery,
-and guest/camera negative runtime tests. Firewall rules and affected paths were inspected, but those tests
+- IPv4 iperf3 from the Mac on 6 GHz VLAN 10 Wi-Fi (10.1.10.9) to the NAS
+  (10.1.20.12), 20 measured seconds per test after two seconds omitted:
+
+  | Direction | One TCP stream | Four TCP streams |
+  | --- | ---: | ---: |
+  | Mac to NAS | 738 Mbps | 813 Mbps |
+  | NAS to Mac | 863 Mbps | 818 Mbps |
+
+  CRS309 sampled CPU averaged 0.4–0.6%, peaking at 2%. All 20 RB5009
+  connection-table samples found no matching Mac-to-NAS connection, and its
+  trunk RX/TX samples stayed below 1 Mbps. These observations support hardware
+  forwarding on the switch with bulk traffic bypassing the router. This tests
+  the Wi-Fi client path, not the 10G link ceiling; no before-migration speed
+  comparison was measured. The temporary NAS listener exited after testing.
+
+Not measured: actual netboot, mDNS device discovery, and guest/camera negative
+runtime tests. Firewall rules and affected paths were inspected, but those tests
 must not be reported as passed. No production ISP release or router reboot was
 performed to simulate lease loss.
 
