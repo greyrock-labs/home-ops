@@ -161,12 +161,16 @@ runtime tests. Firewall rules and affected paths were inspected, but those tests
 must not be reported as passed. No production ISP release or router reboot was
 performed to simulate lease loss.
 
-The Mac showed a separate native resolver failure while direct DNS and Go's
-resolver worked. Cache flush and mDNSResponder HUP did not fix it. The temporary,
-git-ignored kubeconfig uses the API IP with the original TLS server name. Restore
-the hostname after native resolution is verified; investigate separately from
-routing. A private copy of the original kubeconfig and device exports was saved
-outside the repository.
+The Mac showed a native resolver failure during the Ethernet/Wi-Fi transition,
+reproduced in the user's shell while direct DNS and Go's resolver worked. Cache
+flush and mDNSResponder HUP did not immediately fix it. After the user left only
+the wired interface active, native DNS APIs and hostname-based kubectl passed.
+Some later agent checks inside its restricted sandbox misleadingly continued to
+report lookup failures; host DNS checks must run outside that sandbox. The exact
+original macOS cause was not established; the DNS servers were answering.
+The temporary API-IP override was removed from the git-ignored kubeconfig after
+native resolution recovered. No DNS server configuration was changed. Private
+copies of the original kubeconfig and device exports were saved outside the repo.
 
 ## References
 
