@@ -207,6 +207,17 @@ Verified during preparation and cutover:
 - After returning the Mac to VLAN 10 Wi-Fi, native DNS, hostname-based kubectl,
   internal echo HTTP 200 and NAS SSH all passed. Routes to NAS and API used
   en1 through the unchanged 10.1.10.1 gateway.
+- The user confirmed normal mDNS entries in the phone's discovery app.
+- IPv4 camera isolation was tested from Scrypted's VLAN 60 interface
+  (10.1.60.3), sending probes explicitly through 10.1.60.1. NAS SSH
+  (10.1.20.12:22), Kubernetes API (10.1.25.50:6443) and VLAN 10 gateway SSH
+  (10.1.10.1:22) were reachable from the trusted network. All three VLAN 60
+  SYN probes matched the RB5009 camera drop rule, increasing its packet counter
+  by three; logs confirmed ingress `vlan60-cameras` and intended egress
+  `vlan4090-transit`. A DNS query to 10.1.30.2 from the same camera interface
+  succeeded through the permitted exception. No pod routes or firewall rules
+  were changed. Guest isolation remains assumed from the inspected rules,
+  rather than independently tested.
 
 - IPv4 iperf3 from the Mac on 6 GHz VLAN 10 Wi-Fi (10.1.10.9) to the NAS
   (10.1.20.12), 20 measured seconds per test after two seconds omitted:
@@ -223,10 +234,10 @@ Verified during preparation and cutover:
   the Wi-Fi client path, not the 10G link ceiling; no before-migration speed
   comparison was measured. The temporary NAS listener exited after testing.
 
-Not measured: actual netboot, mDNS device discovery, and guest/camera negative
-runtime tests. Firewall rules and affected paths were inspected, but those tests
-must not be reported as passed. No production ISP release or router reboot was
-performed to simulate lease loss.
+Not measured: actual netboot and guest negative runtime tests. Guest firewall
+rules and affected paths were inspected, but a guest runtime test must not be
+reported as passed. No production ISP release or router reboot was performed to
+simulate lease loss.
 
 The Mac showed a native resolver failure during the Ethernet/Wi-Fi transition,
 reproduced in the user's shell while direct DNS and Go's resolver worked. Cache
