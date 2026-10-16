@@ -197,7 +197,7 @@ the room first (`gameroom`, `livingroom`, `diningroom`, `master-bedroom`,
 `christmas` last.
 
 There is no DHCP lease script. Anything still dynamic has no DNS name and shows in ctrld as
-a bare address, which is the cue to give it a static lease. Deliberately dynamic: the UniFi
+a bare address, which is the cue to give it a static lease. Deliberately dynamic: the
 cameras on VLAN 60 and everything on guest.
 
 To add a device, add it to the CSV and find its lease - it is the only dynamic one outside
