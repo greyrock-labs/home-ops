@@ -14,12 +14,18 @@ flashes from. There is no local clone on the Mac; edit on HA, not in a separate 
 - Nothing pulls the clone automatically. After pushing from elsewhere (e.g. Renovate
   merges), run `git pull --ff-only` there before flashing.
 - `secrets.yaml` exists only on HA and is not tracked.
-- OTA password → encryption migration is half done (2026-10-16). Every device except
-  BT Proxy – Living Room (offline, still 2026.6.0) runs 2026.9.x, which offers encryption.
-  Once Living Room is updated, remove the `ota:` blocks with `password` from
-  `reterminal-e1001/hardware.yaml` and `seeed-xiao-esp32c3/base.yaml`, and add
-  `encryption:` to the shared `ota:` in `esphome-common/api.yaml`. Doing that before a
-  device runs 2026.9+ makes its OTA uploads fail.
+- The Device Builder manages the clone (`device-builder.managed=true`) and auto-commits
+  any change to a top-level device YAML, one "Edit <file>" commit per file, without
+  pushing. Shared packages in subdirectories are left unstaged. Check `git log` before
+  committing, and squash those auto-commits into a real commit before pushing.
+- Git on HA can push: the deploy key has write access.
+- OTA uploads are encrypted with each device's API key (`encryption:` on the shared `ota:`
+  in `esphome-common/api.yaml`); there are no OTA passwords. Plaintext uploads are refused,
+  so losing a device's API key means a USB flash. The garage RATGDOs take OTA from the
+  upstream ratgdo package and are not covered by this.
+- Validate with `esphome config` (version pinned in `pyproject.toml`) against a copy of
+  the tree and placeholder secrets. The SSH app's protection mode blocks Docker, so the
+  Device Builder's own CLI is not reachable from SSH.
 - The weather ePaper display is `office-weather-display.yaml`. Its sensors are
   `platform: homeassistant` entities, so a removed or renamed HA entity shows as `?` on
   the display until its YAML is updated and reflashed.
