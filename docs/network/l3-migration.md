@@ -160,12 +160,17 @@ the checklist itself does not authorize removal now.
    confirming they still serve only the disconnected cutover workstation.
    Remove any disabled pre-migration default route via 10.1.0.1 retained solely
    for rollback, after checking that the live default uses transit.
-5. Verify management access, VLAN 10/20 connectivity, NAS and Kubernetes service
+5. Replace `l3 migration:` comments on retained objects with descriptions of
+   their ongoing purpose, such as `office transit`, `VLAN 10 return via CRS309`,
+   or `management via RB5009`. Before changing comments, check retained scripts
+   and automation for comment-based selectors and update those references
+   together. Use consistent wording in the device configuration and documentation.
+6. Verify management access, VLAN 10/20 connectivity, NAS and Kubernetes service
    access, Internet access, BGP, DHCP and IPv6 renewal after cleanup. Confirm no
    invalid references or migration-only scripts, timers or recovery routes remain.
    Remove the local migration staging files and private backups under
    `/private/tmp/home-ops-l3/` after verification; never commit their contents.
-6. Update this document, [router-baseline.md](router-baseline.md) and
+7. Update this document, [router-baseline.md](router-baseline.md) and
    [switch-baseline.md](switch-baseline.md) to describe the resulting state.
    Remove obsolete rollback/recovery instructions and record any validation gaps.
 
@@ -173,8 +178,8 @@ The permanent routing configuration remains: transit VLAN 4090 and its addresses
 CRS309 gateways/default routes, RB5009 return routes, management /25 routes and
 hardware ACLs, the switch-originated management firewall exception, DHCP relays,
 BGP peers (including the retained RB5009 peers and eBGP multihop), and IPv6
-delegation. Keep `sync-office-pd`, its scheduler and DHCPv6 event hook. These are
-live dependencies even where their comments say `l3 migration:`.
+delegation. Keep `sync-office-pd`, its scheduler and DHCPv6 event hook. Retain
+these live dependencies and relabel their migration-era comments during cleanup.
 
 ## Validation and remaining checks
 
