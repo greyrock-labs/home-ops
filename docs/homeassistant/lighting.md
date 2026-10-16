@@ -20,7 +20,7 @@ One entry per room, each listing that room's lights. All share these settings:
 | Setting | Value | Why |
 | --- | --- | --- |
 | Colour range | 2000–6500 K | All bulbs are the same IKEA KAJPLATS family |
-| Max brightness | 100% | |
+| Max brightness | 100% (Game Room 50%) | |
 | Sleep brightness / colour | 1% / 2200 K | Matches the old night lights; the lamp's warmest is 2202 K |
 | `take_over_control_mode` | `pause_changed` | A brightness-only command (e.g. dim-before-off) pauses brightness only; colour keeps adapting |
 | `autoreset_control_seconds` | 3600 | A paused light rejoins the curve after an hour |
@@ -33,7 +33,7 @@ Minimum brightness per room:
 | --- | --- |
 | 80% | Breezeway, Downstairs Hallway, Upstairs Hallway, Porch Hallway, Laundry |
 | 60% | Office, Dining Room, Downstairs Bathroom, Kitchen, Living Room |
-| 40% | Game Room |
+| 20% | Game Room |
 
 With `brightness_mode: default`, brightness is `max_brightness` for the whole time the sun is up
 and only falls after sunset, reaching `min_brightness` at solar midnight. Colour follows a
