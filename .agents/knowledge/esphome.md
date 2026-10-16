@@ -34,8 +34,10 @@ flashes from. There is no local clone on the Mac; edit on HA, not in a separate 
     5 V UART, so each unit gets a BSS138 level shifter, assembled with Dupont plugs only
     (no soldering). Needs a C6 `hvac-cn105` base with new UART pins (check Seeed's C6
     pinout; D6/D7 expected). Consider ESPHome's native `mitsubishi_cn105` vs echavet.
-  - Also planned once parts arrive: 3D-printed cases for both (the current ones fit
-    badly). Not started; begin by asking what is wrong with the current cases.
+  - Also planned once parts arrive: 3D-printed cases for both the BT proxies and the HVAC
+    controllers (the current ones fit badly). The HVAC case must enclose the C6, level
+    shifter and Dupont wiring so nothing hangs loose inside the mini-split. Not started;
+    begin by asking what is wrong with the current cases.
 - The weather ePaper display is `office-weather-display.yaml`. Its sensors are
   `platform: homeassistant` entities, so a removed or renamed HA entity shows as `?` on
   the display until its YAML is updated and reflashed.
