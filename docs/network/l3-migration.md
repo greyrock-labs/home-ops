@@ -42,11 +42,6 @@ on Cilium and FRR after the extra routing hop. The CRS309 imports only Cilium
 service /32s within 10.1.25.0/24 and NAS 10.1.25.21/32, and exports nothing.
 NAS re-advertisements of learned Cilium routes are filtered by the switch.
 
-Changes were committed to the existing `forgejo` remote. Normal deployment is
-Forgejo push -> GitHub mirror -> Flux webhook. Do not manually reconcile Flux.
-NAS doco-cd uses the GitHub mirror; the documented container restart workflow
-was used to apply its FRR changes. The running FRR neighbors were verified.
-
 ## Hardware forwarding and management exception
 
 IPv4 and IPv6 L3 hardware routing are enabled. Trusted client/server and service
