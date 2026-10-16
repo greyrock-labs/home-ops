@@ -14,6 +14,12 @@ flashes from. There is no local clone on the Mac; edit on HA, not in a separate 
 - Nothing pulls the clone automatically. After pushing from elsewhere (e.g. Renovate
   merges), run `git pull --ff-only` there before flashing.
 - `secrets.yaml` exists only on HA and is not tracked.
+- OTA password → encryption migration is half done (2026-10-16). Every device except
+  BT Proxy – Living Room (offline, still 2026.6.0) runs 2026.9.x, which offers encryption.
+  Once Living Room is updated, remove the `ota:` blocks with `password` from
+  `reterminal-e1001/hardware.yaml` and `seeed-xiao-esp32c3/base.yaml`, and add
+  `encryption:` to the shared `ota:` in `esphome-common/api.yaml`. Doing that before a
+  device runs 2026.9+ makes its OTA uploads fail.
 - The weather ePaper display is `office-weather-display.yaml`. Its sensors are
   `platform: homeassistant` entities, so a removed or renamed HA entity shows as `?` on
   the display until its YAML is updated and reflashed.
