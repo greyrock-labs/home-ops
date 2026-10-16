@@ -22,9 +22,11 @@ office-gw
                     -- C08PF .32
 ```
 
-Garage traffic transits Game Room and Office. Routing is router-on-a-stick: all nine
-switches are pure L2, the RB5009 holds every SVI. Inter-VLAN throughput is therefore
-capped by the RB5009's single SFP+ and its CPU.
+Garage traffic transits Game Room and Office. The Office CRS309 now owns the
+VLAN 10/20 gateways and hardware routes trusted client/server and service traffic.
+The other eight switches remain L2. VLAN 4090 is a dedicated transit to the RB5009,
+which retains all other gateways and WAN/WireGuard duties. See the completed
+[l3-migration.md](l3-migration.md) for allocation, exceptions and recovery.
 
 ## VLANs
 
@@ -38,7 +40,7 @@ capped by the RB5009's single SFP+ and its CPU.
 | 4000 | Guest | 192.168.23.0/24 |
 
 `10.1.25.0/24` is the Cilium load-balancer pool. It is **not** a VLAN — those /32s are
-BGP-announced to 10.1.0.1. The old UniFi controller required a VLAN for it; MikroTik
+BGP-announced to both 10.1.0.1 and the Office CRS309 at 10.1.20.1. The old UniFi controller required a VLAN for it; MikroTik
 does not, so the migration drops it.
 
 ## Conventions
@@ -181,8 +183,12 @@ Each of these cost a round trip on the first switch. The published docs describe
 
 ## Office C08ZP as-built
 
-ICX8200-C08ZP, FastIron `10.0.10g_cd6T253`, 8x 2.5G PoE (`1/1/1`-`1/1/8`) plus 2x SFP+
-(`1/2/1`, `1/2/2`). `show stack` reports stacking disabled, so the default `stack-port`
+ICX8200-C08ZP, FastIron `10.0.10g_cd6T253`, 4x 2.5G PoE (`1/1/1`-`1/1/4`),
+4x 1/2.5/5/10G PoE (`1/1/5`-`1/1/8`), plus 2x SFP+ (`1/2/1`, `1/2/2`).
+Read-only `show interfaces brief` on 2026-10-16 confirmed 10G on both server
+ports (`1/1/7` codswallop, `1/1/8` kerfuffle) and uplink `1/2/2`.
+See the [manufacturer specifications](https://www.ruckusnetworks.com/products/ethernet-switches/itemicx8200-c08zp/).
+`show stack` reports stacking disabled, so the default `stack-port`
 lines on both SFP+ ports are inert and `1/2/2` works as an ordinary data port.
 
 Uplink `1/2/2` to the Office CRS309. This switch is the **active** IGMP/MLD querier for
@@ -220,7 +226,8 @@ Uplink `1/2/2` to the Game Room CRS309. IGMP/MLD **passive** on all six VLANs.
 
 Same model and firmware as the other two, but the only one with the full L3 package:
 `ICX8200_L3_SOFT_PACKAGE`, license `2X25GR`, against `ICX8200_BASE_L3_SOFT_PACKAGE` /
-`2X25G` elsewhere. If L3 ever moves down from the RB5009, this is the licensed unit.
+`2X25G` elsewhere. It has the full ICX routing package; the current gateway design uses the
+Office CRS309 for trusted-network routing instead.
 
 Uplink `1/2/2` to the Garage CRS309. IGMP/MLD **passive** on all six VLANs. Heaviest PoE
 load of the three: five APs against a 240W budget, dynamic allocation.
@@ -390,6 +397,43 @@ attaches.
 | sfp-sfpplus3 | office-c08zp |
 | sfp-sfpplus4 | office-c08pf |
 
+### Office routing as-built (2026-10-16)
+
+- Gateways `10.1.10.1/24` and `10.1.20.1/24`, on VLAN interfaces over the
+  hardware bridge. `bridge` is a tagged member of both routed VLANs.
+- Transit VLAN 4090 is tagged only on bridge and `sfp-sfpplus1`: `10.255.0.2/30`
+  and `fdc0:ffee:215:fe::2/64`, with defaults through the RB5009 at `.1` / `::1`.
+  Bridge and routed VLAN MTUs are 9000; Ethernet L2MTUs remain 10218.
+- AS 64516, router ID 10.1.0.10. Direct peers: Kubernetes 10.1.20.10/AS64514
+  and NAS 10.1.20.12/AS64515. Import only service /32s from Cilium and only
+  10.1.25.21/32 from NAS; export nothing. All seven service routes were verified.
+- IPv4 and IPv6 hardware routing enabled. Control-plane protocols use CPU;
+  BGP-learned service forwarding remains eligible for hardware routing.
+- DHCP relays preserve clients' `.1` gateways and the router's existing leases.
+  mDNS repeats here between VLANs 10/20; it is disabled on the router.
+- Router-facing `sfp-sfpplus1` is `multicast-router=permanent`. Without this,
+  DHCPv6 delegation initially worked but stopped renewing under snooping.
+- The router delegates a fixed /60 using DHCPv6; the switch requests with IAID
+  4090 and splits it into matching public/ULA subnet IDs `10` and `14`.
+  See [router-baseline.md](router-baseline.md) for the allocation and watchdog.
+
+Management address 10.1.0.10/24 remains on bridge. Two more-specific routes
+(10.1.0.0/25 and 10.1.0.128/25) send routed management traffic via transit/RB5009
+so return paths remain symmetric. Hardware host forwarding initially bypassed
+this intent, breaking wired management TCP connections to servers. Three hardware
+ACLs now redirect IPv4 traffic destined for 10.1.0.0/24 on VLANs 10/20/4090 to
+the CPU, where those routes are honored. The rules cover the four current trunk
+ports; update their port lists when adding a trunk. Bulk client/server and service
+traffic does not match these rules.
+
+During cutover, recovery workstation 10.1.0.252 was directly attached to Office
+C08ZP port 1. A separate `l3-recovery` table and source rule keep only the
+switch's own management replies to that workstation on-link. A global recovery
+host route must not be used: it makes server replies asymmetric. The RB5009 also
+has a narrowly scoped forward accept for switch-originated management traffic
+through transit. No inter-VLAN stateful firewall is configured on the switch;
+input filters protect its own control plane.
+
 ## CRS309 flash revisions
 
 Two board revisions are in play, and it matters for upgrades:
@@ -415,15 +459,17 @@ predictable than chasing an in-place upgrade that has failed three times out of 
 Keep Netinstall and the target `.npk` staged beforehand, and put the switch on stable
 power - one of these logged `rebooted without proper shutdown, probably power outage`.
 
-## Open items
+## Build follow-up
 
-- IPv6 does not run on the switches. They are pure L2 and every SVI is on the router;
-  see [router-baseline.md](router-baseline.md).
+The Office CRS309 now routes IPv4 and IPv6 for VLANs 10/20; the other switches
+remain L2. See the [Office routing as-built](#office-routing-as-built-2026-10-16)
+and [router baseline](router-baseline.md).
 
 Resolved since the bench build: time zone is set on all nine and `ip mtu 9198` is on all
 six ICX; `ctrld` is running on VLAN 30, the `netinstall` package
-and its three listeners are in place, and both BGP sessions are established - kerfuffle
-advertising five prefixes, and codswallop advertising 10.1.25.21/32 once
+and its three listeners are in place. The RB5009 and Office CRS309 each have two
+established BGP peers: kerfuffle advertises six service prefixes and codswallop
+advertises 10.1.25.21/32. The original NAS session was restored once
 `docker/codswallop/00-frr/config/frr.conf` peered with 10.1.0.1.
 
 ## Garage stack

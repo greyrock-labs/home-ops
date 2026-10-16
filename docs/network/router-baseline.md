@@ -1,9 +1,13 @@
 # Router baseline
 
 `office-gw`, an RB5009UG+S+ on RouterOS 7.24.4, replacing the previous gateway in the
-2026 rebuild. Router-on-a-stick: every SVI lives here and all nine switches are pure L2.
+2026 rebuild. The Office CRS309 routes VLANs 10 and 20 in hardware; office-gw
+keeps WAN/NAT, WireGuard, management, router containers and VLANs 50/60/4000.
 See [switch-baseline.md](switch-baseline.md) for the switch side and
 [router-acme.md](router-acme.md) for certificates.
+
+The completed 2026-10-16 gateway migration and recovery procedure are documented
+in [l3-migration.md](l3-migration.md).
 
 Configs are not stored here. This documents the *decisions* and the conventions that the
 running config cannot explain about itself.
@@ -14,8 +18,7 @@ running config cannot explain about itself.
 | --- | --- | --- |
 | `ether1` | DHCP (Spectrum) | WAN |
 | `bridge` | 10.1.0.1/24 | VLAN 1, management |
-| `vlan10-internal` | 10.1.10.1/24 | Internal |
-| `vlan20-servers` | 10.1.20.1/24 | Servers |
+| `vlan4090-transit` | 10.255.0.1/30 | Office CRS309 at 10.255.0.2 |
 | `vlan30-container` | 10.1.30.1/24 | Router containers |
 | `vlan50-iot` | 10.1.50.1/24 | IoT |
 | `vlan60-cameras` | 10.1.60.1/24 | Cameras |
@@ -26,9 +29,14 @@ running config cannot explain about itself.
 CRS309's `ether1` is patched to a local ICX for recovery, so it stays configured rather
 than being rebuilt each time. Procedure is in `switch-baseline.md`.
 
+VLAN 10 and 20 retain gateways `10.1.10.1` and `10.1.20.1`, now owned by the
+Office CRS309. Static return routes point both /24s at `10.255.0.2`. The old
+router VLAN interfaces and gateway addresses are disabled and retained for rollback.
+
 ### Interface lists
 
-`LAN` holds `bridge`, `vlan10`, `vlan20`, `vlan30`, `vlan50`. `WAN` is `ether1`.
+`LAN` holds `bridge`, `vlan4090-transit`, `vlan30`, and `vlan50`; the disabled
+old VLAN 10/20 interfaces remain members for rollback. `WAN` is `ether1`.
 `vlan60-cameras` is `RESTRICTED` and `vlan4000-guest` is `GUEST`, both deliberately
 outside `LAN` - the v4 input chain and both v6 chains end in a drop for anything not from
 `LAN`.
@@ -64,35 +72,53 @@ DUID-LL derived from `ether1`'s MAC, so it survives reboots and a config reset a
 same /56 comes back. Replacing the router hardware is what would change it and renumber
 everything downstream.
 
-### Subnet ID convention
+### Subnet IDs and downstream delegation
 
-**The subnet ID is the VLAN ID in hex.** A /56 leaves 8 bits of subnet space, so IDs run
-`00`-`ff`. Where the VLAN ID does not fit in 8 bits, it clamps to `ff`.
+Public and ULA subnet IDs match. The Office CRS309 receives IDs `10`-`1f` as a
+single /60 within the ISP /56. IDs are hexadecimal: VLAN 10 deliberately uses
+`10`, replacing its old `0a`; VLAN 20 retains `14` and guest retains `ff`.
 
-| VLAN | Hex | Subnet ID | Delegated /64 | ULA |
+| VLAN | Subnet ID | Public /64 example | ULA | Gateway owner |
 | --- | --- | --- | --- | --- |
-| 10 | `0x0a` | `0a` | `…:1d0a::1/64` | `fdc0:ffee:215:a::1/64` |
-| 20 | `0x14` | `14` | `…:1d14::1/64` | `fdc0:ffee:215:14::1/64` |
-| 4000 | `0xfa0` | `ff` (clamped) | `…:1dff::1/64` | `fdc0:ffee:215:ff::1/64` |
+| 10 | `10` | `…:1d10::1/64` | `fdc0:ffee:215:10::1/64` | Office CRS309 |
+| 20 | `14` | `…:1d14::1/64` | `fdc0:ffee:215:14::1/64` | Office CRS309 |
+| 4000 | `ff` | `…:1dff::1/64` | `fdc0:ffee:215:ff::1/64` | RB5009 |
 
-Guest is the only clamped one - `0xfa0` is 12 bits. Its ULA uses `ff` as well rather than
-`fa0`, so the two halves match, even though the ULA's 16-bit field would hold `fa0`.
+The public examples assume an illustrative parent ending `1d00::/56`; the
+actual ISP prefix is dynamic. VLANs 1/30/50/60 remain IPv4-only.
 
-Nothing else has IPv6: VLANs 1, 30, 50 and 60 are v4-only by choice.
+`office-crs309-pd` is a DHCPv6 server on transit with `prefix-pool=static-only`.
+Its static /60 binding is restricted to the inspected CRS309 DUID and IAID 4090.
+The server installs a route to that /60 through the switch's link-local address.
+The switch creates `office-pd`, allocating /64s, from this delegation.
 
-### Pinning a /64 out of the pool
+The [sync-office-pd.rsc](sync-office-pd.rsc) system-script body derives the /60
+from `spectrum-pd`, updates the static binding on renumbering and withdraws it
+on loss. It runs on ISP DHCPv6 events and every minute as a watchdog. Binding
+lifetimes are capped at five minutes and one minute less than remaining ISP
+validity. No write occurs when settings are unchanged. A short IPv6 interruption
+is possible during renumbering until the switch renews; ULA remains stable.
 
-`from-pool` normally hands out the next sequential /64. To pin a specific subnet, the
-`address` value is OR'd against the pool's base prefix, so the subnet ID goes in the
-fourth hextet:
+Do not create an overlapping child pool on the RB5009: RouterOS rejects it.
+The parent allocator does not reserve the static /60, so all other local /64
+allocations must stay outside IDs `10`-`1f`. Guest is explicitly pinned to `ff`.
 
+Transit uses `fdc0:ffee:215:fe::1/64` on the router and `::2` on the switch,
+without RA or a public prefix. A static route for `fdc0:ffee:215:10::/60` points
+to the switch. The switch's IPv6 default points to the router's transit ULA.
+
+### Pinning /64s on the switch
+
+Within the delegated /60, VLAN 10 uses offset 0 and VLAN 20 uses offset 4:
+
+```routeros
+/ipv6 address add address=::1/64 from-pool=office-pd interface=vlan10-internal advertise=yes
+/ipv6 address add address=::4:0:0:0:1/64 from-pool=office-pd interface=vlan20-servers advertise=yes
 ```
-/ipv6 address add address=::a:0:0:0:1 from-pool=spectrum-pd interface=vlan10-internal advertise=yes
-```
 
-`::a:0:0:0:1` puts `000a` in the fourth hextet, yielding `…:1d0a::1/64`. Verified on
-7.24.4 - the result is not sequential allocation. ULAs are ordinary static addresses with
-no pool.
+These are existing configuration, not commands to add again. ULA gateways are
+ordinary static addresses from the table above. Gateway addresses on the old
+RB5009 VLAN interfaces remain disabled for rollback.
 
 ### Firewall
 
@@ -117,27 +143,26 @@ resolve. It clears on its own.
 
 ### Router advertisements
 
-`/ipv6 nd` is left at its default single `interface=all` entry. That only produces RAs on
-interfaces holding an address with `advertise=yes`, which is the three VLANs above.
+The RB5009 advertises only guest. Its old per-interface VLAN 10/20 ND entries
+have zero router lifetime and their VLAN interfaces are disabled. They were used
+to withdraw the old default router during migration. The default `interface=all`
+entry remains for guest with DNS advertisement off.
 
-`advertise-dns=no`, so no v6 resolver is advertised and clients keep using the v4 DNS
-their DHCP lease gave them - which is `ctrld`. That is what keeps v6-capable clients on
-the same resolver path as everything else, for both A and AAAA lookups.
-`managed-address-configuration` and `other-configuration` are both `no`: pure SLAAC, no
-DHCPv6 server.
-
-### Not delegating downstream
-
-`pool-name=spectrum-pd` holds the delegation; the three addresses above draw from it and
-nothing else does. There is no DHCPv6 server and no PD to downstream routers.
+The Office CRS309 advertises public and ULA /64s on VLANs 10/20, using explicit
+per-interface ND entries (10–30 second intervals, three-minute router lifetime).
+Its default `interface=all` entry is disabled. Prefix defaults are five minutes
+valid and 4m30s preferred; public lifetimes are also constrained by delegation.
+DNS advertisement, managed and other flags are off: clients retain SLAAC and the
+IPv4 DNS servers supplied by DHCP.
 
 ## DNS
 
 The router runs `allow-remote-requests` with Quad9 upstream, but clients are pointed at
 `ctrld` on 10.1.30.2 and `ctrld-b` on 10.1.30.4, which forward `greyrock.io` and `10.in-addr.arpa` back to the
 router at 10.1.30.1:53. That split is what makes internal names resolve while everything
-else goes out to Control D over DoH3 (QUIC, UDP 443). `mdns-repeat-ifaces` covers `vlan10-internal` and
-`vlan20-servers`.
+else goes out to Control D over DoH3 (QUIC, UDP 443). The Office CRS309 now repeats
+mDNS between `vlan10-internal` and `vlan20-servers`; repeating is disabled on the RB5009.
+Client DNS still crosses transit because both ctrld containers live on the RB5009.
 
 Every static entry is either hand-made and commented, or created by automation that tracks
 it with a TXT ownership record:
@@ -178,6 +203,11 @@ deprecated.
 
 ## DHCP
 
+Servers `dhcp-vlan10` and `dhcp-vlan20` now listen on `vlan4090-transit`, with
+relay addresses `10.1.10.1` and `10.1.20.1`. The Office CRS309 relays each VLAN
+to `10.255.0.1`. Existing server objects, pools, static leases, domains and client
+gateway options are preserved. All other DHCP servers remain directly attached.
+
 Leases are 8h everywhere except guest at 4h. Pools start at `.100` on VLAN 1, `.2` on
 guest, and `.6` on everything else.
 
@@ -210,7 +240,7 @@ server!=dhcp-vlan4000`. Then on the lease: `make-static`, set `comment="<CSV nam
 The router's built-in TFTP server hands out netboot.xyz on VLANs 10 and 20; the menus
 and installers load from `boot.netboot.xyz` over HTTPS. The boot files live in
 `usb1/tftp`, and each has an `/ip tftp` entry limited to those two subnets. The VLAN 10
-and 20 DHCP networks set `next-server` to their gateway and `boot-file-name` to
+and 20 DHCP networks set `next-server=10.255.0.1` and `boot-file-name` to
 `netboot.xyz-snponly.efi`, which uses the firmware's network driver rather than iPXE's
 own. `netboot.xyz.efi` (iPXE drivers) and `netboot.xyz.kpxe` (BIOS) are served too, if a
 machine needs them.
@@ -289,8 +319,11 @@ had to be moved from the old router's 10.1.20.1 to 10.1.0.1 during the cutover -
 an OPEN from an address it has no neighbor statement for, which presents as a session that
 never leaves idle with `remote.as=0`.
 
-codswallop advertises `10.1.25.21/32`. That prefix reaches the cluster through the router,
-so kerfuffle receives it from office-gw rather than directly.
+codswallop advertises `10.1.25.21/32`. Both servers also peer directly with the
+Office CRS309 (10.1.20.1, AS 64516), which learns the service /32s without a
+router detour. Cilium and FRR use eBGP multihop TTL 2 toward office-gw because
+that retained session now crosses the CRS309/transit hop. Router peer sessions
+remain established for guest, WireGuard and other router-originating paths.
 
 RouterOS 7 specifics: an `instance` is mandatory and carries the AS - `as=` on a
 connection is rejected. The AFI parameter is `afi`, not `address-families`. `router-id`

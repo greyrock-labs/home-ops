@@ -63,6 +63,11 @@ rule only matches `connection-state=new`, and v4 forward is otherwise default-ac
 the handshake completes and every packet after it is dropped, and connections to the
 edge hang with no response.
 
+Traffic to the service VIP now crosses VLAN 4090 transit to the Office CRS309,
+then VLAN 20 to Kubernetes. The RB5009 retains its BGP /32s; the switch also
+learns them directly. Replies default through the switch to the RB5009. Neither
+transit nor the switch adds NAT.
+
 ## Cluster
 
 `kubernetes/apps/network/envoy-gateway/gateway/` has `external/`, `internal/` and `shared/`.
