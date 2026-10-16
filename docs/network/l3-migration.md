@@ -160,11 +160,15 @@ the checklist itself does not authorize removal now.
    confirming they still serve only the disconnected cutover workstation.
    Remove any disabled pre-migration default route via 10.1.0.1 retained solely
    for rollback, after checking that the live default uses transit.
-5. Replace `l3 migration:` comments on retained objects with descriptions of
-   their ongoing purpose, such as `office transit`, `VLAN 10 return via CRS309`,
-   or `management via RB5009`. Before changing comments, check retained scripts
-   and automation for comment-based selectors and update those references
-   together. Use consistent wording in the device configuration and documentation.
+5. Review all configuration added for the migration on both devices and in the
+   repository, including transit, routes, addresses, ACLs, firewall rules, BGP,
+   DHCP and IPv6 delegation. Replace migration-era comments and descriptions on
+   every retained object with its ongoing purpose, such as `office transit`,
+   `VLAN 10 return via CRS309`, or `management via RB5009`. This applies to all
+   newly added configuration, not just one object or the literal `l3 migration:`
+   prefix. Check retained scripts and automation for comment-based selectors and
+   update those references together. Use consistent wording in the device
+   configuration and documentation.
 6. Verify management access, VLAN 10/20 connectivity, NAS and Kubernetes service
    access, Internet access, BGP, DHCP and IPv6 renewal after cleanup. Confirm no
    invalid references or migration-only scripts, timers or recovery routes remain.
