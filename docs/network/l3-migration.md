@@ -130,6 +130,52 @@ the switch must verify that the router has released its gateways. Temporary
 its switch route and all cutover/rollback scheduler entries. Do not replay the
 one-time cutover scripts against the current state.
 
+## Retiring the rollback configuration
+
+After about one week of stable operation, the request **"remove the l3 rollback
+scripts"** means complete the cleanup below, including the retained legacy
+configuration and temporary recovery artifacts. This is a future live change;
+the checklist itself does not authorize removal now.
+
+1. Read the current RB5009 and Office CRS309 configuration over SSH. Confirm
+   that the CRS309 still owns both gateways, hardware routing is enabled, BGP
+   peers and service routes are healthy, DHCP relays work, and public IPv6
+   delegation renews. Review any switch/router reboot recovery results; do not
+   claim reboot recovery was tested if it was not. Inventory each candidate and
+   its references before deleting it; disabled status or an `l3 migration:`
+   comment alone does not identify an obsolete object.
+2. Remove `l3-cutover` and `l3-rollback` system scripts from both devices, plus
+   any remaining scheduler references to those scripts. The migration's timed
+   jobs and handoff marker 10.255.0.4/32 should already be absent; confirm that
+   no related route or address remains.
+3. On the RB5009, remove the disabled old VLAN 10/20 gateway addresses, old
+   public/ULA address definitions, per-interface ND entries and static prefix
+   deprecation entries, obsolete interface-list memberships, and finally the
+   disabled `vlan10-internal` and `vlan20-servers` interfaces. Check all references
+   first. Keep the live DHCP server objects, leases, pools and network options:
+   the servers now use transit and the CRS309 relays. Review bridge VLAN entries
+   separately; retain any tagging required to carry VLANs between physical ports.
+4. On the CRS309, remove the temporary source routing rule for
+   10.1.0.10 -> 10.1.0.252, its host route and the `l3-recovery` table, after
+   confirming they still serve only the disconnected cutover workstation.
+   Remove any disabled pre-migration default route via 10.1.0.1 retained solely
+   for rollback, after checking that the live default uses transit.
+5. Verify management access, VLAN 10/20 connectivity, NAS and Kubernetes service
+   access, Internet access, BGP, DHCP and IPv6 renewal after cleanup. Confirm no
+   invalid references or migration-only scripts, timers or recovery routes remain.
+   Remove the local migration staging files and private backups under
+   `/private/tmp/home-ops-l3/` after verification; never commit their contents.
+6. Update this document, [router-baseline.md](router-baseline.md) and
+   [switch-baseline.md](switch-baseline.md) to describe the resulting state.
+   Remove obsolete rollback/recovery instructions and record any validation gaps.
+
+The permanent routing configuration remains: transit VLAN 4090 and its addresses,
+CRS309 gateways/default routes, RB5009 return routes, management /25 routes and
+hardware ACLs, the switch-originated management firewall exception, DHCP relays,
+BGP peers (including the retained RB5009 peers and eBGP multihop), and IPv6
+delegation. Keep `sync-office-pd`, its scheduler and DHCPv6 event hook. These are
+live dependencies even where their comments say `l3 migration:`.
+
 ## Validation and remaining checks
 
 Verified during preparation and cutover:
