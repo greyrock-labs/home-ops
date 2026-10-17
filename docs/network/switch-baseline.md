@@ -71,7 +71,7 @@ does not, so the migration drops it.
 - **Unregistered multicast floods.** Snooping otherwise prunes IPv6 link-local groups,
   which breaks Matter and HomeKit over `ff02::fb`. IPv4 mDNS (224.0.0.251) is inside
   `224.0.0.0/24` and is never pruned, so only the IPv6 side is actually at risk.
-- **Never remove** `logging host 10.1.20.2 udp-port 6514` or the `snmp-server community`
+- **Never remove** `logging host 10.1.0.2 udp-port 6514` or the `snmp-server community`
   line; Unleashed adds both.
 - **The RUCKUS One registrar is off** (`no manager registrar`, `manager disable`; 10.0's
   names for `no sz registrar` and `sz disable`). Unleashed manages the switches over SSH
