@@ -6,7 +6,7 @@
   3-certificate chain that validates without `-k`; a second run reports "nothing to do"
   in under a second without rebooting
 - **Scope:** Flux-managed CronJob that pushes the `*.internal.greyrock.io` certificate to
-  the Ruckus Unleashed controller (`unleashed.internal.greyrock.io`, 10.1.20.2)
+  the Ruckus Unleashed controller (`unleashed.internal.greyrock.io`, 10.1.0.2)
 
 ## Goal
 
@@ -49,7 +49,7 @@ app/ocirepository.yaml
 - `app/helmrelease.yaml` — app-template cronjob, `schedule: "0 3 * * *"`,
   `backoffLimit: 0`, `concurrencyPolicy: Forbid`, `ttlSecondsAfterFinished: 86400`,
   `env: RUCKUS_HOST`
-- `app/ciliumnetworkpolicy.yaml` — egress `10.1.20.2/32` TCP 443 only; DNS comes from the
+- `app/ciliumnetworkpolicy.yaml` — egress `10.1.0.2/32` TCP 443 only; DNS comes from the
   cluster-wide `allow-dns-egress` policy
 
 **Schedule rationale:** applying a certificate reboots the controller and restarts the

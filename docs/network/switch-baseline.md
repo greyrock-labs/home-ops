@@ -140,7 +140,7 @@ slice of 10.1.0.0/24 where the switches take the low numbers and the APs run up 
 The block is the address range, not the physical room - `kitchen-ap` and the driveway and
 side-yard APs all home to the Garage stack.
 
-10.1.20.2 (`unleashed.internal.greyrock.io`) is the Unleashed management interface, not a
+10.1.0.2 (`unleashed.internal.greyrock.io`) is the Unleashed management interface, not a
 device. The controller role runs on whichever AP currently holds master, and the
 management address floats to it, so it stays reachable without knowing which AP that is.
 AP-to-switch-port mapping lives in Unleashed and is not duplicated here.

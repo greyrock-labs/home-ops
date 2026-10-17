@@ -9,7 +9,7 @@ See [switch-baseline.md](switch-baseline.md) for the switch side and
 The completed 2026-10-16 gateway migration and recovery procedure are documented
 in [l3-migration.md](l3-migration.md).
 
-Configs are not stored here. This documents the *decisions* and the conventions that the
+Configs are not stored here. This documents the _decisions_ and the conventions that the
 running config cannot explain about itself.
 
 ## Interfaces and addressing
@@ -167,16 +167,16 @@ Client DNS still crosses transit because both ctrld containers live on the RB500
 Every static entry is either hand-made and commented, or created by automation that tracks
 it with a TXT ownership record:
 
-| Comment        | Source               | Notes                                                                                            |
-| -------------- | -------------------- | ------------------------------------------------------------------------------------------------ |
-| `static-lease` | Hand-made            | One per static DHCP lease, named from the MAC address list in 1Password                          |
-| `switch`       | Hand-made            | Nine switches, 10.1.0.10-.12/.20-.22/.30-.32                                                     |
-| `ap`           | Hand-made            | Nine Unleashed APs, plus `unleashed` (10.1.20.2), the management address that follows the master |
-| `router`       | Hand-made            | `office-gw.internal.greyrock.io` → 10.1.0.1                                                      |
-| `service`      | Hand-made            | `k8s.internal.greyrock.io` → 10.1.25.50, the Kubernetes API                                      |
-| `camera`       | Hand-made            | `courtyard-porch-doorbell`                                                                       |
-| *(none)*       | `external-dns`       | Owned via TXT registry, `txtPrefix: k8s.main.%{record_type}-`                                    |
-| *(none)*       | `dexd` on codswallop | Owned via `a-<name>` TXT records; all point at 10.1.25.21                                        |
+| Comment        | Source               | Notes                                                                                           |
+| -------------- | -------------------- | ----------------------------------------------------------------------------------------------- |
+| `static-lease` | Hand-made            | One per static DHCP lease, named from the MAC address list in 1Password                         |
+| `switch`       | Hand-made            | Nine switches, 10.1.0.10-.12/.20-.22/.30-.32                                                    |
+| `ap`           | Hand-made            | Nine Unleashed APs, plus `unleashed` (10.1.0.2), the management address that follows the master |
+| `router`       | Hand-made            | `office-gw.internal.greyrock.io` → 10.1.0.1                                                     |
+| `service`      | Hand-made            | `k8s.internal.greyrock.io` → 10.1.25.50, the Kubernetes API                                     |
+| `camera`       | Hand-made            | `courtyard-porch-doorbell`                                                                      |
+| _(none)_       | `external-dns`       | Owned via TXT registry, `txtPrefix: k8s.main.%{record_type}-`                                   |
+| _(none)_       | `dexd` on codswallop | Owned via `a-<name>` TXT records; all point at 10.1.25.21                                       |
 
 To find an unlabelled hand-made entry, filter on `!comment` - `comment=""` does not match an
 unset comment.

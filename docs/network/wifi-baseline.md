@@ -1,7 +1,7 @@
 # Wi-Fi baseline
 
 Ruckus Unleashed, five APs, replacing UniFi in the 2026 rebuild. The master AP floats;
-`unleashed.internal.greyrock.io` (10.1.20.2) follows whichever AP currently holds it, and
+`unleashed.internal.greyrock.io` (10.1.0.2) follows whichever AP currently holds it, and
 each AP also has its own A record under `internal.greyrock.io`. Wi-Fi clients never see that
 record: Unleashed intercepts their lookups of `unleashed.internal.greyrock.io` and answers
 with the master AP's own address.
