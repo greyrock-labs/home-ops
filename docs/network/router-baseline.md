@@ -1,8 +1,9 @@
 # Router baseline
 
 `office-gw`, an RB5009UG+S+ on RouterOS 7.24.4, replacing the previous gateway in the
-2026 rebuild. The Office CRS309 routes VLANs 10 and 20 in hardware; office-gw
-keeps WAN/NAT, WireGuard, management, router containers and VLANs 50/60/4000.
+2026 rebuild. The Office CRS309 routes VLANs 1, 10 and 20 in hardware; office-gw
+keeps WAN/NAT, WireGuard, router containers and VLANs 50/60/4000. Its management
+endpoint is `office-gw.internal.greyrock.io` (10.255.0.1).
 See [switch-baseline.md](switch-baseline.md) for the switch side and
 [router-acme.md](router-acme.md) for certificates.
 
@@ -17,7 +18,7 @@ running config cannot explain about itself.
 | Interface          | IPv4            | Purpose                                                      |
 | ------------------ | --------------- | ------------------------------------------------------------ |
 | `ether1`           | DHCP (Spectrum) | WAN                                                          |
-| `bridge`           | 10.1.0.1/24     | VLAN 1, management                                           |
+| `bridge`           | 192.168.88.1/24 | Netinstall recovery on untagged VLAN 1                       |
 | `vlan4090-transit` | 10.255.0.1/30   | Office CRS309 at 10.255.0.2                                  |
 | `vlan30-container` | 10.1.30.1/24    | Router containers                                            |
 | `vlan50-iot`       | 10.1.50.1/24    | IoT                                                          |
@@ -25,13 +26,15 @@ running config cannot explain about itself.
 | `vlan4000-guest`   | 192.168.23.1/24 | Guest                                                        |
 | `wg-public-edge`   | 10.254.45.1/24  | WireGuard to skedaddle, see [public-edge.md](public-edge.md) |
 
-`192.168.88.1/24` also sits on the bridge for Netinstall. Nothing reaches it unless a
+`192.168.88.1/24` remains on the bridge for Netinstall. Nothing reaches it unless a
 CRS309's `ether1` is patched to a local ICX for recovery, so it stays configured rather
 than being rebuilt each time. Procedure is in `switch-baseline.md`.
 
-VLAN 10 and 20 retain gateways `10.1.10.1` and `10.1.20.1`, now owned by the
-Office CRS309. Static return routes point both /24s at `10.255.0.2`. The old
-router VLAN interfaces and gateway addresses are disabled and retained for rollback.
+VLANs 1, 10 and 20 retain gateways `10.1.0.1`, `10.1.10.1` and `10.1.20.1`,
+owned by the Office CRS309. Static return routes point all three /24s at
+`10.255.0.2`. The router's old gateway addresses and VLAN 10/20 interfaces are
+disabled and retained for rollback. The bridge remains for L2 switching and
+Netinstall; it no longer owns an active 10.1.0.0/24 address.
 
 ### Interface lists
 
@@ -172,7 +175,7 @@ it with a TXT ownership record:
 | `static-lease` | Hand-made            | One per static DHCP lease, named from the MAC address list in 1Password                         |
 | `switch`       | Hand-made            | Nine switches, 10.1.0.10-.12/.20-.22/.30-.32                                                    |
 | `ap`           | Hand-made            | Nine Unleashed APs, plus `unleashed` (10.1.0.2), the management address that follows the master |
-| `router`       | Hand-made            | `office-gw.internal.greyrock.io` → 10.1.0.1                                                     |
+| `router`       | Hand-made            | `office-gw.internal.greyrock.io` → 10.255.0.1, TTL five minutes                                 |
 | `service`      | Hand-made            | `k8s.internal.greyrock.io` → 10.1.25.50, the Kubernetes API                                     |
 | `camera`       | Hand-made            | `courtyard-porch-doorbell`                                                                      |
 | _(none)_       | `external-dns`       | Owned via TXT registry, `txtPrefix: k8s.main.%{record_type}-`                                   |
@@ -196,17 +199,18 @@ excluded. Winbox is a separate service on 8291 and is unaffected.
 
 The cluster arrives as a node address, not a pod address: Cilium runs `masquerade: true`
 with `routingMode: native` and `ipv4NativeRoutingCIDR: 10.244.0.0/16`, so pod traffic to
-10.1.0.1 leaves that CIDR and is masqueraded to 10.1.20.10/.12.
+10.255.0.1 leaves that CIDR and is masqueraded to the node's server-VLAN address.
 
 The CLI keyword is now `available-from`; `address=` still works but warns that it is
 deprecated.
 
 ## DHCP
 
-Servers `dhcp-vlan10` and `dhcp-vlan20` now listen on `vlan4090-transit`, with
-relay addresses `10.1.10.1` and `10.1.20.1`. The Office CRS309 relays each VLAN
-to `10.255.0.1`. Existing server objects, pools, static leases, domains and client
-gateway options are preserved. All other DHCP servers remain directly attached.
+Servers `dhcp-vlan1`, `dhcp-vlan10` and `dhcp-vlan20` listen on
+`vlan4090-transit`, with relay addresses `10.1.0.1`, `10.1.10.1` and `10.1.20.1`.
+The Office CRS309 relays each VLAN to `10.255.0.1`. Existing server objects,
+pools, static leases, domains and client gateway options are preserved. All other
+DHCP servers remain directly attached.
 
 Leases are 8h everywhere except guest at 4h. Pools start at `.100` on VLAN 1, `.2` on
 guest, and `.6` on everything else.
@@ -305,19 +309,19 @@ is rejected with 400 while the container is busy. A container that already match
 
 ## BGP
 
-Local AS 64513, router-id 10.1.0.1 from `/routing id` - the dynamic `main` entry had
-selected 192.168.23.1 on its own, which is why the entry is explicit.
+Local AS 64513, explicit router-id 10.1.0.1 from `/routing id`. The router ID is
+a protocol identifier; the reachable RB5009 peer address is 10.255.0.1.
 
 | Peer       | Address    | AS    | Source                                          |
 | ---------- | ---------- | ----- | ----------------------------------------------- |
 | kerfuffle  | 10.1.20.10 | 64514 | Cilium, `CiliumBGPClusterConfig`                |
 | codswallop | 10.1.20.12 | 64515 | FRR, `docker/codswallop/00-frr/config/frr.conf` |
 
-The Cilium config selects all linux nodes with one `localASN` and `peerAddress: 10.1.0.1`,
-so any k8s node peers the same way. codswallop is hand-configured, and its `neighbor` line
-had to be moved from the old router's 10.1.20.1 to 10.1.0.1 during the cutover - FRR drops
-an OPEN from an address it has no neighbor statement for, which presents as a session that
-never leaves idle with `remote.as=0`.
+The Cilium config selects all linux nodes with one `localASN` and
+`peerAddress: 10.255.0.1`, so any k8s node peers the same way. NAS FRR uses the
+same router endpoint. The router connections `cilium-transit` and
+`codswallop-transit` explicitly source from 10.255.0.1; the old connections
+sourced from 10.1.0.1 are disabled pending rollback cleanup.
 
 codswallop advertises `10.1.25.21/32`. Both servers also peer directly with the
 Office CRS309 (10.1.20.1, AS 64516), which learns the service /32s without a

@@ -9,7 +9,7 @@ documents the *decisions* and the *gotchas*, not per-device running-configs.
 
 ## Topology
 
-True daisy chain, RB5009 (`office-gw`, 10.1.0.1) at the head in the Office:
+True daisy chain, RB5009 (`office-gw`, 10.255.0.1) at the head in the Office:
 
 ```
 office-gw
@@ -23,7 +23,7 @@ office-gw
 ```
 
 Garage traffic transits Game Room and Office. The Office CRS309 now owns the
-VLAN 10/20 gateways and hardware routes trusted client/server and service traffic.
+VLAN 1/10/20 gateways and hardware routes trusted management/client/server and service traffic.
 The other eight switches remain L2. VLAN 4090 is a dedicated transit to the RB5009,
 which retains all other gateways and WAN/WireGuard duties. See the completed
 [l3-migration.md](l3-migration.md) for allocation, exceptions and recovery.
@@ -40,7 +40,7 @@ which retains all other gateways and WAN/WireGuard duties. See the completed
 | 4000 | Guest          | 192.168.23.0/24 |
 
 `10.1.25.0/24` is the Cilium load-balancer pool. It is **not** a VLAN — those /32s are
-BGP-announced to both 10.1.0.1 and the Office CRS309 at 10.1.20.1. The old UniFi controller required a VLAN for it; MikroTik
+BGP-announced to both 10.255.0.1 and the Office CRS309 at 10.1.20.1. The old UniFi controller required a VLAN for it; MikroTik
 does not, so the migration drops it.
 
 ## Conventions
@@ -397,8 +397,12 @@ attaches.
 | sfp-sfpplus3 | office-c08zp              |
 | sfp-sfpplus4 | office-c08pf              |
 
-### Office routing as-built (2026-10-16)
+### Office routing as-built (2026-10-19)
 
+- Management gateway `10.1.0.1/24` on bridge, with `10.1.0.10/32` as the
+  switch's management alias and BGP router ID. Keep only the gateway's /24 on
+  this interface so ARP resolution uses the gateway address. VLAN 1 remains
+  untagged with its existing dynamic bridge membership.
 - Gateways `10.1.10.1/24` and `10.1.20.1/24`, on VLAN interfaces over the
   hardware bridge. `bridge` is a tagged member of both routed VLANs.
 - Transit VLAN 4090 is tagged only on bridge and `sfp-sfpplus1`: `10.255.0.2/30`
@@ -409,7 +413,8 @@ attaches.
   10.1.25.21/32 from NAS; export nothing. All seven service routes were verified.
 - IPv4 and IPv6 hardware routing enabled. Control-plane protocols use CPU;
   BGP-learned service forwarding remains eligible for hardware routing.
-- DHCP relays preserve clients' `.1` gateways and the router's existing leases.
+- DHCP relays on VLANs 1/10/20 preserve clients' `.1` gateways and the router's
+  existing leases.
   mDNS repeats here between VLANs 10/20; it is disabled on the router.
 - Router-facing `sfp-sfpplus1` is `multicast-router=permanent`. Without this,
   DHCPv6 delegation initially worked but stopped renewing under snooping.
@@ -417,22 +422,11 @@ attaches.
   4090 and splits it into matching public/ULA subnet IDs `10` and `14`.
   See [router-baseline.md](router-baseline.md) for the allocation and watchdog.
 
-Management address 10.1.0.10/24 remains on bridge. Two more-specific routes
-(10.1.0.0/25 and 10.1.0.128/25) send routed management traffic via transit/RB5009
-so return paths remain symmetric. Hardware host forwarding initially bypassed
-this intent, breaking wired management TCP connections to servers. Three hardware
-ACLs now redirect IPv4 traffic destined for 10.1.0.0/24 on VLANs 10/20/4090 to
-the CPU, where those routes are honored. The rules cover the four current trunk
-ports; update their port lists when adding a trunk. Bulk client/server and service
-traffic does not match these rules.
-
-During cutover, recovery workstation 10.1.0.252 was directly attached to Office
-C08ZP port 1. A separate `l3-recovery` table and source rule keep only the
-switch's own management replies to that workstation on-link. A global recovery
-host route must not be used: it makes server replies asymmetric. The RB5009 also
-has a narrowly scoped forward accept for switch-originated management traffic
-through transit. No inter-VLAN stateful firewall is configured on the switch;
-input filters protect its own control plane.
+Management traffic routes directly between VLANs 1/10/20. The management /25
+detours, three CPU-redirect ACLs, `l3-recovery` source rule and RB5009 management
+return exception are disabled pending rollback cleanup. They are not required
+by the current forwarding path. No inter-VLAN stateful firewall is configured on
+the switch; input filters protect its own control plane.
 
 ## CRS309 flash revisions
 
@@ -461,16 +455,16 @@ power - one of these logged `rebooted without proper shutdown, probably power ou
 
 ## Build follow-up
 
-The Office CRS309 now routes IPv4 and IPv6 for VLANs 10/20; the other switches
-remain L2. See the [Office routing as-built](#office-routing-as-built-2026-10-16)
+The Office CRS309 routes VLANs 1/10/20 (VLAN 1 is IPv4-only); the other switches
+remain L2. See the [Office routing as-built](#office-routing-as-built-2026-10-19)
 and [router baseline](router-baseline.md).
 
 Resolved since the bench build: time zone is set on all nine and `ip mtu 9198` is on all
 six ICX; `ctrld` is running on VLAN 30, the `netinstall` package
 and its three listeners are in place. The RB5009 and Office CRS309 each have two
 established BGP peers: kerfuffle advertises six service prefixes and codswallop
-advertises 10.1.25.21/32. The original NAS session was restored once
-`docker/codswallop/00-frr/config/frr.conf` peered with 10.1.0.1.
+advertises 10.1.25.21/32. Both servers peer with the RB5009 at 10.255.0.1 and
+the Office CRS309 at 10.1.20.1.
 
 ## Garage stack
 
@@ -637,7 +631,7 @@ exists only on CRS520/804/812 - on the 309, assume Etherboot uses **copper `ethe
   "bind to the VLAN interface the target is untagged in" rule, and here that is `bridge`.
 - **`ip-range` is 192.168.88.x**, not production space - Netinstall wants that subnet. The
   router therefore needs a secondary address there on the listening interface, since the
-  server has to reach the target at whatever it hands out. It coexists with 10.1.0.1/24 on
+  server has to reach the target at whatever it hands out. 192.168.88.1/24 remains on
   the same bridge:
 
   ```

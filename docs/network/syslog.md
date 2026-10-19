@@ -10,11 +10,11 @@ six ICX by way of Unleashed.
 
 ## MikroTik senders
 
-Applied 2026-09-23 to `office-gw` and all three CRS309s. `src-address` is each device's
-own management address - `10.1.0.1`, `.10`, `.20`, `.30`:
+`office-gw` uses `src-address=10.255.0.1`; the three CRS309s use their management
+addresses `10.1.0.10`, `10.1.0.20` and `10.1.0.30`:
 
 ```
-/system logging action add name=victorialogs target=remote remote=10.1.25.44 remote-port=514 src-address=<own mgmt IP> remote-log-format=syslog syslog-facility=local0
+/system logging action add name=victorialogs target=remote remote=10.1.25.44 remote-port=514 src-address=<own source IP> remote-log-format=syslog syslog-facility=local0
 /system logging add topics=dhcp action=victorialogs
 /system logging add topics=error action=victorialogs
 /system logging add topics=warning action=victorialogs

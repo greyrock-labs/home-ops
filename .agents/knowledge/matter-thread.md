@@ -20,7 +20,7 @@
    test works:
 
    ```sh
-   command ssh admin@10.1.0.1 ':foreach i in={10.1.10.168;10.1.10.59} do={:put $i; /ping $i count=20 interval=0.2}'
+   command ssh admin@office-gw.internal.greyrock.io ':foreach i in={10.1.10.168;10.1.10.59} do={:put $i; /ping $i count=20 interval=0.2}'
    ```
 
    Loss on plugs of one AP and not the others means that AP's 2.4 GHz radio is losing
