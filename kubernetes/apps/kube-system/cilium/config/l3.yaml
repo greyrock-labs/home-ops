@@ -53,7 +53,7 @@ spec:
             name: l3-bgp-peer-config
         - name: office-gw
           peerASN: 64513
-          peerAddress: 10.1.0.1
+          peerAddress: 10.255.0.1
           peerConfigRef:
             name: l3-bgp-peer-config
 ---
