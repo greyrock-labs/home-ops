@@ -206,6 +206,29 @@ these live dependencies and relabel their migration-era comments during cleanup.
 
 ## Validation and remaining checks
 
+DHCP renewal investigation (2026-10-19):
+
+- A temporary wired VLAN 1 client received an ACK to its unicast renewal in
+  about 2 ms. Packet-level clients using the existing Scrypted VLAN 10 and NAS
+  VLAN 20 reservations acquired leases through the relays, then received direct
+  unicast renewal ACKs in about 1 ms with normal hardware routing enabled.
+  Their static interface configurations were not changed; test leases were
+  released and the temporary wired client and its dynamic lease were removed.
+- The VLAN 10 test received ACKs even while its RB5009 connection showed zero
+  reply packets. Transit is in the router's LAN interface list; the input
+  firewall does not require these renewals to match the restricted/guest DHCP rule.
+- Captures showed matching renewal ACKs for plugs 10.1.10.106 and 10.1.10.59.
+  Both stopped retrying and established external TCP connections during the
+  investigation. Temporary packet-copy rules also caused CPU forwarding, so
+  this does not establish why their earlier retry loops occurred. No permanent
+  DHCP or routing change was made; check these clients again at their next T1
+  renewal before treating their intermittent problem as resolved.
+- Temporary switch capture rules, device capture files and router DHCP debug
+  logging were removed; sniffer settings were restored. Hardware routing remains
+  enabled. The initial synthetic request from an unbound reservation was rejected
+  with `unknown giaddr 0.0.0.0`; testing renewal after actual lease acquisition
+  succeeded, so that rejection did not establish a production renewal failure.
+
 VLAN 1 extension (2026-10-19):
 
 - Wired NAS handoff with release-checked rollback; CPU and hardware routing

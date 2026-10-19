@@ -212,6 +212,14 @@ The Office CRS309 relays each VLAN to `10.255.0.1`. Existing server objects,
 pools, static leases, domains and client gateway options are preserved. All other
 DHCP servers remain directly attached.
 
+Initial discovery and rebinding use broadcasts through the relay. Normal T1
+renewal uses unicast to server `10.255.0.1`, routed through the CRS309. Keep the
+transit input path and return routes to the client networks available. A DHCP
+connection showing zero reply packets is not proof of failed renewal: a VLAN 10
+packet-level test received ACKs while that RB5009 counter remained zero. Check
+matching request/ACK transaction IDs at the client; relay request/response totals
+alone do not measure renewal success either.
+
 Leases are 8h everywhere except guest at 4h. Pools start at `.100` on VLAN 1, `.2` on
 guest, and `.6` on everything else.
 
