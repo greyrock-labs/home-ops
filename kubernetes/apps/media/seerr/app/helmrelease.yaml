@@ -61,7 +61,7 @@ spec:
           app:
             image:
               repository: seerr/seerr
-              tag: v3.5.0
+              tag: v3.5.1
             probes:
               liveness:
                 enabled: true
