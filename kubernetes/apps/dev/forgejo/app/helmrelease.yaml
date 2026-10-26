@@ -91,6 +91,9 @@ spec:
           PROVIDER: redis
           PROVIDER_CONFIG: redis://forgejo-dragonfly:6379?pool_size=100&idle_timeout=180s
           SESSION_LIFE_TIME: "1209600"
+        ui:
+          DEFAULT_THEME: melosso
+          THEMES: forgejo-auto,forgejo-light,forgejo-dark,melosso,melosso-dark,melosso-light
         webhook:
           ALLOWED_HOST_LIST: "*"
       oauth:
@@ -105,6 +108,9 @@ spec:
       - name: signing-key
         mountPath: /data/signing
         readOnly: true
+      - name: forgejo-themes
+        mountPath: /data/gitea/public/assets/css
+        readOnly: true
     extraInitVolumeMounts:
       - name: signing-key
         mountPath: /data/signing
@@ -114,6 +120,9 @@ spec:
         secret:
           secretName: forgejo-signing-key
           defaultMode: 0400
+      - name: forgejo-themes
+        configMap:
+          name: forgejo-themes
     httpRoute:
       enabled: false
     deployment:
