@@ -16,4 +16,7 @@ kubectl -n ai exec deploy/hermes -c app -- sh -c 'cd /opt/data && /opt/hermes/.v
 ## Forgejo access
 
 `Forgejo - Hermes` in 1Password holds an access token for the `agent-smith` Forgejo user
-(scope `write:repository`). It can push only to repos where `agent-smith` is a collaborator.
+in `password` (scopes `write:repository,write:issue,read:user`; without `read:user` the
+API rejects `/api/v1/user`) and the account's login password in `login_password`. Forgejo
+deletes tokens only with basic auth, so that password is needed to rotate one. The token
+can push only to repos where `agent-smith` is a collaborator.
