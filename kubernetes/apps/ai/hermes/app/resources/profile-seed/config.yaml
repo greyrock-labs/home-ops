@@ -36,7 +36,7 @@ terminal:
   persistent_shell: true
   timeout: 180
 
-timezone: Europe/Amsterdam
+timezone: America/New_York
 
 privacy:
   redact_pii: true
