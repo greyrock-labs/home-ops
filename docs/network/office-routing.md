@@ -1,8 +1,8 @@
-# Office CRS309 routing migration
+# Office CRS309 routing
 
 The Office CRS309 owns the VLAN 1, 10 and 20 gateways. VLANs 10/20 moved on
 2026-10-16; VLAN 1 moved on 2026-10-19. The RB5009's old gateway addresses are
-disabled for rollback, and automatic rollback timers are removed.
+removed. Rollback cleanup completed on 2026-10-26.
 See [router-baseline.md](router-baseline.md) and
 [switch-baseline.md](switch-baseline.md) for the current configuration decisions.
 
@@ -11,9 +11,9 @@ See [router-baseline.md](router-baseline.md) and
 | Item                | RB5009                 | Office CRS309          |
 | ------------------- | ---------------------- | ---------------------- |
 | Management endpoint | 10.255.0.1             | 10.1.0.10/32           |
-| VLAN 1 gateway      | disabled for rollback  | 10.1.0.1/24            |
-| VLAN 10 gateway     | disabled for rollback  | 10.1.10.1/24           |
-| VLAN 20 gateway     | disabled for rollback  | 10.1.20.1/24           |
+| VLAN 1 gateway      | via 10.255.0.2         | 10.1.0.1/24            |
+| VLAN 10 gateway     | via 10.255.0.2         | 10.1.10.1/24           |
+| VLAN 20 gateway     | via 10.255.0.2         | 10.1.20.1/24           |
 | Transit VLAN 4090   | 10.255.0.1/30          | 10.255.0.2/30          |
 | Transit ULA         | fdc0:ffee:215:fe::1/64 | fdc0:ffee:215:fe::2/64 |
 | ASN                 | 64513                  | 64516                  |
@@ -63,11 +63,10 @@ router API clients retain the hostname and TLS verification. Router syslog also
 sources from 10.255.0.1. The protocol router ID remains 10.1.0.1 independently
 of gateway ownership.
 
-Management no longer detours through the RB5009 when communicating with VLANs
-10/20. The switch's management /25 routes, three CPU-redirect ACLs and
-`l3-recovery` source rule, plus the RB5009 switch-management return exception,
-are disabled and retained only for rollback. The switch's control-plane input
-filters remain active; no inter-VLAN stateful firewall is configured there.
+Management routes directly between VLANs 1, 10 and 20. The temporary management
+/25 detours, CPU-redirect ACLs, source recovery table/rule and RB5009 return
+exception have been removed. The switch's control-plane input filters remain
+active; no inter-VLAN stateful firewall is configured there.
 
 WAN, WireGuard, router-hosted DNS and VLANs 50/60/4000 still involve the RB5009.
 Guest/camera policies and existing DNS/NTP/portal exceptions were retained;
@@ -113,98 +112,68 @@ The switch uses explicit per-VLAN ND, DNS advertisement off, pure SLAAC.
 - TFTP files remain on the RB5009, with the same source-subnet restrictions.
   DHCP `next-server` for VLANs 10/20 is now 10.255.0.1.
 
-## Recovery
+## Completed rollback cleanup (2026-10-26)
 
-Old RB5009 gateway addresses and VLAN 10/20 interfaces remain disabled.
-Automatic rollback timers are removed. Read the current configuration before
-using any recovery script; the one-time cutover scripts must not be replayed.
-Use wired management or console for recovery.
+After a week of operation, the one-time cutover and rollback scripts were removed
+from both devices, along with the retained configuration they restored:
 
-For VLAN 1, run `vlan1-rollback` on the Office CRS309 first, then on the RB5009
-at 10.255.0.1. The switch releases 10.1.0.1, restores its 10.1.0.10/24 address
-and old management exceptions, and enables the 10.255.0.5/32 rollback-ready
-signal. The router requires that signal before reclaiming the gateway. It
-restores `dhcp-vlan1` on bridge and refreshes management neighbors. The router's
-10.255.0.5/32 route via the switch is retained for this handshake; the signal
-address is disabled during normal operation.
+- RB5009: old VLAN 1/10/20 gateway addresses, VLAN 10/20 public and ULA addresses,
+  ND and deprecated-prefix entries, disabled VLAN interfaces and their LAN-list
+  memberships, and the unused router-side VLAN 10/20 bridge tagging entries.
+  The latter tagged only the router CPU and its single switch uplink; they did
+  not carry traffic between physical ports.
+- RB5009: disabled BGP connections sourced from 10.1.0.1 and the disabled
+  switch-management return firewall exception.
+- CRS309: unused default via 10.1.0.1, management /25 detours, three disabled
+  CPU-redirect ACLs, and the temporary 10.1.0.252 host route, source rule and
+  `l3-recovery` table.
+- Both devices: temporary 10.255.0.4/32 and 10.255.0.5/32 handoff addresses and
+  their counterpart routes. No migration scheduler remained.
 
-For a complete return to router-on-a-stick, restore VLAN 1 as above before
-running the original `l3-rollback` scripts. Run that script on the switch first,
-wait for gateway/RA release, then run it on the RB5009. It restores VLAN 10/20
-ownership, original DHCP placement/options, ND and mDNS repeating. Never enable
-a router gateway while the switch still owns the address. The original switch
-rollback disables L3 hardware routing and restores its default via 10.1.0.1.
+Retained configuration was reviewed and migration-era comments were replaced
+with their ongoing purpose. This includes IPv4/IPv6 transit, gateways, return
+and default routes, and control-plane firewall rules. The installation comment
+in `sync-office-pd` was updated without changing its executable behavior.
 
-The router's DNS/API endpoint and active BGP peer source remain 10.255.0.1
-through rollback. Keep transit and those peer configurations in place; reverting
-them to 10.1.0.1 is not required to restore the old gateway ownership. The
-10.255.0.4/32 handoff address and its switch route are retained disabled.
+The permanent dependencies remain: transit VLAN 4090, CRS309 gateways/defaults
+and management alias, hardware routing, RB5009 return routes, DHCP servers and
+relays, active BGP peers and filters, and IPv6 delegation. The RB5009 bridge and
+192.168.88.1/24 Netinstall address remain. Keep `sync-office-pd`, its scheduler
+and DHCPv6 event hook. Names such as `greyrock-l3` and `l3-cilium-in` identify
+permanent Layer 3 BGP configuration; they are not recovery artifacts.
 
-## Retiring the rollback configuration
-
-After about one week of stable operation following the latest gateway handoff,
-the request **"remove the l3 rollback scripts"** means complete the cleanup below,
-including the retained legacy
-configuration and temporary recovery artifacts. This is a future live change;
-the checklist itself does not authorize removal now.
-
-1. Read the current RB5009 and Office CRS309 configuration over SSH. Confirm
-   that the CRS309 still owns all three gateways, hardware routing is enabled, BGP
-   peers and service routes are healthy, DHCP relays work, and public IPv6
-   delegation renews. Review any switch/router reboot recovery results; do not
-   claim reboot recovery was tested if it was not. Inventory each candidate and
-   its references before deleting it; disabled status or an `l3 migration:`
-   comment alone does not identify an obsolete object.
-2. Remove `l3-cutover`, `l3-rollback`, `vlan1-cutover` and `vlan1-rollback`
-   system scripts from both devices, plus any scheduler references. Remove the
-   disabled 10.255.0.4/32 handoff address and its disabled switch route, and the
-   disabled 10.255.0.5/32 rollback-ready address and its router route. The timers
-   should already be absent; verify that no migration-only scheduler remains.
-3. On the RB5009, remove the disabled old VLAN 1/10/20 gateway addresses, old
-   public/ULA address definitions, per-interface ND entries and static prefix
-   deprecation entries, obsolete interface-list memberships, and finally the
-   disabled `vlan10-internal` and `vlan20-servers` interfaces. Check all references
-   first. Keep the live DHCP server objects, leases, pools and network options:
-   the servers now use transit and the CRS309 relays. Review bridge VLAN entries
-   separately; retain any tagging required to carry VLANs between physical ports.
-   Keep bridge and its 192.168.88.1/24 Netinstall address. Remove the disabled old
-   BGP connections sourced from 10.1.0.1 and disabled switch-management return
-   firewall exception; keep the active transit-sourced BGP connections.
-4. On the CRS309, remove the temporary source routing rule for
-   10.1.0.10 -> 10.1.0.252, its host route and the `l3-recovery` table, after
-   confirming they still serve only the disconnected cutover workstation.
-   Remove any disabled pre-migration default route via 10.1.0.1 retained solely
-   for rollback, after checking that the live default uses transit. Remove the
-   disabled management /25 detour routes and three disabled CPU-redirect ACLs.
-   Keep both live management addresses: gateway 10.1.0.1/24 and alias
-   10.1.0.10/32.
-5. Review all configuration added for the migration on both devices and in the
-   repository, including transit, routes, addresses, ACLs, firewall rules, BGP,
-   DHCP and IPv6 delegation. Replace migration-era comments and descriptions on
-   every retained object with its ongoing purpose, such as `office transit`,
-   `VLAN 10 return via CRS309`, or `management via CRS309`. This applies to all
-   newly added configuration, not just one object or the literal `l3 migration:`
-   prefix. Check retained scripts and automation for comment-based selectors and
-   update those references together. Use consistent wording in the device
-   configuration and documentation.
-6. Verify management access, VLAN 10/20 connectivity, NAS and Kubernetes service
-   access, Internet access, BGP, DHCP and IPv6 renewal after cleanup. Confirm no
-   invalid references or migration-only scripts, timers or recovery routes remain.
-   Remove the local migration staging files and private backups under
-   `/private/tmp/home-ops-l3/` and `/private/tmp/home-ops-vlan1/` after verification;
-   never commit their contents. Check for leftover staging files under
-   `/tmp/home-ops-vlan1/` on the NAS as well.
-7. Update this document, [router-baseline.md](router-baseline.md) and
-   [switch-baseline.md](switch-baseline.md) to describe the resulting state.
-   Remove obsolete rollback/recovery instructions and record any validation gaps.
-
-The permanent routing configuration remains: transit VLAN 4090 and its addresses,
-CRS309 gateways/default routes and management alias, RB5009 return routes, DHCP relays,
-BGP peers (including the retained RB5009 peers and eBGP multihop), and IPv6
-delegation. Keep `sync-office-pd`, its scheduler and DHCPv6 event hook. Retain
-these live dependencies and relabel their migration-era comments during cleanup.
+Cleanup validation is recorded below. Recovery now requires deliberate
+reconfiguration using the current baselines and wired management or console;
+the one-time rollback scripts are no longer available.
 
 ## Validation and remaining checks
+
+Rollback cleanup validation (2026-10-26):
+
+- Post-change configuration audits found no cutover/rollback scripts, migration
+  timers, temporary signal/recovery routes or migration-era comments on either
+  device. Old VLAN interface references were absent on the RB5009.
+- Both BGP sessions on each device retained their week-long uptimes. All seven
+  CRS309 service /32s remained active and hardware offloaded; IPv4 and IPv6
+  hardware routing remained enabled.
+- Management SSH, router-to-switch and router-to-NAS reachability passed.
+  NAS-to-VLAN-10 and management pings passed, as did NAS IPv4/IPv6 Internet pings.
+  Kubernetes reported its node Ready; internal echo and public Forgejo returned
+  HTTP 200. Both ctrld servers resolved the Kubernetes API, and the router API's
+  hostname and TLS certificate validated (HTTP 401 without credentials).
+- DHCP servers and relays retained their transit configuration and leases.
+  VLAN 10 had lease activity after cleanup. No VLAN 1 client was bound, and no
+  fresh VLAN 20 renewal or packet-level DHCP test was forced during cleanup.
+- The delegated /60 remained bound and renewed after cleanup; the watchdog and
+  ISP DHCPv6 hook remained installed. The retained script changed only its
+  installation comment.
+- Original local migration staging directories were absent or empty, and no
+  NAS `/tmp/home-ops-vlan1/` files remained. Temporary private cleanup exports
+  and staging files were removed after verification.
+
+No device was rebooted and no production ISP lease was released. The earlier
+camera isolation checks remain historical evidence; guest isolation was not
+independently exercised during cleanup.
 
 DHCP renewal investigation (2026-10-19):
 
@@ -288,10 +257,10 @@ VLAN 10/20 validation (2026-10-16):
 - IPv4 iperf3 from the Mac on 6 GHz VLAN 10 Wi-Fi (10.1.10.9) to the NAS
   (10.1.20.12), 20 measured seconds per test after two seconds omitted:
 
-  | Direction  | One TCP stream | Four TCP streams |
-  | ---------- | -------------: | ---------------: |
-  | Mac to NAS |       738 Mbps |         813 Mbps |
-  | NAS to Mac |       863 Mbps |         818 Mbps |
+| Direction  | One TCP stream | Four TCP streams |
+| ---------- | -------------: | ---------------: |
+| Mac to NAS | 738 Mbps       | 813 Mbps         |
+| NAS to Mac | 863 Mbps       | 818 Mbps         |
 
   CRS309 sampled CPU averaged 0.4–0.6%, peaking at 2%. All 20 RB5009
   connection-table samples found no matching Mac-to-NAS connection, and its
@@ -313,8 +282,7 @@ Some later agent checks inside its restricted sandbox misleadingly continued to
 report lookup failures; host DNS checks must run outside that sandbox. The exact
 original macOS cause was not established; the DNS servers were answering.
 The temporary API-IP override was removed from the git-ignored kubeconfig after
-native resolution recovered. No DNS server configuration was changed. Private
-copies of the original kubeconfig and device exports were saved outside the repo.
+native resolution recovered. No DNS server configuration was changed. Temporary private copies and migration staging files were removed during cleanup.
 
 ## References
 

@@ -1,5 +1,5 @@
 # Body for an RB5009 /system script, NOT a top-level /import file.
-# Read-only by default. Enable applyChanges only when installing for cutover.
+# Read-only by default. Enable applyChanges only when installing the live script.
 # Invoke on Spectrum DHCPv6 lease changes and every minute as a watchdog.
 # Delegate a static binding, avoiding an overlapping child pool on the RB5009.
 :local applyChanges false

@@ -7,8 +7,8 @@ endpoint is `office-gw.internal.greyrock.io` (10.255.0.1).
 See [switch-baseline.md](switch-baseline.md) for the switch side and
 [router-acme.md](router-acme.md) for certificates.
 
-The completed 2026-10-16 gateway migration and recovery procedure are documented
-in [l3-migration.md](l3-migration.md).
+The office routing design and validation history are documented in
+[office-routing.md](office-routing.md).
 
 Configs are not stored here. This documents the _decisions_ and the conventions that the
 running config cannot explain about itself.
@@ -33,14 +33,14 @@ than being rebuilt each time. Procedure is in `switch-baseline.md`.
 
 VLANs 1, 10 and 20 retain gateways `10.1.0.1`, `10.1.10.1` and `10.1.20.1`,
 owned by the Office CRS309. Static return routes point all three /24s at
-`10.255.0.2`. The router's old gateway addresses and VLAN 10/20 interfaces are
-disabled and retained for rollback. The bridge remains for L2 switching and
+`10.255.0.2`. The old gateway addresses and VLAN 10/20 interfaces were removed
+after validation. The bridge remains for L2 switching and
 Netinstall; it no longer owns an active 10.1.0.0/24 address.
 
 ### Interface lists
 
-`LAN` holds `bridge`, `vlan4090-transit`, `vlan30`, and `vlan50`; the disabled old VLAN
-10/20 interfaces remain members for rollback. `WAN` is `ether1`. `vlan60-cameras` is
+`LAN` holds `bridge`, `vlan4090-transit`, `vlan30-container`, and `vlan50-iot`.
+`WAN` is `ether1`. `vlan60-cameras` is
 `RESTRICTED`, `vlan4000-guest` is `GUEST` and `vlan4001-work` is `WORK`, all deliberately
 outside `LAN` - the v4 input chain and both v6 chains end in a drop for anything not from
 `LAN`.
@@ -121,8 +121,8 @@ Within the delegated /60, VLAN 10 uses offset 0 and VLAN 20 uses offset 4:
 ```
 
 These are existing configuration, not commands to add again. ULA gateways are
-ordinary static addresses from the table above. Gateway addresses on the old
-RB5009 VLAN interfaces remain disabled for rollback.
+ordinary static addresses from the table above. The old RB5009 VLAN 10/20
+address definitions and interfaces have been removed.
 
 ### Firewall
 
@@ -337,8 +337,8 @@ a protocol identifier; the reachable RB5009 peer address is 10.255.0.1.
 The Cilium config selects all linux nodes with one `localASN` and
 `peerAddress: 10.255.0.1`, so any k8s node peers the same way. NAS FRR uses the
 same router endpoint. The router connections `cilium-transit` and
-`codswallop-transit` explicitly source from 10.255.0.1; the old connections
-sourced from 10.1.0.1 are disabled pending rollback cleanup.
+`codswallop-transit` explicitly source from 10.255.0.1. The obsolete connections
+sourced from 10.1.0.1 have been removed.
 
 codswallop advertises `10.1.25.21/32`. Both servers also peer directly with the
 Office CRS309 (10.1.20.1, AS 64516), which learns the service /32s without a

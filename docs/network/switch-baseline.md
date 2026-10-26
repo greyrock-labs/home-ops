@@ -25,8 +25,8 @@ office-gw
 Garage traffic transits Game Room and Office. The Office CRS309 now owns the
 VLAN 1/10/20 gateways and hardware routes trusted management/client/server and service traffic.
 The other eight switches remain L2. VLAN 4090 is a dedicated transit to the RB5009,
-which retains all other gateways and WAN/WireGuard duties. See the completed
-[l3-migration.md](l3-migration.md) for allocation, exceptions and recovery.
+which retains all other gateways and WAN/WireGuard duties. See
+[office-routing.md](office-routing.md) for allocation, operating details and validation.
 
 ## VLANs
 
@@ -387,8 +387,8 @@ This unit is the 32MB board revision; the Office and Garage units are 16MB board
 
 ## Office CRS309 as-built
 
-CRS309-1G-8S+, RouterOS 7.24. Management 10.1.0.10/24 on the bridge, RSTP priority
-`0x1000` (4096) - the **root bridge** for the whole fabric, which is where the RB5009
+CRS309-1G-8S+, RouterOS 7.24. Management alias 10.1.0.10/32 and gateway
+10.1.0.1/24 on the bridge, RSTP priority `0x1000` (4096) - the **root bridge** for the whole fabric, which is where the RB5009
 attaches.
 
 | Port         | Comment                   |
@@ -398,7 +398,7 @@ attaches.
 | sfp-sfpplus3 | office-c08zp              |
 | sfp-sfpplus4 | office-c08pf              |
 
-### Office routing as-built (2026-10-19)
+### Office routing as-built (2026-10-26)
 
 - Management gateway `10.1.0.1/24` on bridge, with `10.1.0.10/32` as the
   switch's management alias and BGP router ID. Keep only the gateway's /24 on
@@ -423,11 +423,10 @@ attaches.
   4090 and splits it into matching public/ULA subnet IDs `10` and `14`.
   See [router-baseline.md](router-baseline.md) for the allocation and watchdog.
 
-Management traffic routes directly between VLANs 1/10/20. The management /25
-detours, three CPU-redirect ACLs, `l3-recovery` source rule and RB5009 management
-return exception are disabled pending rollback cleanup. They are not required
-by the current forwarding path. No inter-VLAN stateful firewall is configured on
-the switch; input filters protect its own control plane.
+Management traffic routes directly between VLANs 1/10/20. The obsolete management
+/25 detours, three CPU-redirect ACLs, `l3-recovery` table and source rule, and
+RB5009 management return exception were removed on 2026-10-26. No inter-VLAN
+stateful firewall is configured on the switch; input filters protect its own control plane.
 
 ## CRS309 flash revisions
 
