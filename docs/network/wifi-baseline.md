@@ -1,6 +1,6 @@
 # Wi-Fi baseline
 
-Ruckus Unleashed, five APs, replacing UniFi in the 2026 rebuild. The master AP floats;
+Ruckus Unleashed, eight APs, replacing UniFi in the 2026 rebuild. The master AP floats;
 `unleashed.internal.greyrock.io` (10.1.0.2) follows whichever AP currently holds it, and
 each AP also has its own A record under `internal.greyrock.io`. Wi-Fi clients never see that
 record: Unleashed intercepts their lookups of `unleashed.internal.greyrock.io` and answers
@@ -11,38 +11,46 @@ and the settings that deviate from defaults.
 
 ## APs
 
-`show ap all` lists five APs:
+`show ap all` lists eight APs:
 
-| Name                  | IP        | Model |
-| --------------------- | --------- | ----- |
-| `office-ap`           | 10.1.0.13 | R770  |
-| `upstairs-hallway-ap` | 10.1.0.14 | R770  |
-| `game-room-ap`        | 10.1.0.23 | R770  |
-| `kitchen-ap`          | 10.1.0.34 | R770  |
-| `garage-ap`           | 10.1.0.33 | R650  |
+| Name                  | IP        | Model  |
+| --------------------- | --------- | ------ |
+| `office-ap`           | 10.1.0.13 | R770   |
+| `upstairs-hallway-ap` | 10.1.0.14 | R770   |
+| `game-room-ap`        | 10.1.0.23 | R770   |
+| `kitchen-ap`          | 10.1.0.34 | R770   |
+| `garage-ap`           | 10.1.0.33 | R650   |
+| `rear-driveway-ap`    | 10.1.0.35 | T750SE |
+| `side-yard-ap`        | 10.1.0.36 | T750SE |
+| `side-driveway-ap`    | 10.1.0.37 | T750SE |
 
-All five are in the System Default AP group; per-AP overrides carry the 2.4 GHz settings.
+All eight are in the System Default AP group; per-AP overrides carry the 2.4 GHz settings.
 
 ### Radios
 
-| AP                    | 2.4 GHz     | 5 GHz               | 6 GHz         |
-| --------------------- | ----------- | ------------------- | ------------- |
-| `kitchen-ap`          | ch 1, Full  | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
-| `upstairs-hallway-ap` | ch 6, Full  | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
-| `garage-ap`           | ch 11, Full | Auto, 80 MHz, -9 dB | —             |
-| `office-ap`           | off         | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
-| `game-room-ap`        | off         | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
+| AP                    | 2.4 GHz             | 5 GHz               | 6 GHz         |
+| --------------------- | ------------------- | ------------------- | ------------- |
+| `upstairs-hallway-ap` | ch 6, 20 MHz, -3 dB | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
+| `garage-ap`           | ch 1, 20 MHz, -6 dB | Auto, 80 MHz, -9 dB | —             |
+| `office-ap`           | no WLANs            | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
+| `game-room-ap`        | no WLANs            | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
+| `kitchen-ap`          | no WLANs            | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
+| `rear-driveway-ap`    | no WLANs            | Auto, 80 MHz, -9 dB | —             |
+| `side-yard-ap`        | no WLANs            | Auto, 80 MHz, -9 dB | —             |
+| `side-driveway-ap`    | no WLANs            | Auto, 80 MHz, -9 dB | —             |
+
+"No WLANs" means WLAN Services is off on that AP's 2.4 GHz radio.
 
 ChannelFly manages 5 and 6 GHz with Channel Change Frequency 66 and the full-optimization
 period at 02:00–03:00. It is off for 2.4 GHz.
 
 #### Why 2.4 GHz is pinned
 
-2.4 GHz has three usable channels, so three radios get one each and the other two APs carry
-no 2.4 GHz WLAN. On Auto, three radios ended up sharing channel 11 at minimum power, and the
-Upstairs Hallway radio reported RF pollution 34 and estimated capacity 1410, against 3 and
-8666 on a clean radio. Clients stayed associated but lost 40–95% of their traffic, which broke
-Matter sessions to the Kasa plugs (see
+Two radios carry 2.4 GHz, each on its own channel at reduced power, and every other AP has
+WLAN Services off on 2.4 GHz. On Auto, three radios ended up sharing channel 11 at minimum
+power, and the Upstairs Hallway radio reported RF pollution 34 and estimated capacity 1410,
+against 3 and 8666 on a clean radio. Clients stayed associated but lost 40–95% of their
+traffic, which broke Matter sessions to the Kasa plugs (see
 [`.agents/knowledge/matter-thread.md`](../../.agents/knowledge/matter-thread.md)).
 
 ChannelFly would not have moved it. Outside the optimization period it only changes a
