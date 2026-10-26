@@ -24,20 +24,23 @@ and the settings that deviate from defaults.
 | `side-yard-ap`        | 10.1.0.36 | T750SE |
 | `side-driveway-ap`    | 10.1.0.37 | T750SE |
 
-All eight are in the System Default AP group; per-AP overrides carry the 2.4 GHz settings.
+All eight are in the System Default AP group; per-AP overrides carry the 2.4 GHz settings and Upstairs Hallway's 5 GHz power.
 
 ### Radios
 
-| AP                    | 2.4 GHz             | 5 GHz               | 6 GHz         |
-| --------------------- | ------------------- | ------------------- | ------------- |
-| `upstairs-hallway-ap` | ch 6, 20 MHz, -3 dB | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
-| `garage-ap`           | ch 1, 20 MHz, -6 dB | Auto, 80 MHz, -9 dB | —             |
-| `office-ap`           | no WLANs            | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
-| `game-room-ap`        | no WLANs            | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
-| `kitchen-ap`          | no WLANs            | Auto, 80 MHz, -9 dB | Auto, 160 MHz |
-| `rear-driveway-ap`    | no WLANs            | Auto, 80 MHz, -9 dB | —             |
-| `side-yard-ap`        | no WLANs            | Auto, 80 MHz, -9 dB | —             |
-| `side-driveway-ap`    | no WLANs            | Auto, 80 MHz, -9 dB | —             |
+| AP                    | 2.4 GHz             | 5 GHz                | 6 GHz         |
+| --------------------- | ------------------- | -------------------- | ------------- |
+| `upstairs-hallway-ap` | ch 6, 20 MHz, -3 dB | Auto, 80 MHz, -10 dB | Auto, 160 MHz |
+| `garage-ap`           | ch 1, 20 MHz, -6 dB | Auto, 80 MHz, -9 dB  | —             |
+| `office-ap`           | no WLANs            | Auto, 80 MHz, -9 dB  | Auto, 160 MHz |
+| `game-room-ap`        | no WLANs            | Auto, 80 MHz, -9 dB  | Auto, 160 MHz |
+| `kitchen-ap`          | no WLANs            | Auto, 80 MHz, -9 dB  | Auto, 160 MHz |
+| `rear-driveway-ap`    | no WLANs            | Auto, 80 MHz, -9 dB  | —             |
+| `side-yard-ap`        | no WLANs            | Auto, 80 MHz, -9 dB  | —             |
+| `side-driveway-ap`    | no WLANs            | Auto, 80 MHz, -9 dB  | —             |
+
+Upstairs Hallway's 5 GHz is one step below the rest so a phone between it and Game Room
+stops reassociating back and forth between them.
 
 "No WLANs" means WLAN Services is off on that AP's 2.4 GHz radio.
 
