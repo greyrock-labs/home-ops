@@ -121,6 +121,8 @@ spec:
               - ports:
                   - port: "10443"
                     protocol: TCP
+                serverNames:
+                  - idm.greyrock.io
         ingress:
           - fromEndpoints:
               - matchLabels:
