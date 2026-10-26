@@ -249,11 +249,11 @@ the room first (`gameroom`, `livingroom`, `diningroom`, `master-bedroom`,
 
 There is no DHCP lease script. Anything still dynamic has no DNS name and shows in ctrld as
 a bare address, which is the cue to give it a static lease. Deliberately dynamic: the UniFi
-cameras on VLAN 60 and everything on guest.
+cameras on VLAN 60 and everything on guest and work.
 
 To add a device, add it to the CSV and find its lease - it is the only dynamic one outside
-cameras and guest: `/ip dhcp-server lease print where dynamic and server!=dhcp-vlan60 and
-server!=dhcp-vlan4000`. Then on the lease: `make-static`, set `comment="<CSV name>"`, then
+cameras, guest and work: `/ip dhcp-server lease print where dynamic and
+server!=dhcp-vlan60 and server!=dhcp-vlan4000 and server!=dhcp-vlan4001`. Then on the lease: `make-static`, set `comment="<CSV name>"`, then
 `/ip dns static add name=<name>.internal.greyrock.io address=<ip> comment=static-lease`.
 
 ### Network boot
