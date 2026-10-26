@@ -2,7 +2,7 @@
 
 `office-gw`, an RB5009UG+S+ on RouterOS 7.24.4, replacing the previous gateway in the
 2026 rebuild. The Office CRS309 routes VLANs 1, 10 and 20 in hardware; office-gw
-keeps WAN/NAT, WireGuard, router containers and VLANs 50/60/4000. Its management
+keeps WAN/NAT, WireGuard, router containers and VLANs 50/60/4000/4001. Its management
 endpoint is `office-gw.internal.greyrock.io` (10.255.0.1).
 See [switch-baseline.md](switch-baseline.md) for the switch side and
 [router-acme.md](router-acme.md) for certificates.
@@ -24,6 +24,7 @@ running config cannot explain about itself.
 | `vlan50-iot`       | 10.1.50.1/24    | IoT                                                          |
 | `vlan60-cameras`   | 10.1.60.1/24    | Cameras                                                      |
 | `vlan4000-guest`   | 192.168.23.1/24 | Guest                                                        |
+| `vlan4001-work`    | 192.168.24.1/24 | Work                                                         |
 | `wg-public-edge`   | 10.254.45.1/24  | WireGuard to skedaddle, see [public-edge.md](public-edge.md) |
 
 `192.168.88.1/24` remains on the bridge for Netinstall. Nothing reaches it unless a
@@ -38,15 +39,15 @@ Netinstall; it no longer owns an active 10.1.0.0/24 address.
 
 ### Interface lists
 
-`LAN` holds `bridge`, `vlan4090-transit`, `vlan30`, and `vlan50`; the disabled
-old VLAN 10/20 interfaces remain members for rollback. `WAN` is `ether1`.
-`vlan60-cameras` is `RESTRICTED` and `vlan4000-guest` is `GUEST`, both deliberately
+`LAN` holds `bridge`, `vlan4090-transit`, `vlan30`, and `vlan50`; the disabled old VLAN
+10/20 interfaces remain members for rollback. `WAN` is `ether1`. `vlan60-cameras` is
+`RESTRICTED`, `vlan4000-guest` is `GUEST` and `vlan4001-work` is `WORK`, all deliberately
 outside `LAN` - the v4 input chain and both v6 chains end in a drop for anything not from
 `LAN`.
 
-`LOCALSVC` covers `vlan60-cameras` and `vlan4000-guest` so those two can still reach the
-router for DHCP and DNS despite being outside `LAN`. It does this with
-`include=RESTRICTED,GUEST` rather than direct members - the lists are pulled in
+`LOCALSVC` covers `vlan60-cameras`, `vlan4000-guest` and `vlan4001-work` so they can still
+reach the router for DHCP and DNS despite being outside `LAN`. It does this with
+`include=RESTRICTED,GUEST,WORK` rather than direct members - the lists are pulled in
 dynamically.
 
 **`/interface list member print` shows nothing for a list built from includes.** An empty
@@ -141,6 +142,12 @@ TCP 443 to envoy-internal (10.1.25.42), so the captive portal's redirect to
 `voucher.greyrock.io` loads. It has no connection-state match, because the drop below it
 has none either and would otherwise catch the rest of the connection.
 
+Work (VLAN 4001) is internet-only: `work: internet only` drops anything from `WORK` not
+bound for `WAN`, and `guest: no work` keeps guest out of it. Both sit after the guest
+rules. VLAN 4001 has no v6 address and no RA, so the final v6 drop covers it, as for
+cameras. It exists so a work laptop can join Wi-Fi before anyone signs in, which the
+guest voucher portal does not allow.
+
 Newly added v6 rules can show the `I` (invalid) flag briefly while interface lists
 resolve. It clears on its own.
 
@@ -221,9 +228,11 @@ matching request/ACK transaction IDs at the client; relay request/response total
 alone do not measure renewal success either.
 
 Leases are 8h everywhere except guest at 4h. Pools start at `.100` on VLAN 1, `.2` on
-guest, and `.6` on everything else.
+guest and work, and `.6` on everything else.
 
-Every network except VLAN 20 and guest hands out the domain name `internal.greyrock.io`.
+Work hands out Cloudflare (1.1.1.1, 1.0.0.1) for DNS; every other network hands out ctrld.
+
+Every network except VLAN 20, guest and work hands out the domain name `internal.greyrock.io`.
 VLAN 20 has none, so DHCP clients there (Talos) get no search domain from it.
 
 VLAN 10 also hands out a search list of `internal.greyrock.io` then `greyrock.io` (option

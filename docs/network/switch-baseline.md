@@ -38,6 +38,7 @@ which retains all other gateways and WAN/WireGuard duties. See the completed
 | 50   | IoT            | 10.1.50.0/24    |
 | 60   | Cameras        | 10.1.60.0/24    |
 | 4000 | Guest          | 192.168.23.0/24 |
+| 4001 | Work           | 192.168.24.0/24 |
 
 `10.1.25.0/24` is the Cilium load-balancer pool. It is **not** a VLAN — those /32s are
 BGP-announced to both 10.255.0.1 and the Office CRS309 at 10.1.20.1. The old UniFi controller required a VLAN for it; MikroTik
@@ -45,7 +46,7 @@ does not, so the migration drops it.
 
 ## Conventions
 
-- **Trunks** carry VLAN 1 untagged and 10/20/50/60/4000 tagged. Untagged mgmt means a
+- **Trunks** carry VLAN 1 untagged and 10/20/50/60/4000/4001 tagged. Untagged mgmt means a
   factory-default switch is reachable over its uplink before it is configured.
 - **Port VLAN lists are written native-first.** `1,10,20,4000` means untagged 1, tagged
   10/20/4000.
@@ -194,12 +195,12 @@ lines on both SFP+ ports are inert and `1/2/2` works as an ordinary data port.
 Uplink `1/2/2` to the Office CRS309. This switch is the **active** IGMP/MLD querier for
 all six VLANs; PoE allocation is dynamic; 240W budget.
 
-| Port  | Name       | Untagged | Tagged       |
-| ----- | ---------- | -------- | ------------ |
-| 1/1/5 | office-ap  | 1        | 10, 20, 4000 |
-| 1/1/6 | uh-ap      | 1        | 10, 20, 4000 |
-| 1/1/7 | codswallop | 20       | -            |
-| 1/1/8 | kerfuffle  | 20       | 10, 60       |
+| Port  | Name       | Untagged | Tagged             |
+| ----- | ---------- | -------- | ------------------ |
+| 1/1/5 | office-ap  | 1        | 10, 20, 4000, 4001 |
+| 1/1/6 | uh-ap      | 1        | 10, 20, 4000, 4001 |
+| 1/1/7 | codswallop | 20       | -                  |
+| 1/1/8 | kerfuffle  | 20       | 10, 60             |
 
 `kerfuffle` is the Talos node. Its `bond0` is `active-backup` over a single link,
 **not** LACP, so it takes a plain access port with no LAG, with VLANs 10 and 60 tagged for
@@ -213,12 +214,12 @@ relevant if the Office-Game Room hop, which also carries Garage traffic, ever sa
 
 Uplink `1/2/2` to the Game Room CRS309. IGMP/MLD **passive** on all six VLANs.
 
-| Port  | Name          | Untagged | Tagged       |
-| ----- | ------------- | -------- | ------------ |
-| 1/1/1 | andys-desktop | 10       | -            |
-| 1/1/5 | todds-desktop | 10       | -            |
-| 1/1/7 | game-room-ap  | 1        | 10, 20, 4000 |
-| 1/1/8 | lr-ap         | 1        | 10, 20, 4000 |
+| Port  | Name          | Untagged | Tagged             |
+| ----- | ------------- | -------- | ------------------ |
+| 1/1/1 | andys-desktop | 10       | -                  |
+| 1/1/5 | todds-desktop | 10       | -                  |
+| 1/1/7 | game-room-ap  | 1        | 10, 20, 4000, 4001 |
+| 1/1/8 | lr-ap         | 1        | 10, 20, 4000, 4001 |
 
 `1/1/6` is unused.
 
@@ -232,13 +233,13 @@ Office CRS309 for trusted-network routing instead.
 Uplink `1/2/2` to the Garage CRS309. IGMP/MLD **passive** on all six VLANs. Heaviest PoE
 load of the three: five APs against a 240W budget, dynamic allocation.
 
-| Port  | Name       | Untagged | Tagged       |
-| ----- | ---------- | -------- | ------------ |
-| 1/1/1 | garage-ap  | 1        | 10, 20, 4000 |
-| 1/1/2 | rd-ap      | 1        | 10, 20, 4000 |
-| 1/1/3 | sy-ap      | 1        | 10, 20, 4000 |
-| 1/1/4 | sd-ap      | 1        | 10, 20, 4000 |
-| 1/1/5 | kitchen-ap | 1        | 10, 20, 4000 |
+| Port  | Name       | Untagged | Tagged             |
+| ----- | ---------- | -------- | ------------------ |
+| 1/1/1 | garage-ap  | 1        | 10, 20, 4000, 4001 |
+| 1/1/2 | rd-ap      | 1        | 10, 20, 4000, 4001 |
+| 1/1/3 | sy-ap      | 1        | 10, 20, 4000, 4001 |
+| 1/1/4 | sd-ap      | 1        | 10, 20, 4000, 4001 |
+| 1/1/5 | kitchen-ap | 1        | 10, 20, 4000, 4001 |
 
 ## Garage C08PF as-built
 
@@ -627,7 +628,7 @@ exists only on CRS520/804/812 - on the 309, assume Etherboot uses **copper `ethe
 ### Adjustments for this build
 
 - **Bind the listener to `bridge`, not `vlan1`.** VLAN 1 is untagged on the bridge itself
-  here; there is no separate VLAN 1 interface, unlike 10/20/50/60/4000. This is the
+  here; there is no separate VLAN 1 interface, unlike 10/20/50/60/4000/4001. This is the
   "bind to the VLAN interface the target is untagged in" rule, and here that is `bridge`.
 - **`ip-range` is 192.168.88.x**, not production space - Netinstall wants that subnet. The
   router therefore needs a secondary address there on the listening interface, since the
