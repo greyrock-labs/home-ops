@@ -47,7 +47,7 @@ spec:
           - # Kanidm's public ingress address. Keep in sync with public-edge-dnsendpoint.yaml.
             # Restrict TLS SNI to the issuer hostname.
             toCIDR:
-              - 135.125.53.129/32
+              - 104.168.59.58/32
             toPorts:
               - ports:
                   - port: "443"
@@ -96,7 +96,7 @@ spec:
           # WebUI rejects OIDC endpoints that resolve to private IPs. Use the public
           # ingress address for Kanidm while preserving its issuer hostname and TLS.
           hostAliases:
-            - ip: 135.125.53.129
+            - ip: 104.168.59.58
               hostnames:
                 - idm.greyrock.io
           securityContext:
