@@ -15,5 +15,5 @@ kubectl -n ai exec deploy/hermes -c app -- sh -c 'cd /opt/data && /opt/hermes/.v
 
 ## Forgejo access
 
-`Forgejo - Hermes` in 1Password holds an access token for the `hermes` Forgejo user
-(scope `write:repository`). It can push only to repos where `hermes` is a collaborator.
+`Forgejo - Hermes` in 1Password holds an access token for the `agent-smith` Forgejo user
+(scope `write:repository`). It can push only to repos where `agent-smith` is a collaborator.
