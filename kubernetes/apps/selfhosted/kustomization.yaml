@@ -18,6 +18,7 @@ resources:
   - ./actual/ks.yaml
   - ./atuin/ks.yaml
   - ./it-tools/ks.yaml
+  - ./karakeep/ks.yaml
   - ./manyfold/ks.yaml
   - ./miniflux/ks.yaml
   - ./paperless/ks.yaml

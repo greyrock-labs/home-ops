@@ -1,0 +1,257 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: karakeep
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: karakeep
+  interval: 30m
+  values:
+    defaultPodOptions:
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: "OnRootMismatch"
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+    controllers:
+      karakeep:
+        forceRename: karakeep
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          labels:
+            app.kubernetes.io/component: application
+            egress.policy.home.arpa/internet: "true"
+        containers:
+          karakeep:
+            image:
+              repository: ghcr.io/karakeep-app/karakeep
+              tag: 0.34.1@sha256:69ae5315c618b7c14c1af3e34c6e211acdb231793af424ecd1cab0b70691d987
+            env:
+              BROWSER_WEB_URL: http://karakeep-chrome.selfhosted.svc.cluster.local:9222
+              COREPACK_INTEGRITY_KEYS: 0
+              CRAWLER_DOWNLOAD_BANNER_IMAGE: true
+              CRAWLER_ENABLE_ADBLOCKER: true
+              CRAWLER_STORE_SCREENSHOT: true
+              DATA_DIR: /data
+              DISABLE_NEW_RELEASE_CHECK: true
+              DISABLE_SIGNUPS: true
+              MEILI_ADDR: http://karakeep-meilisearch.selfhosted.svc.cluster.local:7700
+              MEILI_MASTER_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: "{{ .Release.Name }}"
+                    key: meilisearch_master_key
+              NEXTAUTH_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: "{{ .Release.Name }}"
+                    key: encryption_key
+              NEXTAUTH_URL: https://karakeep.greyrock.io
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 1Gi
+      chrome:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          labels:
+            app.kubernetes.io/component: chrome
+            egress.policy.home.arpa/internet: "true"
+        containers:
+          chrome:
+            image:
+              repository: ghcr.io/karakeep-app/karakeep-chrome
+              tag: release
+            args:
+              - --headless
+              - --disable-gpu
+              - --disable-dev-shm-usage
+              - --hide-scrollbars
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 1Gi
+            securityContext:
+              capabilities:
+                drop:
+                  - ALL
+      meilisearch:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          labels:
+            app.kubernetes.io/component: meilisearch
+            egress.policy.home.arpa/block-all: "true"
+          affinity:
+            podAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchExpressions:
+                      - key: app.kubernetes.io/name
+                        operator: In
+                        values:
+                          - karakeep
+                      - key: app.kubernetes.io/controller
+                        operator: In
+                        values:
+                          - karakeep
+                  topologyKey: kubernetes.io/hostname
+        containers:
+          meilisearch:
+            image:
+              repository: mirror.gcr.io/getmeili/meilisearch
+              tag: v1.56.0@sha256:1f578fa865f8251894b3bf38d6668d6209a3f451f8f65ab953e129d4c1db5ef4
+            args:
+              - /bin/meilisearch
+              - --upgrade-db
+            env:
+              MEILI_NO_ANALYTICS: true
+              MEILI_MASTER_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: "{{ .Release.Name }}"
+                    key: meilisearch_master_key
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 2Gi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
+    externalSecrets:
+      karakeep:
+        refreshInterval: 12h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: onepassword-connect
+        target:
+          template:
+            data:
+              encryption_key: "{{ .karakeep_encryption_key }}"
+              meilisearch_master_key: "{{ .karakeep_meilisearch_master_key }}"
+        dataFrom:
+          - extract:
+              key: Karakeep
+            rewrite:
+              - regexp:
+                  source: "[^a-zA-Z0-9 -]"
+                  target: "_"
+              - regexp:
+                  source: "(.*)"
+                  target: "karakeep_$1"
+    networkpolicies:
+      karakeep:
+        type: cilium
+        controller: karakeep
+        egress:
+          - toControllers: [chrome]
+            toPorts:
+              - ports:
+                  - port: "9222"
+                    protocol: TCP
+          - toControllers: [meilisearch]
+            toPorts:
+              - ports:
+                  - port: "7700"
+                    protocol: TCP
+        ingress:
+          - fromEndpoints:
+              - matchLabels:
+                  k8s:io.kubernetes.pod.namespace: network
+                  gateway.networking.k8s.io/gateway-name: envoy-internal
+            toPorts:
+              - ports:
+                  - port: "3000"
+                    protocol: TCP
+      chrome:
+        type: cilium
+        controller: chrome
+        ingress:
+          - fromControllers: [karakeep]
+            toPorts:
+              - ports:
+                  - port: "9222"
+                    protocol: TCP
+      meilisearch:
+        type: cilium
+        controller: meilisearch
+        ingress:
+          - fromControllers: [karakeep]
+            toPorts:
+              - ports:
+                  - port: "7700"
+                    protocol: TCP
+    persistence:
+      data:
+        existingClaim: karakeep-data
+        advancedMounts:
+          karakeep:
+            karakeep:
+              - path: /data
+                subPath: karakeep
+          meilisearch:
+            meilisearch:
+              - path: /meili_data
+                subPath: meilisearch
+      tmpfs:
+        type: emptyDir
+        advancedMounts:
+          karakeep:
+            karakeep:
+              - path: /tmp
+                subPath: tmp_karakeep
+          chrome:
+            chrome:
+              - path: /tmp
+                subPath: tmp_chrome
+          meilisearch:
+            meilisearch:
+              - path: /tmp
+                subPath: tmp_meilisearch
+    route:
+      karakeep:
+        hostnames:
+          - karakeep.greyrock.io
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+        rules:
+          - backendRefs:
+              - identifier: karakeep
+                port: http
+    service:
+      karakeep:
+        controller: karakeep
+        ports:
+          http:
+            port: 3000
+        primary: true
+      chrome:
+        controller: chrome
+        ports:
+          http:
+            port: 9222
+      meilisearch:
+        controller: meilisearch
+        ports:
+          http:
+            port: 7700
