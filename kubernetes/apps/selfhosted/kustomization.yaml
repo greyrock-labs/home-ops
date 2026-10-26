@@ -17,7 +17,6 @@ patches:
 resources:
   - ./actual/ks.yaml
   - ./atuin/ks.yaml
-  - ./freshrss/ks.yaml
   - ./it-tools/ks.yaml
   - ./manyfold/ks.yaml
   - ./miniflux/ks.yaml
