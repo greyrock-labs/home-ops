@@ -25,6 +25,11 @@ spec:
       admin:
         username: ""
       config:
+        authorized_integration:
+          # JWT integrations fetch keys from an issuer that resolves to the
+          # internal Envoy. ALLOWED_DOMAINS is exclusive once set, so allow
+          # local networks instead.
+          ALLOW_LOCALNETWORKS: true
         cache:
           ENABLED: true
           ADAPTER: redis
