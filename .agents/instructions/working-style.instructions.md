@@ -125,5 +125,9 @@ where one is needed. No former values ("was 12 Mbps"), no list of what was tried
 volatile numbers such as client counts. When a setting changes, rewrite the line rather
 than appending a note.
 
+Do not copy into docs anything the manifests already state (models, image or chart
+versions, secret and key names, hostnames lists). Docs get forgotten when the manifest
+changes; point at the app or file instead.
+
 Durable working context belongs in `.agents/`, not in tool-specific directories like
 `.claude/`, so it stays available regardless of which agent is running.

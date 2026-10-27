@@ -1,7 +1,6 @@
 # Hikvision cameras (Scrypted)
 
-Setup checklist and findings for the Hikvision IP cameras that feed Scrypted. Recorded
-2026-10-27 after auditing all three cameras.
+Setup checklist and findings for the Hikvision IP cameras that feed Scrypted.
 
 ## Inventory
 
@@ -33,6 +32,8 @@ ignore it. The two garage cameras are separate devices, so "Garage - Andy" and
   few seconds. If they stay empty, the session is not really signed in.
 - Navigating directly to a `#/config/...` URL does not work; the UI redirects. Use the
   menus. On some page loads the first click on Configuration lands on VCA instead.
+- Scrypted's auto-configuration does not cover everything below (WebSockets, DST,
+  lighting, motion enable); check every item on a new camera.
 
 ## Required settings (Scrypted)
 
@@ -70,11 +71,11 @@ Check all three streams (Main, Sub, Third):
 - Time zone (GMT-05:00) Eastern Time, NTP to `time1.internal.greyrock.io`, port 123,
   interval 1440 min.
 - DST enabled: start **Mar, Second, Sun, 02**; end **Nov, First, Sun, 02**; bias 60 min.
-  Two cameras had been set to the *third* Sunday of March; check this on every camera.
+  Check the week on every camera; "Third" is easy to pick by mistake.
 
 ### Motion (Configuration > Event > Event and Detection > Motion Detection)
 
-- Enable on. Side Yard was found with motion detection off, so Scrypted got no events.
+- Enable on; without it Scrypted gets no motion events.
 - Sensitivity **20** (Normal Mode). The number box is read-only; drag the slider.
 - Linkage: **Notify Surveillance Center** on (Scrypted needs it).
 - Zone currently covers the whole frame on all cameras. Tuning zones is still to do.
@@ -89,7 +90,6 @@ Check all three streams (Main, Sub, Third):
 - Hybrid-light models: Smart Supplement Light on, Supplement Light Mode **Smart**,
   brightness Auto. Modes offered: Smart, White Supplement Light, IR Supplement Light, Off.
 - IR-only models: Smart Supplement Light (Smart IR) **on**, mode IR Supplement Light.
-  Side Yard had it off.
 - Open question: with motion in Normal Mode and Smart Event off, it is unverified what
   triggers the white light in Smart mode.
 
@@ -108,12 +108,7 @@ Check all three streams (Main, Sub, Third):
 
 ## Repo wiring for a new camera
 
-1. Certificate: add the host and a `password_env` to
-   `kubernetes/apps/network/camera-cert-updater-hikvision/app/config/cameras.json`, add
-   the matching `externalSecrets` entry in its `helmrelease.yaml` (1Password item
-   `Cert Updater`, property = short host name), and store the camera's admin password
-   in that 1Password item. The camera serves only the leaf certificate, without the
-   intermediate; `push-certs.py` accounts for that.
-2. Monitoring: add the host to the `devices` (ICMP) probe and the `https://` URL to the
-   `tls-certs` probe in `kubernetes/apps/observability/blackbox-exporter/app/probes.yaml`.
+1. Certificate: add the camera to `camera-cert-updater-hikvision` following the existing
+   entries, and store its admin password in the 1Password item that app reads.
+2. Monitoring: add it to the blackbox-exporter probes alongside the other cameras.
 3. Check the settings above in the web UI after Scrypted has adopted the camera.
