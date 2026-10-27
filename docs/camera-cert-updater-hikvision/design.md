@@ -94,8 +94,10 @@ importing, or selecting certificates. It needs the mounted certificate and the
 updater's own credentials. It cannot establish that write permissions or uploads
 work. Local live tests verify PEM certificate/private-key import with `admin`,
 HTTPS selection, chain validation using the mounted intermediates, and a second
-run that exits without changes. The original `default` certificate is retained. Renewal
-rotation and reachability from the network namespace remain unverified.
+run that exits without changes. The original `default` certificate is retained.
+A Job created from the Flux-deployed CronJob also succeeds inside the `network`
+namespace, verifying the current certificate with bundled intermediates and
+exiting without changes. Renewal rotation remains unverified.
 
 An authorized manual run uses the deployed CronJob:
 
