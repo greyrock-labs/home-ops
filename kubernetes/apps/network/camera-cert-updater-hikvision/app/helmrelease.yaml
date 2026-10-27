@@ -33,7 +33,7 @@ spec:
           app:
             image:
               repository: docker.io/library/python
-              tag: 3.14.10-trixie@sha256:99a53439c9ffbd44b13fe09e60f21b2573e852e342513deaf525ad138d3b404f
+              tag: 3.15.2-trixie@sha256:079e2e93243075a7a840f70ebf9dc5311b1044d13da1287186493b8adeabfecc
             command:
               - python3
               - /script/push-certs.py
