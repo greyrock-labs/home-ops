@@ -1,0 +1,104 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: camera-cert-updater-hikvision
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: camera-cert-updater-hikvision
+  interval: 30m
+  values:
+    controllers:
+      camera-cert-updater-hikvision:
+        type: cronjob
+        cronjob:
+          # Certificate selection may restart the camera web server.
+          # Imports only run when the served leaf differs from the desired one.
+          activeDeadlineSeconds: 600
+          backoffLimit: 0
+          concurrencyPolicy: Forbid
+          failedJobsHistory: 1
+          schedule: "15 3 * * *"
+          successfulJobsHistory: 1
+          ttlSecondsAfterFinished: 86400
+        pod:
+          labels:
+            egress.policy.home.arpa/block-all: "true"
+          securityContext:
+            runAsGroup: 2000
+            runAsNonRoot: true
+            runAsUser: 2000
+        containers:
+          app:
+            image:
+              repository: docker.io/library/python
+              tag: 3.14.10-trixie@sha256:99a53439c9ffbd44b13fe09e60f21b2573e852e342513deaf525ad138d3b404f
+            command:
+              - python3
+              - /script/push-certs.py
+            env:
+              HIKVISION_HOST: garage-camera-todd.internal.greyrock.io
+              PYTHONDONTWRITEBYTECODE: "1"
+              PYTHONUNBUFFERED: "1"
+            envFrom:
+              - externalSecretRef:
+                  identifier: camera-cert-updater-hikvision
+            probes:
+              liveness:
+                enabled: false
+              readiness:
+                enabled: false
+              startup:
+                enabled: false
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              readOnlyRootFilesystem: true
+    externalSecrets:
+      camera-cert-updater-hikvision:
+        data:
+          - secretKey: HIKVISION_PASSWORD
+            remoteRef:
+              key: Cert Updater
+              property: garage-camera-todd
+        refreshInterval: 12h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: onepassword-connect
+    networkpolicies:
+      camera-cert-updater-hikvision:
+        type: cilium
+        egress:
+          # Camera HTTPS only; DNS comes from allow-dns-egress.
+          - toCIDR:
+              - 10.1.60.11/32
+            toPorts:
+              - ports:
+                  - port: "443"
+                    protocol: TCP
+    persistence:
+      certs:
+        type: secret
+        name: internal-greyrock-io-tls
+        globalMounts:
+          - path: /certs
+      script:
+        type: configMap
+        name: camera-cert-updater-hikvision
+        globalMounts:
+          - path: /script/push-certs.py
+            subPath: push-certs.py
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
