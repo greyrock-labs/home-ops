@@ -51,8 +51,8 @@ spec:
       egress:
         allow:
           - "*"
-          # git.greyrock.io resolves to the internal Envoy address here.
-          - 10.1.25.42
+          # git.greyrock.io resolves to the envoy-external gateway in-cluster.
+          - 10.1.25.41
         deny:
           - 10.244.0.0/16
     env:
