@@ -8,6 +8,8 @@ spec:
   dependsOn:
     - name: cloudnative-pg
       namespace: database
+    - name: gvisor
+      namespace: kube-system
     # The virtual key is created through the proxy's admin API, so the proxy
     # must exist first.
     - name: litellm
