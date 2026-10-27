@@ -24,43 +24,67 @@ and the settings that deviate from defaults.
 | `side-yard-ap`        | 10.1.0.36 | T750SE |
 | `side-driveway-ap`    | 10.1.0.37 | T750SE |
 
-All eight are in the System Default AP group; per-AP overrides carry the 2.4 GHz settings and Upstairs Hallway's 5 GHz power.
+### AP groups
+
+| Group                | APs                                     | 2.4 GHz  | WLANs                                      |
+| -------------------- | --------------------------------------- | -------- | ------------------------------------------ |
+| `indoor`             | upstairs-hallway, garage                | on       | all four                                   |
+| `indoor-2g-disabled` | office, game-room, kitchen              | disabled | Grey Rock, Grey Rock Guest, Grey Rock Work |
+| `outdoor`            | side-yard, rear-driveway, side-driveway | disabled | Grey Rock, Grey Rock Guest, Grey Rock Work |
+
+System Default has no APs. Each group sets 5 GHz to 40 MHz at -9 dB and 6 GHz to 160 MHz,
+with the same 5 GHz channel list (below). Per-AP overrides carry the pinned channels, the
+2.4 GHz settings on the two `indoor` APs, and the -10 dB 5 GHz power on Upstairs Hallway and
+Side Yard.
 
 ### Radios
 
-| AP                    | 2.4 GHz             | 5 GHz                | 6 GHz         |
-| --------------------- | ------------------- | -------------------- | ------------- |
-| `upstairs-hallway-ap` | ch 6, 20 MHz, -3 dB | Auto, 80 MHz, -10 dB | Auto, 160 MHz |
-| `garage-ap`           | ch 1, 20 MHz, -6 dB | Auto, 80 MHz, -9 dB  | —             |
-| `office-ap`           | no WLANs            | Auto, 80 MHz, -9 dB  | Auto, 160 MHz |
-| `game-room-ap`        | no WLANs            | Auto, 80 MHz, -9 dB  | Auto, 160 MHz |
-| `kitchen-ap`          | no WLANs            | Auto, 80 MHz, -9 dB  | Auto, 160 MHz |
-| `rear-driveway-ap`    | no WLANs            | Auto, 80 MHz, -9 dB  | —             |
-| `side-yard-ap`        | no WLANs            | Auto, 80 MHz, -9 dB  | —             |
-| `side-driveway-ap`    | no WLANs            | Auto, 80 MHz, -9 dB  | —             |
+Channels are pinned per AP, and ChannelFly (System Settings > Automatic Wireless
+Optimization) is off on every band.
+
+| AP                    | 2.4 GHz (20 MHz) | 5 GHz (40 MHz)   | 6 GHz (160 MHz) |
+| --------------------- | ---------------- | ---------------- | --------------- |
+| `upstairs-hallway-ap` | 6, -3 dB         | 149, -10 dB      | 5 (1–29)        |
+| `garage-ap`           | 1, -6 dB         | 108 (DFS), -9 dB | —               |
+| `office-ap`           | —                | 132 (DFS), -9 dB | 133 (129–157)   |
+| `game-room-ap`        | —                | 44, -9 dB        | 37 (33–61)      |
+| `kitchen-ap`          | —                | 52 (DFS), -9 dB  | 69 (65–93)      |
+| `side-yard-ap`        | —                | 36, -10 dB       | —               |
+| `rear-driveway-ap`    | —                | 149, -9 dB       | —               |
+| `side-driveway-ap`    | —                | 157, -9 dB       | —               |
+
+Every radio has its own channel except Upstairs Hallway and Rear Driveway, which share 5 GHz
+149; they are the farthest apart. The 6 GHz blocks are the four 160 MHz blocks the channel
+picker marks "Allowed by AFC".
+
+The 5 GHz channel list (group and per-AP) allows only 36, 44, 52, 108, 132, 149 and 157, so
+a radar event can only move a radio to one of those:
+
+- 60–64 and 100–104: radar detected on 60 (Upstairs Hallway, 2026-10-24 and 10-25) and on
+  99 (Office, 2026-10-22).
+- 116–120 and 124–128: overlap the weather-radar band.
+- 140–144: unavailable at 40 MHz.
+
+The outdoor APs and the two indoor APs phones lean on most are on non-DFS channels.
 
 Upstairs Hallway's 5 GHz is one step below the rest so a phone between it and Game Room
-stops reassociating back and forth between them.
+stops reassociating back and forth between them. Side Yard's 5 GHz is also at -10 dB.
 
-"No WLANs" means WLAN Services is off on that AP's 2.4 GHz radio.
-
-ChannelFly manages 5 and 6 GHz with Channel Change Frequency 66 and the full-optimization
-period at 02:00–03:00. It is off for 2.4 GHz.
+Pinning the channel on an AP forces per-AP overrides of Channelization and the channel list
+as well, and the channel list resets to every channel; re-disable the excluded ones.
 
 #### Why 2.4 GHz is pinned
 
 Two radios carry 2.4 GHz, each on its own channel at reduced power, and every other AP has
-WLAN Services off on 2.4 GHz. On Auto, three radios ended up sharing channel 11 at minimum
+2.4 GHz disabled. On Auto, three radios ended up sharing channel 11 at minimum
 power, and the Upstairs Hallway radio reported RF pollution 34 and estimated capacity 1410,
 against 3 and 8666 on a clean radio. Clients stayed associated but lost 40–95% of their
 traffic, which broke Matter sessions to the Kasa plugs (see
 [`.agents/knowledge/matter-thread.md`](../../.agents/knowledge/matter-thread.md)).
 
-ChannelFly would not have moved it. Outside the optimization period it only changes a
-radio's channel when fewer clients are associated than the Channel Change Frequency allows
-(CCF 10 per client: 60 allows changes below 6 clients), and every IoT radio has more than
-that. Ruckus also recommends ChannelFly off for 2.4 GHz when clients lack 802.11h
-channel-switch support, as most IoT devices do.
+ChannelFly would not have moved it: outside the optimization period it only changes a
+channel when few clients are associated, and Ruckus recommends it off for 2.4 GHz when
+clients lack 802.11h channel-switch support, as most IoT devices do.
 
 After an AP reboot, its 2.4 GHz WLAN takes about five minutes to come back, and clients that
 moved to another AP in the meantime stay there.
