@@ -20,6 +20,8 @@ spec:
         - garage-ap.internal.greyrock.io
         - garage-c08pf.internal.greyrock.io
         - garage-c08zp.internal.greyrock.io
+        - garage-camera-andy.internal.greyrock.io
+        - garage-camera-todd.internal.greyrock.io
         - garage-crs309.internal.greyrock.io
         - home.internal.greyrock.io
         - iotabase.internal.greyrock.io
@@ -34,6 +36,7 @@ spec:
         - rear-driveway-ap.internal.greyrock.io
         - side-driveway-ap.internal.greyrock.io
         - side-yard-ap.internal.greyrock.io
+        - side-yard-camera.internal.greyrock.io
         - time1.internal.greyrock.io
         - time2.internal.greyrock.io
         - time3.internal.greyrock.io
@@ -69,4 +72,7 @@ spec:
   targets:
     staticConfig:
       static:
+        - https://garage-camera-andy.internal.greyrock.io
+        - https://garage-camera-todd.internal.greyrock.io
         - https://home.internal.greyrock.io
+        - https://side-yard-camera.internal.greyrock.io
