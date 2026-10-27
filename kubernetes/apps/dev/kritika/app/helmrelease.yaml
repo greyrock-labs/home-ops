@@ -27,10 +27,12 @@ spec:
           # integration: kritika lists and polls repositories per account.
           accounts:
             - todd
-          # TODO: Add audience and runnerAudience from lab-assistant's
-          # Authorized Integrations after Kritika is deployed.
+          audience: u:3:97fa4d03-04e2-4dc4-b2e0-4191e78c040e
           privateKey:
             env: KRITIKA_FORGEJO_PRIVATE_KEY
+          # A second integration scoped to read:repository alone, so runner
+          # pods never hold a writable token.
+          runnerAudience: u:3:4f89790b-4c5a-406b-b6d6-ea024321a668
           webhookSecret:
             env: KRITIKA_FORGEJO_WEBHOOK_SECRET
       providers:
