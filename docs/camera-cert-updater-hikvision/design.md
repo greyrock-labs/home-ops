@@ -103,7 +103,9 @@ Offline tests require OpenSSL 3 (the pinned runtime provides it; macOS LibreSSL
 does not implement the same certificate validation flags). They exercise the
 encryption against an independent Node crypto vector,
 multipart encoding, idempotence, preflight, clock rejection, slot rotation,
-preservation of certificates in use, import failures, and TLS verification failure:
+preservation of certificates in use, import failures, and TLS verification failure.
+Batch tests cover independent passwords, continuing after failures and timeouts,
+missing credentials, configuration validation, per-camera results, and exit status:
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 python3 docs/camera-cert-updater-hikvision/test_updater.py
@@ -115,9 +117,12 @@ updater's own credentials. It cannot establish that write permissions or uploads
 work. Local live tests verify PEM certificate/private-key import with `admin`,
 HTTPS selection, chain validation using the mounted intermediates, and a second
 run that exits without changes. The original `default` certificate is retained.
-A Job created from the Flux-deployed CronJob also succeeds inside the `network`
-namespace, verifying the current certificate with bundled intermediates and
-exiting without changes. Renewal rotation remains unverified.
+A three-camera Job created from the Flux-deployed CronJob succeeds inside the
+`network` namespace: it imports and activates Andy's certificate and validates
+the current certificates on Todd's and the side-yard cameras. All three report
+success. A local batch also demonstrates continuing past a camera's failed
+clock preflight to successfully update the following camera. Renewal rotation
+remains unverified.
 
 An authorized manual run uses the deployed CronJob:
 
