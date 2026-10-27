@@ -1,10 +1,14 @@
 """Offline protocol and failure-path checks; never connects to a camera."""
 
 import datetime
+import contextlib
 import importlib.util
 import io
+import json
+import os
 from pathlib import Path
 import ssl
+import signal
 import subprocess
 import tempfile
 import unittest
@@ -207,6 +211,94 @@ class UpdaterTests(unittest.TestCase):
         with self.assertRaisesRegex(updater.UpdateError, "previous slot retained"):
             self.run_update()
         self.assertFalse(any(write[0] == "delete" for write in self.camera.writes))
+
+
+class BatchTests(unittest.TestCase):
+    def setUp(self):
+        self.cameras = [
+            {"host": "first.internal.greyrock.io", "password_env": "FIRST_PASSWORD"},
+            {"host": "second.internal.greyrock.io", "password_env": "SECOND_PASSWORD"},
+            {"host": "third.internal.greyrock.io", "password_env": "THIRD_PASSWORD"},
+        ]
+        self.passwords = {"FIRST_PASSWORD": "private-first", "SECOND_PASSWORD": "private-second",
+                          "THIRD_PASSWORD": "private-third"}
+
+    def run_batch(self, effects=None, check=False, passwords=None):
+        out, errors = io.StringIO(), io.StringIO()
+        with patch.dict(os.environ, self.passwords if passwords is None else passwords, clear=True), \
+                patch.object(updater, "Camera") as camera, \
+                patch.object(updater, "update", side_effect=effects) as update, \
+                contextlib.redirect_stdout(out), contextlib.redirect_stderr(errors):
+            result = updater.run_cameras(self.cameras, b"cert", b"key", check_only=check)
+        return result, camera, update, out.getvalue() + errors.getvalue()
+
+    def test_each_camera_uses_its_own_password_and_admin(self):
+        result, camera, update, output = self.run_batch()
+        self.assertEqual(result, 0)
+        self.assertEqual([call.args for call in camera.call_args_list],
+                         [(entry["host"], "admin", password)
+                          for entry, password in zip(self.cameras, self.passwords.values())])
+        self.assertEqual(update.call_count, 3)
+        for password in self.passwords.values():
+            self.assertNotIn(password, output)
+        self.assertIn("3 succeeded, 0 failed", output)
+
+    def test_middle_failure_does_not_skip_last_camera_and_fails_job(self):
+        result, camera, update, output = self.run_batch(
+            [None, ssl.SSLError("private response must not appear"), None])
+        self.assertEqual(result, 1)
+        self.assertEqual(update.call_count, 3)
+        self.assertIn("[second.internal.greyrock.io] FAILED:", output)
+        self.assertIn("[third.internal.greyrock.io] OK", output)
+        self.assertIn("2 succeeded, 1 failed", output)
+        self.assertNotIn("private response", output)
+
+    def test_missing_password_is_isolated_to_one_camera(self):
+        result, camera, update, output = self.run_batch(passwords={
+            "SECOND_PASSWORD": "private-second", "THIRD_PASSWORD": "private-third"})
+        self.assertEqual(result, 1)
+        self.assertEqual(update.call_count, 2)
+        self.assertIn("[first.internal.greyrock.io] FAILED: Missing camera password", output)
+        self.assertIn("[third.internal.greyrock.io] OK", output)
+
+    def test_check_mode_reaches_every_camera(self):
+        result, camera, update, output = self.run_batch(check=True)
+        self.assertEqual(result, 0)
+        self.assertTrue(all(call.kwargs["check_only"] for call in update.call_args_list))
+
+    def test_timeout_continues_and_restores_alarm_handler(self):
+        handler = signal.getsignal(signal.SIGALRM)
+        calls = []
+        def time_out_first(*args, **kwargs):
+            calls.append(args)
+            if len(calls) == 1:
+                signal.raise_signal(signal.SIGALRM)
+        result, camera, update, output = self.run_batch(time_out_first)
+        self.assertEqual(result, 1)
+        self.assertEqual(len(calls), 3)
+        self.assertIn("600-second time limit", output)
+        self.assertEqual(signal.getsignal(signal.SIGALRM), handler)
+        self.assertEqual(signal.alarm(0), 0)
+
+    def test_unexpected_camera_response_does_not_skip_remaining_cameras(self):
+        result, camera, update, output = self.run_batch(
+            [RuntimeError("secret response"), None, None])
+        self.assertEqual(result, 1)
+        self.assertEqual(update.call_count, 3)
+        self.assertNotIn("secret response", output)
+
+    def test_config_rejects_empty_duplicate_or_malformed_entries(self):
+        invalid = [[], {}, [{"host": "first", "password_env": "bad-name"}],
+                   [self.cameras[0], self.cameras[0]], [{"host": "first"}]]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "cameras.json"
+            for value in invalid:
+                with self.subTest(value=value):
+                    path.write_text(json.dumps(value))
+                    with self.assertRaises(updater.UpdateError):
+                        updater.load_cameras(path)
+            path.write_text(json.dumps(self.cameras))
+            self.assertEqual(updater.load_cameras(path), self.cameras)
 
 
 if __name__ == "__main__":

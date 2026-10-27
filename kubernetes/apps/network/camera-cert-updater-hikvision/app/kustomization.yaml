@@ -8,6 +8,7 @@ resources:
 configMapGenerator:
   - name: camera-cert-updater-hikvision
     files:
+      - config/cameras.json
       - config/push-certs.py
 generatorOptions:
   disableNameSuffixHash: true

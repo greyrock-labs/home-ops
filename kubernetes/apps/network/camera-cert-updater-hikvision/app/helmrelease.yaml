@@ -16,7 +16,6 @@ spec:
         cronjob:
           # Certificate selection may restart the camera web server.
           # Imports only run when the served leaf differs from the desired one.
-          activeDeadlineSeconds: 600
           backoffLimit: 0
           concurrencyPolicy: Forbid
           failedJobsHistory: 1
@@ -39,7 +38,7 @@ spec:
               - python3
               - /script/push-certs.py
             env:
-              HIKVISION_HOST: garage-camera-todd.internal.greyrock.io
+              CAMERAS_FILE: /script/cameras.json
               PYTHONDONTWRITEBYTECODE: "1"
               PYTHONUNBUFFERED: "1"
             envFrom:
@@ -67,10 +66,18 @@ spec:
     externalSecrets:
       camera-cert-updater-hikvision:
         data:
-          - secretKey: HIKVISION_PASSWORD
+          - secretKey: GARAGE_CAMERA_ANDY_PASSWORD
+            remoteRef:
+              key: Cert Updater
+              property: garage-camera-andy
+          - secretKey: GARAGE_CAMERA_TODD_PASSWORD
             remoteRef:
               key: Cert Updater
               property: garage-camera-todd
+          - secretKey: SIDE_YARD_CAMERA_PASSWORD
+            remoteRef:
+              key: Cert Updater
+              property: side-yard-camera
         refreshInterval: 12h
         secretStoreRef:
           kind: ClusterSecretStore
@@ -82,6 +89,8 @@ spec:
           # Camera HTTPS only; DNS comes from allow-dns-egress.
           - toCIDR:
               - 10.1.60.11/32
+              - 10.1.60.12/32
+              - 10.1.60.13/32
             toPorts:
               - ports:
                   - port: "443"
@@ -96,6 +105,8 @@ spec:
         type: configMap
         name: camera-cert-updater-hikvision
         globalMounts:
+          - path: /script/cameras.json
+            subPath: cameras.json
           - path: /script/push-certs.py
             subPath: push-certs.py
       tmp:

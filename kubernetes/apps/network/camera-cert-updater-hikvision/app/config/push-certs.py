@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import re
 import secrets
+import signal
 import socket
 import ssl
 import subprocess
@@ -256,26 +257,74 @@ def update(camera, cert, private_key, username, password, check_only=False):
     raise UpdateError("Camera did not serve a valid copy of the new certificate; previous slot retained")
 
 
+def load_cameras(path):
+    cameras = json.loads(Path(path).read_text())
+    if not isinstance(cameras, list) or not cameras:
+        raise UpdateError("Camera configuration must be a nonempty list")
+    hosts = set()
+    for camera in cameras:
+        if not isinstance(camera, dict) or set(camera) != {"host", "password_env"}:
+            raise UpdateError("Each camera requires host and password_env")
+        host, password_env = camera["host"], camera["password_env"]
+        if not isinstance(host, str) or not re.fullmatch(r"[a-zA-Z0-9.-]+", host):
+            raise UpdateError("Invalid camera hostname")
+        if not isinstance(password_env, str) or not re.fullmatch(r"[A-Z_][A-Z0-9_]*", password_env):
+            raise UpdateError("Invalid camera password environment variable name")
+        if host.lower() in hosts:
+            raise UpdateError("Duplicate camera hostname")
+        hosts.add(host.lower())
+    return cameras
+
+
+def error_message(error):
+    # Never print arbitrary API responses or exception messages containing input.
+    return str(error) if isinstance(error, UpdateError) else "Invalid configuration, input, or API response"
+
+
+def camera_timeout(signum, frame):
+    raise UpdateError("Camera exceeded the 600-second time limit")
+
+
+def run_cameras(cameras, cert, private_key, check_only=False):
+    failed = 0
+    previous_handler = signal.signal(signal.SIGALRM, camera_timeout)
+    try:
+        for entry in cameras:
+            host = entry["host"]
+            print(f"[{host}] Starting certificate check.", flush=True)
+            signal.alarm(600)
+            try:
+                password = os.environ.get(entry["password_env"], "")
+                if not password:
+                    raise UpdateError("Missing camera password")
+                update(Camera(host, "admin", password), cert, private_key,
+                       "admin", password, check_only=check_only)
+            except Exception as error:
+                failed += 1
+                print(f"[{host}] FAILED: {error_message(error)}", file=sys.stderr, flush=True)
+            else:
+                print(f"[{host}] OK", flush=True)
+            finally:
+                signal.alarm(0)
+    finally:
+        signal.signal(signal.SIGALRM, previous_handler)
+    print(f"Completed: {len(cameras) - failed} succeeded, {failed} failed.", flush=True)
+    return 1 if failed else 0
+
+
 def main():
-    host = os.environ.get("HIKVISION_HOST", "garage-camera-todd.internal.greyrock.io")
-    if not re.fullmatch(r"[a-zA-Z0-9.-]+", host):
-        raise UpdateError("Invalid camera hostname")
-    username = "admin"
-    password = os.environ["HIKVISION_PASSWORD"]
-    if not username or not password:
-        raise UpdateError("Empty updater credentials")
-    update(Camera(host, username, password),
-           Path(os.environ.get("CERT_FILE", "/certs/tls.crt")).read_bytes(),
-           Path(os.environ.get("KEY_FILE", "/certs/tls.key")).read_bytes(),
-           username, password, check_only="--check" in sys.argv[1:])
+    cameras = load_cameras(os.environ.get("CAMERAS_FILE", "/script/cameras.json"))
+    return run_cameras(cameras,
+                       Path(os.environ.get("CERT_FILE", "/certs/tls.crt")).read_bytes(),
+                       Path(os.environ.get("KEY_FILE", "/certs/tls.key")).read_bytes(),
+                       check_only="--check" in sys.argv[1:])
 
 
 if __name__ == "__main__":
     try:
-        main()
+        sys.exit(main())
     except (UpdateError, KeyError, ValueError, OSError, ET.ParseError) as error:
         # An API response can contain sensitive material. Only our controlled
         # UpdateError messages are safe to display.
-        print("ERROR: " + (str(error) if isinstance(error, UpdateError)
-                           else "Invalid configuration, input, or API response"), file=sys.stderr)
+        print("ERROR: " + error_message(error), file=sys.stderr)
         sys.exit(1)

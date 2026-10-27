@@ -1,14 +1,19 @@
 # Hikvision camera certificate updater
 
-## Target and credentials
+## Targets and credentials
 
-`camera-cert-updater-hikvision` runs in `network` for
-`garage-camera-todd.internal.greyrock.io` (`10.1.60.11`), a Hikvision
-DS-2CD2087G2H-LIU/SL with V5.7.17 build 240606 firmware.
+`camera-cert-updater-hikvision` runs in `network`. Its mounted `cameras.json`
+lists each camera's hostname and the environment variable holding its password.
+
+| Camera (`.internal.greyrock.io`) | Address | Model | Firmware | 1Password field |
+| --- | --- | --- | --- | --- |
+| `garage-camera-todd` | `10.1.60.11` | DS-2CD2087G2H-LIU/SL | V5.7.17 build 240606 | `garage-camera-todd` |
+| `garage-camera-andy` | `10.1.60.12` | DS-2CD2087G2H-LIU/SL | V5.7.17 build 240606 | `garage-camera-andy` |
+| `side-yard-camera` | `10.1.60.13` | DS-2CD2386G2-ISU/SL | V5.7.19 build 241207 | `side-yard-camera` |
 
 The username is hardcoded to the camera's built-in `admin` account. The
 `Cert Updater` item in the Kubernetes 1Password vault supplies the
-`garage-camera-todd` password through an app-template ExternalSecret.
+camera-specific password fields through an app-template ExternalSecret.
 Certificate import requires `admin`: an Operator account receives HTTP 403
 (`lowPrivilege`) even with `parameterConfig=true`.
 
@@ -16,6 +21,21 @@ The shared `internal-greyrock-io-tls` Secret provides the RSA 2048-bit wildcard
 certificate and private key. The CronJob checks daily at 03:15 in the controller's
 timezone, forbids concurrent runs, and does not retry failed Jobs. Egress allows
 only camera TCP 443 plus the namespace's existing DNS allowance.
+
+Cameras run sequentially with separate Digest authentication state, salts, and
+passwords. Every camera reports its hostname and result. A failure, missing
+password, or timeout fails that camera and processing continues with the next.
+The Job exits nonzero if any camera failed and prints the success/failure counts.
+Each camera has a 600-second limit; the Job has no fixed overall deadline that
+could cut off later cameras as the list grows. `--check` covers the entire list
+without changing any camera.
+
+To add a camera, inspect its current state, add its hostname and password-variable
+name to `app/config/cameras.json`, map that variable to its exact 1Password field
+in the HelmRelease's `externalSecrets.data`, and allow its address on TCP 443 in
+`networkpolicies`. No script changes are needed. Passwords stay out of the camera
+list and ConfigMap. All camera hostnames are validated and duplicates are rejected
+before processing starts.
 
 ## Import protocol
 
