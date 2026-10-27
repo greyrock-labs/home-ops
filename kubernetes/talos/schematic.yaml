@@ -9,5 +9,6 @@ customization:
     officialExtensions:
       - siderolabs/amd-ucode
       - siderolabs/drbd
+      - siderolabs/gvisor
       - siderolabs/i915
       - siderolabs/nfsrahead
