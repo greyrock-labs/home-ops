@@ -34,8 +34,8 @@ and the settings that deviate from defaults.
 
 System Default has no APs. Each group sets 5 GHz to 40 MHz at -9 dB and 6 GHz to 160 MHz,
 with the same 5 GHz channel list (below). Per-AP overrides carry the pinned channels, the
-2.4 GHz settings on the two `indoor` APs, and the -10 dB 5 GHz power on Upstairs Hallway and
-Side Yard.
+2.4 GHz settings on the two `indoor` APs, the -10 dB 5 GHz power on Upstairs Hallway and Side
+Yard, and the -6 dB 5 GHz power on Office.
 
 ### Radios
 
@@ -46,7 +46,7 @@ Optimization) is off on every band.
 | --------------------- | ---------------- | ---------------- | --------------- |
 | `upstairs-hallway-ap` | 6, -3 dB         | 149, -10 dB      | 5 (1–29)        |
 | `garage-ap`           | 1, -6 dB         | 108 (DFS), -9 dB | —               |
-| `office-ap`           | —                | 132 (DFS), -9 dB | 133 (129–157)   |
+| `office-ap`           | —                | 132 (DFS), -6 dB | 133 (129–157)   |
 | `game-room-ap`        | —                | 44, -9 dB        | 37 (33–61)      |
 | `kitchen-ap`          | —                | 52 (DFS), -9 dB  | 69 (65–93)      |
 | `side-yard-ap`        | —                | 36, -10 dB       | —               |
@@ -69,6 +69,9 @@ The outdoor APs and the two indoor APs phones lean on most are on non-DFS channe
 
 Upstairs Hallway's 5 GHz is one step below the rest so a phone between it and Game Room
 stops reassociating back and forth between them. Side Yard's 5 GHz is also at -10 dB.
+Office's 5 GHz is up at -6 dB so a phone in the main bedroom stays on it instead of
+switching between Office, Game Room and Side Yard; Side Yard was not lowered further because
+its next step is Min and the yard coverage must not suffer.
 
 Pinning the channel on an AP forces per-AP overrides of Channelization and the channel list
 as well, and the channel list resets to every channel; re-disable the excluded ones.
