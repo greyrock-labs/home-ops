@@ -33,7 +33,8 @@ flashes from. There is no local clone on the Mac; edit on HA, not in a separate 
   - HVAC: D1 Mini (ESP8266) → XIAO ESP32-C6 with pre-soldered headers, 2.4 GHz. CN105 is
     5 V UART, so each unit gets a BSS138 level shifter, assembled with Dupont plugs only
     (no soldering). Needs a C6 `hvac-cn105` base with new UART pins (check Seeed's C6
-    pinout; D6/D7 expected). Consider ESPHome's native `mitsubishi_cn105` vs echavet.
+    pinout; D6/D7 expected). Use echavet's MitsubishiCN105ESPHome component, not
+    ESPHome's native `mitsubishi_cn105`.
   - Also planned once parts arrive: 3D-printed cases for both the BT proxies and the HVAC
     controllers (the current ones fit badly). The HVAC case must enclose the C6, level
     shifter and Dupont wiring so nothing hangs loose inside the mini-split. Not started;
