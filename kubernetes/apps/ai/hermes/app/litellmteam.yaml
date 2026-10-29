@@ -12,6 +12,7 @@ spec:
     - kguardian
     - kubectl
     - kubesearch
+    - unifi_network
   models:
     - all-proxy-models
   proxyRef: litellm
