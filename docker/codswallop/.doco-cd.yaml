@@ -10,8 +10,7 @@ external_secrets:
   GARAGE_RPC_SECRET: op://Docker/Garage/rpc_secret
   GARAGE_UI_OIDC_CLIENT_ID: op://Infrastructure - Automation/Kanidm - Garage UI/client_id
   GARAGE_UI_OIDC_CLIENT_SECRET: op://Infrastructure - Automation/Kanidm - Garage UI/client_secret
-  DEXD_MIKROTIK_PASSWORD: op://Docker/MikroTik - dexd/password
-  DEXD_MIKROTIK_USERNAME: op://Docker/MikroTik - dexd/username
+  DEXD_UNIFI_API_KEY: op://Docker/UniFi - dexd/password
   ZOT_HTPASSWD: op://Docker/Zot/htpasswd
   ZOT_OIDC_CLIENT_ID: op://Infrastructure - Automation/Kanidm - Zot/client_id
   ZOT_OIDC_CLIENT_SECRET: op://Infrastructure - Automation/Kanidm - Zot/client_secret
