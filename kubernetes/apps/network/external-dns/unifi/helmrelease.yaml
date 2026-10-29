@@ -15,7 +15,7 @@ spec:
     domainFilters:
       - greyrock.io
     podAnnotations:
-      secret.reloader.stakater.com/reload: externaldns-unifi-secret
+      secret.reloader.stakater.com/reload: external-dns-unifi-secret
     policy: sync
     provider:
       name: webhook
