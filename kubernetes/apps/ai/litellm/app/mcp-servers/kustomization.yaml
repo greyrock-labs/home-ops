@@ -9,3 +9,4 @@ resources:
   - ./kguardian/
   - ./kubesearch/
   - ./kubectl/
+  - ./unifi-network/
