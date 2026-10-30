@@ -17,4 +17,3 @@ resources:
   - ./multus/ks.yaml
   - ./printer-cert-updater-brother/ks.yaml
   - ./unifi-voucher-manager/ks.yaml
-  - ./unimus/ks.yaml
