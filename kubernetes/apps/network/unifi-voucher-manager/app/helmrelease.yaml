@@ -22,7 +22,7 @@ spec:
             command:
               - sh
               - -c
-              - cp -a /app/frontend/public/. /work/
+              - cp -R /app/frontend/public/. /work/
         containers:
           app:
             image:
