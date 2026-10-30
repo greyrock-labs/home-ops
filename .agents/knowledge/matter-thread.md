@@ -26,9 +26,9 @@
    Loss on plugs of one AP and not the others means that AP's 2.4 GHz radio is losing
    traffic. Check its channel and RF pollution with the Unleashed CLI
    (`show current-active-clients all`, `show performance ap-radio2-4 mac <ap mac>`).
-2. **Check whether it dropped off Wi-Fi or only lost traffic:** search AP syslog for the MAC
-   (lower case, regex) and its `assoc req from` lines. A plug can stay associated for days
-   while losing most of its packets.
+2. **Check whether it dropped off Wi-Fi or only lost traffic:** look up the client's
+   connection history in UniFi (the Network system log). A plug can stay associated for
+   days while losing most of its packets.
 3. **Read the Matter Server log for the node** (`ha_get_logs source=supervisor
    slug=core_matter_server search=@1:<hex>`):
 
