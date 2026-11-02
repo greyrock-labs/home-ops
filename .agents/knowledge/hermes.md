@@ -1,17 +1,12 @@
 # Hermes
 
-## The gateway only autostarts if it was running before
+## Testing a chat from the pod
 
-On boot, `/etc/cont-init.d/02-reconcile-profiles` registers each profile's gateway as an
-s6 service but starts only those whose last recorded state on the PVC is `running`. On
-a fresh PVC there is no recorded state, so the gateway stays down, the cron ticker never
-writes `/opt/data/cron/ticker_heartbeat`, and the `app` container fails its startup probe.
-
-Start it once; the state is saved and later boots start it on their own:
-
-```sh
-kubectl -n ai exec deploy/hermes -c app -- sh -c 'cd /opt/data && /opt/hermes/.venv/bin/hermes gateway start'
-```
+`hermes chat` run through `kubectl exec` refuses to reach the gateway
+(`unsafe_control_path`): `/opt/data` is the PVC root, owned by uid 0, and the pod runs as
+uid 10000 without the privileges to change it. Test through the gateway's API server on
+`127.0.0.1:8642` (`/v1/chat/completions`, bearer `API_SERVER_KEY` from the pod env)
+instead; that is the path the Webapp uses.
 
 ## Forgejo access
 
