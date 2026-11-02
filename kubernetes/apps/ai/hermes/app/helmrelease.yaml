@@ -92,8 +92,7 @@ spec:
           config-migrate:
             image: &image
               repository: docker.io/nousresearch/hermes-agent
-              # Development revision 7020ea3e96c3fdbc768c5296493e186df46f075b includes the Webapp.
-              tag: main@sha256:bae690d52bebb388ccaef969050fbb208360b9565d734a4888e532e555cf6f52
+              tag: v0.22.6@sha256:d27689bc6e8581ec884a7227c9101fdaebf6c853cff8859020dac14f21452b4d
             command:
               - /bin/sh
               - -c
