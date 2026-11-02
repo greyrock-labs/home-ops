@@ -2,10 +2,12 @@
 
 ## Settings the managed config does not cover
 
-Hermes reads `secrets.command` and `skills.external_dirs` only from the profile's own
-`/opt/data/config.yaml`; the managed `/etc/hermes/config.yaml` values are not applied to
-them. Both are repeated in the profile config on the PVC and must match the managed
-config in `app/resources/config.yaml`.
+Hermes reads `secrets.command` only from the profile's own `/opt/data/config.yaml`; the
+managed `/etc/hermes/config.yaml` value does not apply to it. The profile config on the
+PVC repeats it and must match `app/resources/config.yaml`.
+
+`hermes skills list` run through `kubectl exec` reads only the profile config, so it
+does not show skills from the managed `skills.external_dirs`.
 
 ## Forge toolkit
 
