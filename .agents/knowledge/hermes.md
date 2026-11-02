@@ -1,5 +1,19 @@
 # Hermes
 
+## Settings the managed config does not cover
+
+Hermes reads `secrets.command` and `skills.external_dirs` only from the profile's own
+`/opt/data/config.yaml`; the managed `/etc/hermes/config.yaml` values are not applied to
+them. Both are repeated in the profile config on the PVC and must match the managed
+config in `app/resources/config.yaml`.
+
+## Forge toolkit
+
+`/opt/data/shared/` on the PVC holds the forge toolkit: `bin/` (`forge-git`, `forge-auth`,
+`git-credential-forge`), the shared `gitconfig`, `mise.toml`, `forge-hosts.json`, and the
+`forge-repos` skill. It is installed by hand, is not in Git, and is restored only from
+PVC backups. Checkouts live under `/opt/data/workspace/repos/<host>/<owner>/<repo>`.
+
 ## Testing a chat from the pod
 
 `hermes chat` run through `kubectl exec` refuses to reach the gateway
