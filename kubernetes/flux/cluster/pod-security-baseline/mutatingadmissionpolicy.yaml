@@ -25,6 +25,34 @@ spec:
           "pss.policy.greyrock.io/baseline" in object.metadata.labels &&
           object.metadata.labels["pss.policy.greyrock.io/baseline"] == "audit" ?
           ("pod-security.kubernetes.io/audit" in object.metadata.labels ? {} :
-          {"pod-security.kubernetes.io/audit": "baseline"}) :
+          {"pod-security.kubernetes.io/audit": "baseline",
+          "pss.policy.greyrock.io/audit-injected": "true"}) :
           ("pod-security.kubernetes.io/enforce" in object.metadata.labels ? {} :
-          {"pod-security.kubernetes.io/enforce": "baseline"})}}
+          {"pod-security.kubernetes.io/enforce": "baseline",
+          "pss.policy.greyrock.io/enforce-injected": "true"})}}
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          has(object.metadata.labels) &&
+          "pss.policy.greyrock.io/baseline" in object.metadata.labels &&
+          object.metadata.labels["pss.policy.greyrock.io/baseline"] == "audit" &&
+          "pss.policy.greyrock.io/enforce-injected" in object.metadata.labels &&
+          object.metadata.labels["pss.policy.greyrock.io/enforce-injected"] == "true" &&
+          "pod-security.kubernetes.io/enforce" in object.metadata.labels &&
+          object.metadata.labels["pod-security.kubernetes.io/enforce"] == "baseline" ? [
+            JSONPatch{op: "remove", path: "/metadata/labels/pod-security.kubernetes.io~1enforce"},
+            JSONPatch{op: "remove", path: "/metadata/labels/pss.policy.greyrock.io~1enforce-injected"}
+          ] : []
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          has(object.metadata.labels) &&
+          (! ("pss.policy.greyrock.io/baseline" in object.metadata.labels) ||
+          object.metadata.labels["pss.policy.greyrock.io/baseline"] != "audit") &&
+          "pss.policy.greyrock.io/audit-injected" in object.metadata.labels &&
+          object.metadata.labels["pss.policy.greyrock.io/audit-injected"] == "true" &&
+          "pod-security.kubernetes.io/audit" in object.metadata.labels &&
+          object.metadata.labels["pod-security.kubernetes.io/audit"] == "baseline" ? [
+            JSONPatch{op: "remove", path: "/metadata/labels/pod-security.kubernetes.io~1audit"},
+            JSONPatch{op: "remove", path: "/metadata/labels/pss.policy.greyrock.io~1audit-injected"}
+          ] : []
