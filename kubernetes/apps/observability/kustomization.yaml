@@ -6,6 +6,14 @@ namespace: observability
 components:
   - ../../components/flux-alerts
   - ../../components/namespace
+patches:
+  - target:
+      kind: Namespace
+    patch: |
+      - op: add
+        path: /metadata/labels
+        value:
+          pss.policy.greyrock.io/baseline: audit
 resources:
   - ./blackbox-exporter/ks.yaml
   - ./grafana-operator/ks.yaml
