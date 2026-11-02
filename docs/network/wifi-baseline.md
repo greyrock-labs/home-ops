@@ -82,8 +82,7 @@ Two radios carry 2.4 GHz, each on its own channel at reduced power, and every ot
 2.4 GHz disabled. On Auto, three radios ended up sharing channel 11 at minimum
 power, and the Upstairs Hallway radio reported RF pollution 34 and estimated capacity 1410,
 against 3 and 8666 on a clean radio. Clients stayed associated but lost 40–95% of their
-traffic, which broke Matter sessions to the Kasa plugs (see
-[`.agents/knowledge/matter-thread.md`](../../.agents/knowledge/matter-thread.md)).
+traffic, which broke Matter sessions to the Kasa plugs.
 
 ChannelFly would not have moved it: outside the optimization period it only changes a
 channel when few clients are associated, and Ruckus recommends it off for 2.4 GHz when
