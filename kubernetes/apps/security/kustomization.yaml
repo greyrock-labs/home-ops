@@ -7,14 +7,5 @@ components:
   - ../../components/flux-alerts
   - ../../components/kopiur/secret
   - ../../components/namespace
-patches:
-  - target:
-      kind: Namespace
-    patch: |
-      - op: add
-        path: /metadata/labels
-        value:
-          pss.policy.greyrock.io/baseline: audit
 resources:
-  - ./crowdsec/ks.yaml
   - ./kanidm-operator/ks.yaml

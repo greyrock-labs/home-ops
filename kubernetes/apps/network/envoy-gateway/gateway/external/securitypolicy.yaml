@@ -15,5 +15,5 @@ spec:
     grpc:
       backendRefs:
         - name: crowdsec-bouncer
-          namespace: security
+          namespace: crowdsec
           port: 8080

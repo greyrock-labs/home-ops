@@ -97,13 +97,13 @@ skedaddle's firewall enforce them.
 
 ```
 envoy-external access log ─► agent (DaemonSet) ─┐
-skedaddle sshd (journald) ─► skedaddle agent ───┼─► LAPI (security/crowdsec) ◄── CAPI + Console blocklists
+skedaddle sshd (journald) ─► skedaddle agent ───┼─► LAPI (crowdsec/crowdsec) ◄── CAPI + Console blocklists
 AppSec (WAF) alerts ────────────────────────────┘        │
                                                          ├─► envoy bouncer ─► ext_authz on envoy-external
                                                          └─► skedaddle firewall bouncer ─► iptables/ipset
 ```
 
-### Cluster (`kubernetes/apps/security/crowdsec/`)
+### Cluster (`kubernetes/apps/crowdsec/crowdsec/`)
 
 - `app/`: the CrowdSec chart. LAPI keeps its sqlite database on a `miroir-local` PVC with WAL
   on. The agent reads only the `envoy` container's logs from `envoy-external` pods, parsed by
@@ -154,19 +154,19 @@ Bouncer keys are re-registered from the env vars on every LAPI start. The `skeda
 is not: it lives in the LAPI database. If that PVC is lost, add it again:
 
 ```
-kubectl -n security exec deploy/crowdsec-lapi -c crowdsec-lapi -- cscli machines add skedaddle --password "$(kubectl -n security get secret crowdsec-secret -o jsonpath='{.data.SKEDADDLE_MACHINE_PASSWORD}' | base64 -d)" -f /dev/null --force
+kubectl -n crowdsec exec deploy/crowdsec-lapi -c crowdsec-lapi -- cscli machines add skedaddle --password "$(kubectl -n crowdsec get secret crowdsec-secret -o jsonpath='{.data.SKEDADDLE_MACHINE_PASSWORD}' | base64 -d)" -f /dev/null --force
 ```
 
 ### Checking CrowdSec
 
 ```
-kubectl -n security exec deploy/crowdsec-lapi -c crowdsec-lapi -- cscli bouncers list; kubectl -n security exec deploy/crowdsec-lapi -c crowdsec-lapi -- cscli machines list; kubectl -n security exec deploy/crowdsec-lapi -c crowdsec-lapi -- cscli alerts list
+kubectl -n crowdsec exec deploy/crowdsec-lapi -c crowdsec-lapi -- cscli bouncers list; kubectl -n crowdsec exec deploy/crowdsec-lapi -c crowdsec-lapi -- cscli machines list; kubectl -n crowdsec exec deploy/crowdsec-lapi -c crowdsec-lapi -- cscli alerts list
 ```
 
 Both bouncers and both machines should show a recent pull or heartbeat. Parsing:
 
 ```
-kubectl -n security exec ds/crowdsec-agent -c crowdsec-agent -- cscli metrics show acquisition parsers whitelists
+kubectl -n crowdsec exec ds/crowdsec-agent -c crowdsec-agent -- cscli metrics show acquisition parsers whitelists
 ```
 
 Every Envoy line should be parsed; whitelisted lines should come only from private addresses.
@@ -174,7 +174,7 @@ Every Envoy line should be parsed; whitelisted lines should come only from priva
 To see whether an address is banned and why:
 
 ```
-kubectl -n security exec deploy/crowdsec-lapi -c crowdsec-lapi -- cscli decisions list --ip <address>
+kubectl -n crowdsec exec deploy/crowdsec-lapi -c crowdsec-lapi -- cscli decisions list --ip <address>
 ```
 
 A 403 from Envoy shows `response_code_details: ext_authz_denied` in the `envoy-external`

@@ -1,0 +1,18 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: crowdsec
+components:
+  - ../../components/flux-alerts
+  - ../../components/namespace
+patches:
+  - target:
+      kind: Namespace
+    patch: |
+      - op: add
+        path: /metadata/labels
+        value:
+          pss.policy.greyrock.io/baseline: audit
+resources:
+  - ./crowdsec/ks.yaml
