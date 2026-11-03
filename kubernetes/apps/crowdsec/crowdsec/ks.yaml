@@ -5,8 +5,20 @@ kind: Kustomization
 metadata:
   name: crowdsec
 spec:
+  components:
+    - ../../../../components/kopiur/backup
+  dependsOn:
+    - name: miroir
+      namespace: miroir-system
   interval: 1h
   path: "./kubernetes/apps/crowdsec/crowdsec/app"
+  # LAPI runs as root and its database is 0640 root:root.
+  postBuild:
+    substitute:
+      APP: crowdsec
+      KOPIUR_MOVER_UID: "0"
+      KOPIUR_MOVER_GID: "0"
+      KOPIUR_CAPACITY: 2Gi
   prune: true
   sourceRef:
     kind: GitRepository

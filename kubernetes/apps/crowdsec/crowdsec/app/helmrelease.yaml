@@ -100,11 +100,14 @@ spec:
       metrics:
         podMonitor:
           enabled: true
+      # One kopiur-backed claim holds both LAPI volumes.
       persistentVolume:
         config:
-          storageClassName: miroir-local
+          existingClaim: crowdsec
+          subPath: config
         data:
-          storageClassName: miroir-local
+          existingClaim: crowdsec
+          subPath: data
       resources:
         requests:
           cpu: 50m

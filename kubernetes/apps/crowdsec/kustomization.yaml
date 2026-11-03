@@ -5,11 +5,15 @@ kind: Kustomization
 namespace: crowdsec
 components:
   - ../../components/flux-alerts
+  - ../../components/kopiur/secret
   - ../../components/namespace
 patches:
   - target:
       kind: Namespace
     patch: |
+      - op: add
+        path: /metadata/annotations/kopiur.home-operations.com~1privileged-movers
+        value: "true"
       - op: add
         path: /metadata/labels
         value:
