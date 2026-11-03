@@ -57,7 +57,7 @@ spec:
             whitelist:
               reason: home WAN
               expression:
-                - evt.Overflow.Alert.Source.IP in LookupHost("hmm0bddpjam.sn.mynetname.net")
+                - evt.Overflow.Alert.Source.IP in LookupHost("public-edge.greyrock.io")
       resources:
         requests:
           cpu: 50m
@@ -73,7 +73,7 @@ spec:
             whitelist:
               reason: home WAN
               expression:
-                - evt.Overflow.Alert.Source.IP in LookupHost("hmm0bddpjam.sn.mynetname.net")
+                - evt.Overflow.Alert.Source.IP in LookupHost("public-edge.greyrock.io")
     container_runtime: containerd
     lapi:
       env:
