@@ -48,14 +48,25 @@ spec:
     prometheusRule:
       enabled: true
       rules:
+        # Blackbox names this metric without a _seconds suffix. Let's Encrypt
+        # certificates last 90 days and renew with 30 left, so 21 days means a
+        # renewal was missed, or the renewed certificate is not being served.
         - alert: BlackboxCertExpiringSoon
-          expr: probe_ssl_earliest_cert_expiry_seconds - time() < 45 * 86400
+          expr: probe_ssl_earliest_cert_expiry - time() < 21 * 86400
           for: 15m
           labels:
             severity: warning
           annotations:
             summary: |-
-              The TLS certificate for {{ $labels.target }} expires in less than 45 days
+              The TLS certificate for {{ $labels.instance }} expires in less than 21 days
+        - alert: BlackboxCertExpiringCritical
+          expr: probe_ssl_earliest_cert_expiry - time() < 7 * 86400
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: |-
+              The TLS certificate for {{ $labels.instance }} expires in less than 7 days
         - alert: BlackboxProbeFailed
           expr: probe_success == 0
           for: 15m
@@ -63,7 +74,7 @@ spec:
             severity: critical
           annotations:
             summary: |-
-              The host {{ $labels.target }} is currently unreachable
+              The host {{ $labels.instance }} is currently unreachable
     securityContext:
       readOnlyRootFilesystem: true
       allowPrivilegeEscalation: false
