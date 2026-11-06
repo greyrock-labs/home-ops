@@ -6,12 +6,10 @@ metadata:
   name: searxng
 spec:
   components:
-    - ../../../../components/dragonfly
+    - ../../../../components/valkey
   dependsOn:
     - name: miroir
       namespace: miroir-system
-    - name: dragonfly-operator
-      namespace: database
   interval: 1h
   path: "./kubernetes/apps/selfhosted/searxng/app"
   postBuild:
