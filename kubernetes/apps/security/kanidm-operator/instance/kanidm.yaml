@@ -14,6 +14,8 @@ spec:
         requests:
           cpu: 10m
         limits:
+          # Bound automatic worker sizing; each SQLite connection caches up to 32 MiB.
+          cpu: "2"
           memory: 512Mi
   # kaniop's built-in client is 1.11.2 and blocks 1.12; remove once kaniop ships a 1.12 client
   disableUpgradeChecks: true
