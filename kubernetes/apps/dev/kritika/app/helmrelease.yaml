@@ -90,6 +90,7 @@ spec:
       annotations:
         gatus.home-operations.com/endpoint: |-
           conditions: ["[STATUS] == 200"]
+          guarded: false
           path: /api/v1/meta
       hostnames:
         - kritika.greyrock.io
