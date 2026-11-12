@@ -21,8 +21,6 @@ spec:
       forgejo:
         home:
           host: git.greyrock.io
-          bots:
-            - renovate
           # The accounts this connection serves, not the bot that owns the
           # integration: kritika lists and polls repositories per account.
           accounts:
@@ -35,14 +33,23 @@ spec:
           runnerAudience: u:3:4f89790b-4c5a-406b-b6d6-ea024321a668
           webhookSecret:
             env: KRITIKA_FORGEJO_WEBHOOK_SECRET
+      embedding:
+        model: openrouter/voyageai/voyage-code-4
+        dims: 1024
       providers:
+        chatgpt:
+          type: chatgpt
+        openrouter:
+          type: openrouter
+          apiKey:
+            env: KRITIKA_OPENROUTER_API_KEY
         litellm:
           type: openai
           baseUrl: http://agentgateway.ai.svc.cluster.local:8080/v1
           apiKey:
             env: KRITIKA_LITELLM_API_KEY
       review:
-        model: litellm/chatgpt/gpt-6-luna
+        model: chatgpt/~luna-latest
         fallback: litellm/neuralwatt/dsv4.1f
       trigger:
         exclude:
@@ -86,6 +93,10 @@ spec:
               memory: 1Gi
     httpRoute:
       enabled: true
+      annotations:
+        gatus.home-operations.com/endpoint: |-
+          conditions: ["[STATUS] == 200"]
+          path: /api/v1/meta
       hostnames:
         - kritika.greyrock.io
       parentRefs:

@@ -8,8 +8,6 @@ spec:
   dependsOn:
     - name: cloudnative-pg
       namespace: database
-    - name: gvisor
-      namespace: kube-system
     - name: agentgateway
       namespace: ai
   healthChecks:
