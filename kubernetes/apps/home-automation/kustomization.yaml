@@ -17,6 +17,8 @@ patches:
       - op: add
         path: /metadata/labels
         value:
+          pod-security.kubernetes.io/enforce: privileged
+          pss.policy.greyrock.io/baseline: audit
           resource.kubernetes.io/admin-access: "true"
 resources:
   - ./bambuddy/ks.yaml
