@@ -54,13 +54,12 @@ spec:
             readOnly: true
     route:
       app:
-        annotations:
-          # Published as an A record in network/external-dns public-edge, not a CNAME to greyrock.io.
-          external-dns.kubernetes.io/controller: none
         hostnames:
           - trusttracker.cadshosting.com
         parentRefs:
-          - name: envoy-external
+          - group: gateway.networking.k8s.io
+            kind: ListenerSet
+            name: envoy-external-cadshosting
             namespace: network
     service:
       app:

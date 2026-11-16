@@ -1,0 +1,34 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/listenerset_v1.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: ListenerSet
+metadata:
+  name: envoy-external-cadshosting
+  annotations:
+    external-dns.kubernetes.io/target: ingress-ext.cadshosting.com
+spec:
+  parentRef:
+    name: envoy-external
+  listeners:
+    - name: https
+      hostname: "*.cadshosting.com"
+      protocol: HTTPS
+      port: 443
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        certificateRefs:
+          - kind: Secret
+            name: cadshosting-com-tls
+    - name: https-proxy
+      hostname: "*.cadshosting.com"
+      protocol: HTTPS
+      port: 8443
+      allowedRoutes:
+        namespaces:
+          from: All
+      tls:
+        certificateRefs:
+          - kind: Secret
+            name: cadshosting-com-tls

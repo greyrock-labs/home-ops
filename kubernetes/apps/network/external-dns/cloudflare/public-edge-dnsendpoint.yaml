@@ -10,7 +10,7 @@ spec:
       recordType: A
       targets:
         - &vps_ip 104.168.59.58
-    - dnsName: trusttracker.cadshosting.com
+    - dnsName: ingress-ext.cadshosting.com
       recordType: A
       targets:
         - *vps_ip

@@ -12,6 +12,7 @@ spec:
   values:
     fullnameOverride: externaldns-cloudflare
     logLevel: info
+    enableGatewayListenerSets: true
     domainFilters:
       - cadshosting.com
       - greyrock.io
