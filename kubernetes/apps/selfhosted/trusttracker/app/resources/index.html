@@ -173,24 +173,29 @@ function cleanExp(id, s){
   }
   return out;
 }
+// s = level the job starts at (expansion jobs don't start at 1)
 const JOBS = [
-  {id:"pld",name:"Paladin",r:"t"},{id:"war",name:"Warrior",r:"t"},{id:"drk",name:"Dark Knight",r:"t"},{id:"gnb",name:"Gunbreaker",r:"t"},
-  {id:"whm",name:"White Mage",r:"h"},{id:"sch",name:"Scholar",r:"h"},{id:"ast",name:"Astrologian",r:"h"},{id:"sge",name:"Sage",r:"h"},
-  {id:"mnk",name:"Monk",r:"d"},{id:"drg",name:"Dragoon",r:"d"},{id:"nin",name:"Ninja",r:"d"},{id:"sam",name:"Samurai",r:"d"},{id:"rpr",name:"Reaper",r:"d"},{id:"vpr",name:"Viper",r:"d"},
-  {id:"brd",name:"Bard",r:"d"},{id:"mch",name:"Machinist",r:"d"},{id:"dnc",name:"Dancer",r:"d"},
-  {id:"blm",name:"Black Mage",r:"d"},{id:"smn",name:"Summoner",r:"d"},{id:"rdm",name:"Red Mage",r:"d"},{id:"pct",name:"Pictomancer",r:"d"},
+  {id:"pld",name:"Paladin",r:"t",s:1},{id:"war",name:"Warrior",r:"t",s:1},{id:"drk",name:"Dark Knight",r:"t",s:30},{id:"gnb",name:"Gunbreaker",r:"t",s:60},
+  {id:"whm",name:"White Mage",r:"h",s:1},{id:"sch",name:"Scholar",r:"h",s:1},{id:"ast",name:"Astrologian",r:"h",s:30},{id:"sge",name:"Sage",r:"h",s:70},
+  {id:"mnk",name:"Monk",r:"d",s:1},{id:"drg",name:"Dragoon",r:"d",s:1},{id:"nin",name:"Ninja",r:"d",s:1},{id:"sam",name:"Samurai",r:"d",s:50},{id:"rpr",name:"Reaper",r:"d",s:70},{id:"vpr",name:"Viper",r:"d",s:80},
+  {id:"brd",name:"Bard",r:"d",s:1},{id:"mch",name:"Machinist",r:"d",s:30},{id:"dnc",name:"Dancer",r:"d",s:60},
+  {id:"blm",name:"Black Mage",r:"d",s:1},{id:"smn",name:"Summoner",r:"d",s:1},{id:"rdm",name:"Red Mage",r:"d",s:50},{id:"pct",name:"Pictomancer",r:"d",s:80},
 ];
+const ROLES = ["t","h","d"];
+const roleList = rs => rs.map(r=>RN[r]).join(" / ");
 const JOB = Object.fromEntries(JOBS.map(j=>[j.id,j]));
-const ANY = {lv:100, cur:0};   // "any capped job": never holds anyone back, can fill any role
+const ANY = {lv:100, cur:0};   // role mode: treated as the expansion's max level, fills any of the chosen roles
 function cleanPlayer(p){
-  const out={job:"any", jobs:{}};
-  JOBS.forEach(j=>out.jobs[j.id]={lv:1,cur:0});
+  const out={job:"any", roles:[...ROLES], jobs:{}};
+  JOBS.forEach(j=>out.jobs[j.id]={lv:j.s,cur:0});
   if(p&&typeof p==="object"){
+    // A saved level below the job's starting level (e.g. the old default of 1) falls back to the starting level.
     if(p.jobs&&typeof p.jobs==="object") JOBS.forEach(j=>{ const q=p.jobs[j.id]; if(q){ const lv=Number(q.lv), cur=Number(q.cur);
-      if(lv>=1&&lv<=100) out.jobs[j.id].lv=Math.round(lv); if(cur>=0) out.jobs[j.id].cur=Math.round(cur); } });
+      if(lv>=j.s&&lv<=100){ out.jobs[j.id].lv=Math.round(lv); if(cur>=0) out.jobs[j.id].cur=Math.round(cur); } } });
     if(p.job==="any"||JOB[p.job]) out.job=p.job;
+    if(Array.isArray(p.roles)){ const rs=ROLES.filter(r=>p.roles.includes(r)); if(rs.length) out.roles=rs; }
     // older version: one level + a role
-    if(!p.jobs && p.role && p.role!=="a" && Number(p.lv)<100){ const j=JOBS.find(x=>x.r===p.role); out.job=j.id; out.jobs[j.id]={lv:Math.round(Number(p.lv)||1), cur:Math.round(Number(p.cur)||0)}; }
+    if(!p.jobs && p.role && p.role!=="a" && Number(p.lv)<100){ const j=JOBS.find(x=>x.r===p.role); out.job=j.id; out.jobs[j.id]={lv:Math.max(j.s,Math.round(Number(p.lv)||1)), cur:Math.round(Number(p.cur)||0)}; }
   }
   return out;
 }
@@ -224,7 +229,7 @@ function settle(k){
 }
 const settleAll = () => { NAMES.forEach(settle); if(R.player.job!=="any") pSettle(P); };
 // Player helpers. Your level is shared across tabs; each tab only plans you up to its cap.
-function curPlayer(){ const pl=R.player; if(pl.job==="any"){ ANY.lv=100; ANY.cur=0; return Object.assign(ANY,{role:"a"}); }
+function curPlayer(){ const pl=R.player; if(pl.job==="any"){ ANY.lv=CAP; ANY.cur=0; return Object.assign(ANY,{role:"a"}); }
   const st=pl.jobs[pl.job]; st.role=JOB[pl.job].r; return st; }
 const pNeed = L => PLAYER_EXP[L] || 0;
 function pSettle(p){ while(p.lv<100 && pNeed(p.lv)>0 && p.cur>=pNeed(p.lv)){ p.cur-=pNeed(p.lv); p.lv++; } if(p.lv>=100){ p.lv=100; p.cur=0; } }
@@ -237,7 +242,7 @@ function buildRoles(){
   const out=[], n=NAMES.length;
   for(let a=0;a<n;a++) for(let b=a+1;b<n;b++) for(let c=b+1;c<n;c++){
     const trio=[NAMES[a],NAMES[b],NAMES[c]];
-    for(const you of (P.role==="a" ? ["t","h","d"] : [P.role])){
+    for(const you of (P.role==="a" ? R.player.roles : [P.role])){
       const left=["t","h","d","d"]; left.splice(left.indexOf(you),1);
       const roles={}; let ok=true;
       for(const m of trio.filter(m=>ROLE[m]!=="a")){ const i=left.indexOf(ROLE[m]); if(i<0){ok=false;break;} roles[m]=ROLE[m]; left.splice(i,1); }
@@ -298,8 +303,11 @@ function renderTabs(){
 function renderNext(){
   const el=document.getElementById("next");
   const stuck=NAMES.filter(k=>!capped(k)&&!REACH.has(k));
-  const stuckNote = stuck.length ? `<p class="note warn" style="margin-top:10px">${stuck.join(" and ")} ${stuck.length>1?"aren't":"isn't"} in this plan, because the ${RN[P.role].toLowerCase()} slot is yours as ${JOB[R.player.job].name}. Switch to another role's job to level ${stuck.length>1?"them":"them too"}.</p>` : "";
-  if(NAMES.every(k=>capped(k)||!REACH.has(k)) && pDone(P)){ if(stuck.length){ el.innerHTML=`<h2>Nothing left you can level as ${JOB[R.player.job].name}</h2>${stuckNote}`; return; } el.innerHTML=`<div class="done-banner">Everyone is level ${CAP} 🎉</div><p class="muted" style="margin:4px 0 0">You and all ${X.name} trusts are capped. Nice work.</p>`; return; }
+  const isAny=R.player.job==="any", asWho=isAny?roleList(R.player.roles):JOB[R.player.job].name;
+  const stuckNote = !stuck.length ? "" : isAny
+    ? `<p class="note warn" style="margin-top:10px">${stuck.join(" and ")} ${stuck.length>1?"aren't":"isn't"} in this plan, because you're only playing ${asWho} and that slot is always yours. Tick another role to level ${stuck.length>1?"them":"them too"}.</p>`
+    : `<p class="note warn" style="margin-top:10px">${stuck.join(" and ")} ${stuck.length>1?"aren't":"isn't"} in this plan, because the ${RN[P.role].toLowerCase()} slot is yours as ${JOB[R.player.job].name}. Switch to another role's job to level ${stuck.length>1?"them":"them too"}.</p>`;
+  if(NAMES.every(k=>capped(k)||!REACH.has(k)) && pDone(P)){ if(stuck.length){ el.innerHTML=`<h2>Nothing left you can level as ${asWho}</h2>${stuckNote}`; return; } el.innerHTML=`<div class="done-banner">Everyone is level ${CAP} 🎉</div><p class="muted" style="margin:4px 0 0">You and all ${X.name} trusts are capped. Nice work.</p>`; return; }
   if(P.lv < DUNGEONS[0].lv){ el.innerHTML=`<h2>${JOB[R.player.job]?JOB[R.player.job].name:"Your job"} is too low for ${X.name}</h2><p class="muted" style="margin:4px 0 0">The first ${X.name} dungeon is level ${DUNGEONS[0].lv}. You're level ${P.lv}.</p>`; return; }
   const p=plan();
   if(!p){ el.innerHTML=`<h2>No dungeon available</h2><p class="muted">Check the levels below.</p>`; return; }
@@ -338,22 +346,28 @@ function renderLevels(){
     let dg=null; DUNGEONS.forEach(x=>{ if(x.lv<=P.lv) dg=x; });
     const groups=[["t","Tank"],["h","Healer"],["d","DPS"]];
     const sel=`<select id="pJob" style="width:100%;min-width:0;background:#0f1420;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font:500 14px Inter">
-      <option value="any" ${isAny?"selected":""}>Any role (capped)</option>
+      <option value="any" ${isAny?"selected":""}>Role(s) at Lv ${CAP}</option>
       ${groups.map(([r,lab])=>`<optgroup label="${lab}">${JOBS.filter(j=>j.r===r).map(j=>{ const q=R.player.jobs[j.id];
         return `<option value="${j.id}" ${R.player.job===j.id?"selected":""}>${j.name} · Lv ${q.lv}</option>`; }).join("")}</optgroup>`).join("")}</select>`;
-    d.innerHTML=`<div class="cname"><span style="color:var(--gold)">You</span><span class="crole">${isAny?"Any role":RN[P.role]}${!isAny&&done?" · MAX":""}</span></div>
+    const rolePick=`<div class="pick" style="margin:0">${ROLES.map(r=>`<label class="${R.player.roles.includes(r)?"on":""}"><input type="checkbox" data-role="${r}" ${R.player.roles.includes(r)?"checked":""}>${RN[r]}</label>`).join("")}</div>`;
+    d.innerHTML=`<div class="cname"><span style="color:var(--gold)">You</span><span class="crole">${isAny?roleList(R.player.roles):RN[P.role]}${!isAny&&done?" · MAX":""}</span></div>
       <div class="fields">
-        <label>Job</label>${sel}
-        ${isAny?"":`<label>Level</label><input class="lv" type="text" inputmode="numeric" value="${P.lv}" data-p="lv">
+        <label>Play</label>${sel}
+        ${isAny?`<label>Roles</label>${rolePick}`:`<label>Level</label><input class="lv" type="text" inputmode="numeric" value="${P.lv}" data-p="lv">
         <label>EXP</label><div style="display:flex;align-items:center;gap:6px;min-width:0"><input type="text" inputmode="numeric" value="${P.cur}" data-p="cur" ${done?"disabled":""}>
           <span class="crole" style="white-space:nowrap">/ ${done?"—":fmt(pNeed(P.lv))}</span></div>`}
       </div>
       ${isAny?"":`<div class="bar"><div style="width:${done?100:Math.min(P.cur/pNeed(P.lv),0.999)*100}%"></div></div>`}
-      <div class="crole" style="margin-top:5px">${isAny?"You fill whichever role the plan needs":pDone(P)?`At or above ${X.name}'s cap, so you won't hold anyone back`:`Can join up to ${dg?dg.name+" ("+dg.lv+")":"—"}`}</div>`;
+      <div class="crole" style="margin-top:5px">${isAny?`Treated as level ${CAP}. You fill whichever of these roles the plan needs`:pDone(P)?`At or above ${X.name}'s cap, so you won't hold anyone back`:`Can join up to ${dg?dg.name+" ("+dg.lv+")":"—"}`}</div>`;
     g.appendChild(d);
     d.querySelector("#pJob").onchange=e=>{ R.player.job=e.target.value; useExp(R.active); save(); render(); };
+    d.querySelectorAll("input[data-role]").forEach(cb=>cb.onchange=()=>{
+      const r=cb.dataset.role, rs=cb.checked?[...R.player.roles,r]:R.player.roles.filter(x=>x!==r);
+      if(rs.length) R.player.roles=ROLES.filter(x=>rs.includes(x));   // keep at least one role
+      useExp(R.active); save(); render();
+    });
     d.querySelectorAll("input[data-p]").forEach(inp=>inp.addEventListener("change",()=>{
-      let v=num(inp.value); if(inp.dataset.p==="lv") v=Math.max(1,Math.min(100,v));
+      let v=num(inp.value); if(inp.dataset.p==="lv") v=Math.max(JOB[R.player.job].s,Math.min(100,v));
       P[inp.dataset.p]=v; pSettle(P); save(); renderKeepFocus();
     }));
   }
@@ -391,7 +405,7 @@ function renderSetup(){
   el.innerHTML=`<h2 style="color:var(--gold)">First time on ${X.name}?</h2>
     <p class="muted" style="margin:4px 0 10px">The plan is only as good as the numbers it has. Before you follow it:</p>
     <ol class="tips" style="margin:0 0 12px">
-      <li>Pick your <b>job</b> on the "You" card and enter its level and EXP. Pick "Any capped job" if you're capped and can play any role.</li>
+      <li>Pick your <b>job</b> on the "You" card and enter its level and EXP. Or pick "Role(s)" and tick the roles you can play at max level.</li>
       <li>Enter each trust member's <b>level</b> and <b>EXP</b>, as shown in the game's Trust menu.</li>
     </ol>
     <div class="row"><button class="btn small" id="setupGo">Edit the levels</button><button class="btn ghost small" id="setupOk">My numbers are already right</button></div>`;
@@ -453,7 +467,7 @@ document.getElementById("resetYes").onclick=()=>{ R.data[R.active]=freshExp(R.ac
 const ioText=document.getElementById("ioText"), ioMsg=document.getElementById("ioMsg");
 const say=(t,ok)=>{ ioMsg.textContent=t; ioMsg.className="msg "+(ok?"ok":"err"); };
 document.getElementById("exportBtn").onclick=async()=>{
-  const text=JSON.stringify({app:"ffxiv-trust-tracker", version:5, exported:new Date().toISOString(), active:R.active, player:{job:R.player.job, jobs:Object.fromEntries(Object.entries(R.player.jobs).map(([k,v])=>[k,{lv:v.lv,cur:v.cur}]))}, data:R.data});
+  const text=JSON.stringify({app:"ffxiv-trust-tracker", version:6, exported:new Date().toISOString(), active:R.active, player:{job:R.player.job, roles:R.player.roles, jobs:Object.fromEntries(Object.entries(R.player.jobs).map(([k,v])=>[k,{lv:v.lv,cur:v.cur}]))}, data:R.data});
   ioText.value=text;
   try{ await navigator.clipboard.writeText(text); say("Copied. Paste it into a note or file to keep it.",true); }
   catch(e){ ioText.select(); say("Couldn't copy automatically. The text is selected below, so copy it yourself.",false); }
