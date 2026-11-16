@@ -358,7 +358,7 @@ function renderLevels(){
           <span class="crole" style="white-space:nowrap">/ ${done?"—":fmt(pNeed(P.lv))}</span></div>`}
       </div>
       ${isAny?"":`<div class="bar"><div style="width:${done?100:Math.min(P.cur/pNeed(P.lv),0.999)*100}%"></div></div>`}
-      <div class="crole" style="margin-top:5px">${isAny?`Treated as level ${CAP}. You fill whichever of these roles the plan needs`:pDone(P)?`At or above ${X.name}'s cap, so you won't hold anyone back`:`Can join up to ${dg?dg.name+" ("+dg.lv+")":"—"}`}</div>`;
+      <div class="crole" style="margin-top:5px">${isAny?`Treated as level ${CAP}. You fill whichever of these roles the plan needs`:pDone(P)?`At or above ${X.name}'s cap, so you won't hold anyone back`:dg?`Can join up to ${dg.name} (${dg.lv})`:`<span class="warn">Can't join until level ${DUNGEONS[0].lv} (${DUNGEONS[0].name})</span>`}</div>`;
     g.appendChild(d);
     d.querySelector("#pJob").onchange=e=>{ R.player.job=e.target.value; useExp(R.active); save(); render(); };
     d.querySelectorAll("input[data-role]").forEach(cb=>cb.onchange=()=>{
