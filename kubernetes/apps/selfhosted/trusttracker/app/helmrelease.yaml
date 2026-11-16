@@ -48,7 +48,9 @@ spec:
         type: configMap
         name: trusttracker-configmap
         globalMounts:
-          - path: /public
+          # static-web-server refuses symlinks by default; subPath avoids the ConfigMap's ..data symlinks.
+          - path: /public/index.html
+            subPath: index.html
             readOnly: true
     route:
       app:
