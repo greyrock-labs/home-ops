@@ -71,6 +71,7 @@
   .tab{background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:8px 14px;font:600 14px Inter;cursor:pointer}
   .tab small{display:block;font-weight:500;font-size:11px;opacity:.8}
   .tab.on{border-color:var(--gold);color:var(--gold);background:#231f15}
+  .tab.locked{opacity:.45;cursor:not-allowed}
   textarea.io{width:100%;min-height:90px;background:#0f1420;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px;font:12px ui-monospace,Menlo,monospace;resize:vertical}
   .msg{font-size:13px;margin-left:4px}
   .msg.ok{color:#7fd39a} .msg.err{color:#e07a7a}
@@ -103,7 +104,7 @@
     <div class="grid" id="levels"></div>
   </div>
 
-  <div class="panel">
+  <div class="panel" id="runsPanel">
     <div class="row" style="justify-content:space-between"><h2>Runs done</h2><span class="muted" id="count" style="margin:0"></span></div>
     <ul class="log" id="log"></ul>
     <div class="row" style="margin-top:12px">
@@ -148,14 +149,7 @@ const EXPANSIONS = {
     note:"" },
 };
 // Player EXP needed from each level to the next (your chart, shifted: row 92 = 91→92)
-const PLAYER_EXP = {1:300,2:450,3:630,4:970,5:1440,6:1940,7:3000,8:3920,9:4970,10:5900,
-  11:7430,12:8620,13:10200,14:11300,15:13100,16:15200,17:17400,18:19600,19:21900,20:24300,
-  21:27400,22:30600,23:33900,24:37300,25:40800,26:49200,27:54600,28:61900,29:65600,30:68400,
-  31:74000,32:82700,33:88700,34:95000,35:102000,36:113000,37:121000,38:133000,39:142000,40:155000,
-  41:163000,42:171000,43:179000,44:187000,45:195000,46:214000,47:229000,48:244000,49:259000,50:421000,
-  51:500000,52:580000,53:663000,54:749000,55:837000,56:927000,57:1019000,58:1114000,59:1211000,60:1387000,
-  61:1456000,62:1534000,63:1621000,64:1720000,65:1834000,66:1968000,67:2126000,68:2317000,69:2550000,
-  70:2923000,71:3018000,72:3153000,73:3324000,74:3532000,75:3770600,76:4066000,77:4377000,78:4777000,79:5256000,
+const PLAYER_EXP = {70:2923000,71:3018000,72:3153000,73:3324000,74:3532000,75:3770600,76:4066000,77:4377000,78:4777000,79:5256000,
   80:5992000,81:6171000,82:6942000,83:7205000,84:7948000,85:8287000,86:9231000,87:9529000,88:10459000,89:10838000,
   90:13278000,91:13659000,92:15348000,93:15912000,94:17534000,95:18263000,96:20322000,97:20957000,98:22979000,99:23789000};
 const RN = {t:"Tank", h:"Healer", d:"DPS", a:"Any"};
@@ -299,16 +293,24 @@ function plan(){
 }
 
 // ---------- Rendering ----------
+// A specific job below an expansion's first dungeon can't do its trusts, so that tab is locked. Roles never are.
+const firstLv = id => EXPANSIONS[id].dungeons[0].lv;
+const lockedOut = id => R.player.job!=="any" && R.player.jobs[R.player.job].lv < firstLv(id);
+const allLocked = () => Object.keys(EXPANSIONS).every(lockedOut);
+// If the open tab is locked, move to the highest expansion you can still join.
+function fitTab(){ if(!lockedOut(R.active)) return; const ok=Object.keys(EXPANSIONS).filter(id=>!lockedOut(id)); if(ok.length) useExp(ok[ok.length-1]); }
 function renderTabs(){
   const t=document.getElementById("tabs");
   t.innerHTML=Object.entries(EXPANSIONS).map(([id,x])=>{
-    const s=R.data[id], done=x.members.filter(m=>s.lv[m.k]>=x.cap).length;
-    return `<button class="tab ${id===R.active?"on":""}" data-x="${id}">${x.name}<small>Lv ${x.min}–${x.cap} · ${done}/${x.members.length} capped</small></button>`;
+    const s=R.data[id], done=x.members.filter(m=>s.lv[m.k]>=x.cap).length, lk=lockedOut(id);
+    return `<button class="tab ${id===R.active&&!lk?"on":""} ${lk?"locked":""}" data-x="${id}" ${lk?"disabled":""}>${x.name}<small>${lk?`Locked · needs Lv ${firstLv(id)}`:`Lv ${x.min}–${x.cap} · ${done}/${x.members.length} capped`}</small></button>`;
   }).join("");
-  t.querySelectorAll("[data-x]").forEach(b=>b.onclick=()=>{ useExp(b.dataset.x); save(); render(); });
+  t.querySelectorAll("[data-x]").forEach(b=>b.onclick=()=>{ if(lockedOut(b.dataset.x)) return; useExp(b.dataset.x); save(); render(); });
 }
 function renderNext(){
   const el=document.getElementById("next");
+  if(allLocked()){ const lo=Object.keys(EXPANSIONS)[0];
+    el.innerHTML=`<h2>${JOB[R.player.job].name} is too low for trusts</h2><p class="muted" style="margin:4px 0 0">It's level ${P.lv}. Trusts start at level ${firstLv(lo)} in ${EXPANSIONS[lo].name}. Pick another job or Role(s) below, or update its level.</p>`; return; }
   const stuck=NAMES.filter(k=>!capped(k)&&!REACH.has(k));
   const isAny=R.player.job==="any", asWho=isAny?roleList(R.player.roles):JOB[R.player.job].name;
   const stuckNote = !stuck.length ? "" : isAny
@@ -346,7 +348,8 @@ function renderNext(){
   };
 }
 function renderLevels(){
-  document.getElementById("levelsNote").textContent = "Enter each member's level and current EXP. Done adds the EXP and handles level-ups." + (X.note?" "+X.note:"");
+  const lock=allLocked();
+  document.getElementById("levelsNote").textContent = lock ? "Pick a job that's level " + firstLv(Object.keys(EXPANSIONS)[0]) + " or higher, or Role(s), to see the trusts." : "Enter each member's level and current EXP. Done adds the EXP and handles level-ups." + (X.note?" "+X.note:"");
   const g=document.getElementById("levels"); g.innerHTML="";
   { const d=document.createElement("div"); const isAny=R.player.job==="any"; const done=P.lv>=100;
     d.className="card"; d.style.cssText="border-left-color:var(--gold);background:#231f15";
@@ -361,11 +364,11 @@ function renderLevels(){
       <div class="fields">
         <label>Play</label>${sel}
         ${isAny?`<label>Roles</label>${rolePick}`:`<label>Level</label><input class="lv" type="text" inputmode="numeric" value="${P.lv}" data-p="lv">
-        <label>EXP</label><div style="display:flex;align-items:center;gap:6px;min-width:0"><input type="text" inputmode="numeric" value="${P.cur}" data-p="cur" ${done?"disabled":""}>
-          <span class="crole" style="white-space:nowrap">/ ${done?"—":fmt(pNeed(P.lv))}</span></div>`}
+        ${lock?"":`<label>EXP</label><div style="display:flex;align-items:center;gap:6px;min-width:0"><input type="text" inputmode="numeric" value="${P.cur}" data-p="cur" ${done?"disabled":""}>
+          <span class="crole" style="white-space:nowrap">/ ${done?"—":fmt(pNeed(P.lv))}</span></div>`}`}
       </div>
-      ${isAny?"":`<div class="bar"><div style="width:${done?100:Math.min(P.cur/pNeed(P.lv),0.999)*100}%"></div></div>`}
-      <div class="crole" style="margin-top:5px">${isAny?`Treated as level ${CAP}. You fill whichever of these roles the plan needs`:pDone(P)?`At or above ${X.name}'s cap, so you won't hold anyone back`:dg?`Can join up to ${dg.name} (${dg.lv})`:`<span class="warn">Can't join until level ${DUNGEONS[0].lv} (${DUNGEONS[0].name})</span>`}</div>`;
+      ${isAny||lock?"":`<div class="bar"><div style="width:${done?100:Math.min(P.cur/pNeed(P.lv),0.999)*100}%"></div></div>`}
+      <div class="crole" style="margin-top:5px">${isAny?`Treated as level ${CAP}. You fill whichever of these roles the plan needs`:pDone(P)?`At or above ${X.name}'s cap, so you won't hold anyone back`:dg?`Can join up to ${dg.name} (${dg.lv})`:`<span class="warn">Too low for trusts. They start at level ${firstLv(Object.keys(EXPANSIONS)[0])}</span>`}</div>`;
     g.appendChild(d);
     d.querySelector("#pJob").onchange=e=>{ R.player.job=e.target.value; useExp(R.active); save(); render(); };
     d.querySelectorAll("input[data-role]").forEach(cb=>cb.onchange=()=>{
@@ -378,6 +381,7 @@ function renderLevels(){
       P[inp.dataset.p]=v; pSettle(P); save(); renderKeepFocus();
     }));
   }
+  if(lock) return;
   MEMBERS.forEach(m=>{
     const k=m.k, d=document.createElement("div");
     d.className=`card r-${RC[m.r]} ${capped(k)?"capped":""}`;
@@ -407,7 +411,7 @@ function renderLog(){
 }
 function renderSetup(){
   const el=document.getElementById("setup");
-  if(S.ready){ el.style.display="none"; return; }
+  if(S.ready || allLocked()){ el.style.display="none"; return; }
   el.style.display="";
   el.innerHTML=`<h2 style="color:var(--gold)">First time on ${X.name}?</h2>
     <p class="muted" style="margin:4px 0 10px">The plan is only as good as the numbers it has. Before you follow it:</p>
@@ -453,7 +457,12 @@ function renderCustom(){
     document.getElementById("next").scrollIntoView({behavior:"smooth",block:"start"});
   };
 }
-function render(){ settleAll(); renderTabs(); renderSetup(); renderNext(); renderCustom(); renderLevels(); renderLog(); }
+function render(){
+  fitTab(); settleAll(); const lock=allLocked();
+  document.getElementById("customWrap").style.display=lock?"none":"";
+  document.getElementById("runsPanel").style.display=lock?"none":"";
+  renderTabs(); renderSetup(); renderNext(); if(!lock) renderCustom(); renderLevels(); if(!lock) renderLog();
+}
 function renderKeepFocus(){
   setTimeout(()=>{
     const a=document.activeElement, ds=a&&a.dataset||{};
