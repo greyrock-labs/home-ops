@@ -1,6 +1,6 @@
 # Public edge
 
-Public traffic for `*.greyrock.io` enters at `skedaddle`, the RackNerd VPS, and reaches
+Public traffic for `*.greyrock.io` and `*.cadshosting.com` enters at `skedaddle`, the RackNerd VPS, and reaches
 `envoy-external` (10.1.25.41) over a dedicated WireGuard tunnel to `office-gw`. Nothing at
 home is exposed to the internet except the tunnel's UDP port.
 
@@ -15,7 +15,8 @@ client ─► skedaddle caddy-l4 :443 / :80 / :22
 ```
 
 `ingress-ext.greyrock.io` and the `skedaddle-*` names point at the VPS through the
-`public-edge` DNSEndpoint in `kubernetes/apps/network/external-dns/cloudns/`.
+`public-edge` DNSEndpoint in `kubernetes/apps/network/external-dns/cloudflare/`.
+For cadshosting.com, see [cadshosting.com](#cadshostingcom).
 
 ## skedaddle
 
@@ -88,6 +89,66 @@ Forgejo runs `SSH_SERVER_USE_PROXY_PROTOCOL: true`. Its TCPRoute attaches to bot
 and `ssh-proxy`, and the `forgejo-ssh-proxy` BackendTrafficPolicy sends PROXY v2 to the pod.
 `forgejo-ingress` allows port 2222 only from `envoy-external` pods, and port 3000 from
 anywhere.
+
+## cadshosting.com
+
+cadshosting.com is a second public domain on the same edge, kept unlinked from greyrock.io.
+It has its own certificate, and no DNS record points at a greyrock.io name. The VPS address
+is the only thing the two share.
+
+- `cadshosting-com` (`shared/certificate-cadshosting-com.yaml`) covers `cadshosting.com`
+  and `*.cadshosting.com` in the secret `cadshosting-com-tls`, from the same
+  `letsencrypt-production` DNS-01 issuer. The Cloudflare tokens in 1Password
+  `Cloudflare - Cert Manager` and `Cloudflare - External DNS` have DNS edit on the
+  cadshosting.com zone.
+- `envoy-external-cadshosting` (`external/listenerset-cadshosting.yaml`) is a ListenerSet
+  on `envoy-external`, which allows ListenerSets from its own namespace. It has `https`
+  (443) and `https-proxy` (8443) for `*.cadshosting.com`, both on `cadshosting-com-tls`, and
+  the annotation `external-dns.kubernetes.io/target: ingress-ext.cadshosting.com`.
+- `envoy-external-cadshosting-https-proxy` repeats `envoy-external-https-proxy` for the
+  ListenerSet's `https-proxy`. A policy that names a Gateway listener in `sectionName` does
+  not reach ListenerSet listeners. Gateway-wide policies do: Envoy's config for these routes
+  has the `envoy-external-crowdsec` ext_authz, the Lua filter and the shared
+  BackendTrafficPolicy's compression. Keep the two https-proxy policies identical, because
+  both listeners share Envoy's 8443 listener.
+- external-dns (`cloudflare`) has `cadshosting.com` in `domainFilters` and runs with
+  `enableGatewayListenerSets: true`. A ListenerSet's target annotation overrides its
+  Gateway's, so routes on the ListenerSet get `CNAME ingress-ext.cadshosting.com`.
+- `ingress-ext.cadshosting.com` is an A record for the VPS in the `public-edge`
+  DNSEndpoint, next to `ingress-ext.greyrock.io`.
+
+A new hostname needs no VPS change. Caddy forwards every TLS name it does not serve itself.
+
+### Adding a cadshosting.com site
+
+Attach the route to the ListenerSet, not to the Gateway:
+
+```yaml
+route:
+  app:
+    hostnames:
+      - <app>.cadshosting.com
+    parentRefs:
+      - group: gateway.networking.k8s.io
+        kind: ListenerSet
+        name: envoy-external-cadshosting
+        namespace: network
+```
+
+A cadshosting.com hostname attached to `envoy-external` directly gets a CNAME to
+`ingress-ext.greyrock.io`. Only `<name>.cadshosting.com` matches the listeners and the
+certificate; the apex and deeper names do not.
+
+At home, local DNS answers queries even when they are sent to `1.1.1.1`. Check the public
+record over DNS-over-HTTPS, and the site through the VPS:
+
+```
+curl -s -H 'accept: application/dns-json' 'https://cloudflare-dns.com/dns-query?name=<app>.cadshosting.com&type=A'; curl -sS -o /dev/null -w '%{http_code}\n' --resolve <app>.cadshosting.com:443:104.168.59.58 https://<app>.cadshosting.com/
+```
+
+The answer should be `<app>.cadshosting.com` → `ingress-ext.cadshosting.com` →
+`104.168.59.58`, and the site should return the app's response with the cadshosting.com
+certificate.
 
 ## CrowdSec
 

@@ -200,6 +200,8 @@ route:
         namespace: network
 ```
 
+For a `*.cadshosting.com` hostname, attach the route to the `envoy-external-cadshosting` ListenerSet instead of a Gateway; see `docs/network/public-edge.md`.
+
 Persistence (pairs with the kopiur block in ks.yaml; also add `fsGroup: 2000` + `fsGroupChangePolicy: OnRootMismatch` to the pod securityContext):
 
 ```yaml
