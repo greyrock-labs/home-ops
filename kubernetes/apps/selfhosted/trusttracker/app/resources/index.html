@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trust Leveling Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f1420; --panel:#171e2e; --panel2:#1d2639; --line:#2a3550;
+    --text:#e6e9f0; --muted:#8e98ae; --gold:#d8b46a; --gold-dim:#8a7444;
+    --tank:#4f86d9; --heal:#4fae6c; --dps:#c85454;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 50% -200px,#1f2a44 0%,var(--bg) 60%);color:var(--text);font:15px/1.5 Inter,system-ui,sans-serif;min-height:100vh}
+  .wrap{max-width:900px;margin:0 auto;padding:28px 18px 60px}
+  h1{font-family:Cinzel,serif;font-weight:700;letter-spacing:.04em;margin:0 0 4px;font-size:28px;color:var(--gold)}
+  .sub{color:var(--muted);margin:0 0 22px}
+  h2{font-family:Cinzel,serif;font-weight:600;font-size:19px;margin:0 0 4px;letter-spacing:.03em}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px}
+  .panel.hero{border-color:var(--gold-dim);background:linear-gradient(180deg,#1f2536,#171e2e)}
+  .muted{color:var(--muted);font-size:14px;margin:0 0 12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+  .fields{display:grid;grid-template-columns:auto 1fr;gap:6px 8px;align-items:center;margin-top:8px}
+  .fields label{font-size:12px;color:var(--muted)}
+  .fields input{width:100%;min-width:0;background:#0f1420;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font:500 14px Inter;font-variant-numeric:tabular-nums}
+  .fields input:focus,.inputs input:focus{outline:none;border-color:var(--gold)}
+  .fields input:disabled{opacity:.5}
+  .fields .lv{width:70px}
+  .ttable{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+  .trow{display:grid;grid-template-columns:96px 1fr;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+  .trow label{font-size:13px;color:var(--muted);font-weight:600}
+  .trow input{width:100%;min-width:0;background:#0f1420;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font:500 14px Inter;font-variant-numeric:tabular-nums}
+  .trow input:focus{outline:none;border-color:var(--gold)}
+  .trow.dg{grid-template-columns:1fr 130px}
+  .trow.need{border-color:var(--gold)} .trow.need label{color:var(--gold)}
+  .card{background:var(--panel2);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:10px;padding:10px 12px}
+  .card.capped{opacity:.55}
+  .card.r-tank{border-left-color:var(--tank)} .card.r-heal{border-left-color:var(--heal)} .card.r-dps{border-left-color:var(--dps)} .card.r-any{border-left-color:#a67fd6}
+  .cname{display:flex;justify-content:space-between;font-weight:600}
+  .crole{font-size:12px;color:var(--muted);font-weight:500}
+  .inputs{display:flex;gap:8px;margin-top:8px;align-items:center}
+  .inputs label{font-size:12px;color:var(--muted)}
+  .inputs input{width:58px;background:#0f1420;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:4px 6px;font:500 14px Inter}
+  .bar{height:5px;background:#0f1420;border-radius:4px;overflow:hidden;margin-top:8px}
+  .bar>div{height:100%;background:var(--gold)}
+  .party{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 14px}
+  .slot{background:#232d44;border-radius:10px;padding:8px 14px;border-left:4px solid var(--line);min-width:130px}
+  .slot .role{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+  .slot .who{font-weight:600;font-size:16px}
+  .slot.you{background:#2a2414;border-left-color:var(--gold)}
+  .s-tank{border-left-color:var(--tank)} .s-heal{border-left-color:var(--heal)} .s-dps{border-left-color:var(--dps)}
+  .btn{background:var(--gold);color:#1a1405;border:1px solid var(--gold);border-radius:8px;padding:8px 14px;font:600 14px Inter,sans-serif;cursor:pointer}
+  .btn:hover{filter:brightness(1.08)}
+  .btn.ghost{background:transparent;color:var(--muted);border-color:var(--line)}
+  .btn.ghost:hover{background:var(--panel2);color:var(--text)}
+  .btn.small{padding:3px 9px;font-size:12px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .note{font-size:13px;color:var(--muted);margin-top:10px}
+  .warn{color:#e4a95b}
+  .log{list-style:none;margin:0;padding:0}
+  .log li{display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid #212a3f;font-size:14px}
+  .tick{width:20px;height:20px;border-radius:5px;background:var(--gold);display:inline-flex;align-items:center;justify-content:center;flex:none}
+  .log .n{color:var(--gold);font-weight:600;width:28px}
+  .log .p{color:var(--muted)}
+  .confirm{display:none;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+  .confirm.show{display:flex}
+  .done-banner{font-family:Cinzel,serif;font-size:22px;color:var(--gold)}
+  .tabs{display:flex;gap:6px;margin:0 0 18px;flex-wrap:wrap}
+  .tab{background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:8px 14px;font:600 14px Inter;cursor:pointer}
+  .tab small{display:block;font-weight:500;font-size:11px;opacity:.8}
+  .tab.on{border-color:var(--gold);color:var(--gold);background:#231f15}
+  textarea.io{width:100%;min-height:90px;background:#0f1420;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px;font:12px ui-monospace,Menlo,monospace;resize:vertical}
+  .msg{font-size:13px;margin-left:4px}
+  .msg.ok{color:#7fd39a} .msg.err{color:#e07a7a}
+  details.panel summary::marker{color:var(--gold)}
+  .pick{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+  .pick label{display:flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:14px;cursor:pointer}
+  .pick label.on{border-color:var(--gold);color:var(--gold)}
+  .pick input{accent-color:#d8b46a}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Trust Leveling Tracker</h1>
+  <p class="sub">Pick your job and enter its level and EXP, plus each trust member's level and EXP. The page plans the party and dungeon for the fewest total runs with no EXP lost to the cap. A dungeon only works if you and all three trusts are at least its level. Tap Done after each run and it adds the EXP for you.</p>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="panel" id="setup" style="display:none;border-color:var(--gold);background:#231f15"></div>
+
+  <div class="panel hero" id="next"></div>
+
+  <details class="panel" id="customWrap">
+    <summary style="cursor:pointer;font-family:Cinzel,serif;font-size:17px">Ran something else? Log it here</summary>
+    <div id="custom" style="margin-top:12px"></div>
+  </details>
+
+  <div class="panel">
+    <h2>Levels</h2>
+    <p class="muted" id="levelsNote">Enter each member's level and current EXP. Done adds the EXP and handles level-ups.</p>
+    <div class="grid" id="levels"></div>
+  </div>
+
+  <div class="panel">
+    <div class="row" style="justify-content:space-between"><h2>Runs done</h2><span class="muted" id="count" style="margin:0"></span></div>
+    <ul class="log" id="log"></ul>
+    <div class="row" style="margin-top:12px">
+      <button class="btn ghost small" id="undo">Undo last</button>
+      <button class="btn ghost small" id="resetBtn">Reset this expansion</button>
+      <span class="confirm" id="resetConfirm">Clear this expansion's levels and runs? <button class="btn small" id="resetYes">Yes, reset</button><button class="btn ghost small" id="resetNo">Cancel</button></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Backup</h2>
+    <p class="muted">Export saves your job and every expansion's levels and runs as text. Keep it somewhere safe, or import it on another device or browser.</p>
+    <div class="row">
+      <button class="btn small" id="exportBtn">Export: copy to clipboard</button>
+      <label class="btn ghost small" style="display:inline-block">Import from file<input type="file" id="importFile" accept=".json,.txt,application/json,text/plain" style="display:none"></label>
+      <span class="msg" id="ioMsg"></span>
+    </div>
+    <textarea class="io" id="ioText" placeholder="Exported data shows here. To import, paste backup text here and press Import pasted text." style="margin-top:10px"></textarea>
+    <div class="row" style="margin-top:8px">
+      <button class="btn ghost small" id="importBtn">Import pasted text</button>
+      <span class="confirm" id="importConfirm">This replaces all your current data. <button class="btn small" id="importYes">Yes, import</button><button class="btn ghost small" id="importNo">Cancel</button></span>
+    </div>
+  </div>
+</div>
+
+<script>
+const EXPANSIONS = {
+  shb: { name:"Shadowbringers", min:71, cap:80,
+    members:[{k:"Alphinaud",r:"h"},{k:"Alisaie",r:"d"},{k:"Thancred",r:"t"},{k:"Urianger",r:"h"},{k:"Y'shtola",r:"d"},{k:"Ryne",r:"d"},{k:"G'raha",r:"a"}],
+    dungeons:[{lv:71,name:"Holminster Switch",exp:3091000},{lv:73,name:"Dohn Mheg",exp:3442000},{lv:75,name:"The Qitana Ravel",exp:4021000},{lv:77,name:"Malikah's Well",exp:4757000},{lv:79,name:"Mt. Gulg",exp:5439000}],
+    levelExp:{71:3018000,72:3153000,73:3324000,74:3532000,75:3770600,76:4066000,77:4377000,78:4777000,79:5256000},
+    note:"G'raha joins after the quest Reflections in Crystal." },
+  ew: { name:"Endwalker", min:81, cap:90,
+    members:[{k:"Alphinaud",r:"h"},{k:"Alisaie",r:"d"},{k:"Thancred",r:"t"},{k:"Urianger",r:"h"},{k:"Y'shtola",r:"d"},{k:"Estinien",r:"d"},{k:"G'raha",r:"a"}],
+    dungeons:[{lv:81,name:"The Tower of Zot",exp:6566000},{lv:83,name:"The Tower of Babil",exp:7590500},{lv:85,name:"Vanaspati",exp:8814000},{lv:87,name:"Ktisis Hyperboreia",exp:9967000},{lv:89,name:"The Aitiascope",exp:10795000}],
+    levelExp:{81:6171000,82:6942000,83:7205000,84:7948000,85:8287000,86:9231000,87:9529000,88:10459000,89:10838000},
+    note:"Zero isn't included, since she's only in three level 90 dungeons." },
+  dt: { name:"Dawntrail", min:91, cap:100,
+    members:[{k:"Alphinaud",r:"h"},{k:"Alisaie",r:"d"},{k:"Thancred",r:"t"},{k:"Urianger",r:"h"},{k:"Y'shtola",r:"d"},{k:"Estinien",r:"d"},{k:"G'raha",r:"a"},{k:"Krile",r:"d"}],
+    dungeons:[{lv:91,name:"Ihuykatumu",exp:14518000},{lv:93,name:"Worqor Zormor",exp:16756500},{lv:95,name:"The Skydeep Cenote",exp:19408000},{lv:97,name:"Vanguard",exp:21902000},{lv:99,name:"Origenics",exp:23694000}],
+    levelExp:{91:13659000,92:15348000,93:15912000,94:17534000,95:18263000,96:20322000,97:20957000,98:22979000,99:23789000},
+    note:"" },
+};
+// Player EXP needed from each level to the next (your chart, shifted: row 92 = 91→92)
+const PLAYER_EXP = {70:2923000,71:3018000,72:3153000,73:3324000,74:3532000,75:3770600,76:4066000,77:4377000,78:4777000,79:5256000,
+  80:5992000,81:6171000,82:6942000,83:7205000,84:7948000,85:8287000,86:9231000,87:9529000,88:10459000,89:10838000,
+  90:13278000,91:13659000,92:15348000,93:15912000,94:17534000,95:18263000,96:20322000,97:20957000,98:22979000,99:23789000};
+const RN = {t:"Tank", h:"Healer", d:"DPS", a:"Any"};
+const RC = {t:"tank", h:"heal", d:"dps", a:"any"};
+const KEY = "ffxiv-trust-planner-v4", OLDKEY = "ffxiv-trust-planner-v3";
+const fmt = n => Math.round(n).toLocaleString();
+const num = v => Math.max(0, Math.round(Number(String(v).replace(/[^\d]/g,""))||0));
+const esc = t => String(t).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+// ---------- Storage: one root holding every expansion ----------
+function freshExp(id){ const X=EXPANSIONS[id], s={lv:{},cur:{},log:[]}; X.members.forEach(m=>{s.lv[m.k]=X.min; s.cur[m.k]=0;}); return s; }
+function cleanExp(id, s){
+  const X=EXPANSIONS[id], out=freshExp(id);
+  if(s && typeof s==="object"){
+    X.members.forEach(m=>{
+      const lv=Number(s.lv&&s.lv[m.k]), cur=Number(s.cur&&s.cur[m.k]);
+      if(lv>=X.min && lv<=X.cap) out.lv[m.k]=Math.round(lv);
+      if(cur>=0) out.cur[m.k]=Math.round(cur);
+    });
+    if(Array.isArray(s.log)) out.log=s.log.filter(e=>e&&typeof e.party==="string");
+    out.ready = !!s.ready || out.log.length>0 || X0changed(id,s);
+  }
+  return out;
+}
+const JOBS = [
+  {id:"pld",name:"Paladin",r:"t"},{id:"war",name:"Warrior",r:"t"},{id:"drk",name:"Dark Knight",r:"t"},{id:"gnb",name:"Gunbreaker",r:"t"},
+  {id:"whm",name:"White Mage",r:"h"},{id:"sch",name:"Scholar",r:"h"},{id:"ast",name:"Astrologian",r:"h"},{id:"sge",name:"Sage",r:"h"},
+  {id:"mnk",name:"Monk",r:"d"},{id:"drg",name:"Dragoon",r:"d"},{id:"nin",name:"Ninja",r:"d"},{id:"sam",name:"Samurai",r:"d"},{id:"rpr",name:"Reaper",r:"d"},{id:"vpr",name:"Viper",r:"d"},
+  {id:"brd",name:"Bard",r:"d"},{id:"mch",name:"Machinist",r:"d"},{id:"dnc",name:"Dancer",r:"d"},
+  {id:"blm",name:"Black Mage",r:"d"},{id:"smn",name:"Summoner",r:"d"},{id:"rdm",name:"Red Mage",r:"d"},{id:"pct",name:"Pictomancer",r:"d"},
+];
+const JOB = Object.fromEntries(JOBS.map(j=>[j.id,j]));
+const ANY = {lv:100, cur:0};   // "any capped job": never holds anyone back, can fill any role
+function cleanPlayer(p){
+  const out={job:"any", jobs:{}};
+  JOBS.forEach(j=>out.jobs[j.id]={lv:1,cur:0});
+  if(p&&typeof p==="object"){
+    if(p.jobs&&typeof p.jobs==="object") JOBS.forEach(j=>{ const q=p.jobs[j.id]; if(q){ const lv=Number(q.lv), cur=Number(q.cur);
+      if(lv>=1&&lv<=100) out.jobs[j.id].lv=Math.round(lv); if(cur>=0) out.jobs[j.id].cur=Math.round(cur); } });
+    if(p.job==="any"||JOB[p.job]) out.job=p.job;
+    // older version: one level + a role
+    if(!p.jobs && p.role && p.role!=="a" && Number(p.lv)<100){ const j=JOBS.find(x=>x.r===p.role); out.job=j.id; out.jobs[j.id]={lv:Math.round(Number(p.lv)||1), cur:Math.round(Number(p.cur)||0)}; }
+  }
+  return out;
+}
+// Treat older saved data with real numbers in it as already set up
+function X0changed(id,s){ const X=EXPANSIONS[id]; return X.members.some(m=>(s.lv&&s.lv[m.k]>X.min)||(s.cur&&s.cur[m.k]>0)); }
+function freshRoot(){ return {active:"dt", player:cleanPlayer(), data:{shb:freshExp("shb"), ew:freshExp("ew"), dt:freshExp("dt")}}; }
+let R; try{ R = JSON.parse(localStorage.getItem(KEY)); }catch(e){ R=null; }
+if(!R || !R.data){
+  R = freshRoot();
+  try{ const old = JSON.parse(localStorage.getItem(OLDKEY)); if(old && old.lv) R.data.dt = cleanExp("dt", old); }catch(e){}   // bring over your Dawntrail progress
+}
+Object.keys(EXPANSIONS).forEach(id=>{ R.data[id] = cleanExp(id, R.data[id]); });
+if(!EXPANSIONS[R.active]) R.active="dt";
+R.player = cleanPlayer(R.player);
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(R)); }catch(e){} }
+save();
+
+// ---------- Current expansion ----------
+let REACH=new Set(), P, X, S, CAP, MEMBERS, NAMES, ROLE, DUNGEONS, roles3;
+function useExp(id){
+  R.active=id; X=EXPANSIONS[id]; S=R.data[id]; CAP=X.cap; MEMBERS=X.members; NAMES=MEMBERS.map(m=>m.k);
+  ROLE=Object.fromEntries(MEMBERS.map(m=>[m.k,m.r])); DUNGEONS=X.dungeons; P=curPlayer(); roles3=buildRoles(); REACH=new Set(roles3.flatMap(o=>o.trio));
+}
+const dExp = d => d.exp;
+const needAt = L => X.levelExp[L] || 0;
+const needGuess = L => needAt(L);
+const capped = k => S.lv[k] >= CAP;
+function settle(k){
+  while(!capped(k) && needAt(S.lv[k])>0 && S.cur[k]>=needAt(S.lv[k])){ S.cur[k]-=needAt(S.lv[k]); S.lv[k]++; }
+  if(capped(k)){ S.lv[k]=CAP; S.cur[k]=0; }
+}
+const settleAll = () => { NAMES.forEach(settle); if(R.player.job!=="any") pSettle(P); };
+// Player helpers. Your level is shared across tabs; each tab only plans you up to its cap.
+function curPlayer(){ const pl=R.player; if(pl.job==="any"){ ANY.lv=100; ANY.cur=0; return Object.assign(ANY,{role:"a"}); }
+  const st=pl.jobs[pl.job]; st.role=JOB[pl.job].r; return st; }
+const pNeed = L => PLAYER_EXP[L] || 0;
+function pSettle(p){ while(p.lv<100 && pNeed(p.lv)>0 && p.cur>=pNeed(p.lv)){ p.cur-=pNeed(p.lv); p.lv++; } if(p.lv>=100){ p.lv=100; p.cur=0; } }
+const pDone = p => p.lv >= CAP;
+const pRem = p => { if(p.lv>=CAP) return 0; let r=pNeed(p.lv)-p.cur; for(let L=p.lv+1;L<CAP;L++) r+=pNeed(L); return Math.max(r,0); };
+const frac = k => needAt(S.lv[k])>0 ? Math.min(S.cur[k]/needAt(S.lv[k]), 0.999) : 0;
+
+// ---------- Planner ----------
+function buildRoles(){
+  const out=[], n=NAMES.length;
+  for(let a=0;a<n;a++) for(let b=a+1;b<n;b++) for(let c=b+1;c<n;c++){
+    const trio=[NAMES[a],NAMES[b],NAMES[c]];
+    for(const you of (P.role==="a" ? ["t","h","d"] : [P.role])){
+      const left=["t","h","d","d"]; left.splice(left.indexOf(you),1);
+      const roles={}; let ok=true;
+      for(const m of trio.filter(m=>ROLE[m]!=="a")){ const i=left.indexOf(ROLE[m]); if(i<0){ok=false;break;} roles[m]=ROLE[m]; left.splice(i,1); }
+      if(!ok) continue;
+      trio.filter(m=>ROLE[m]==="a").forEach((m,i)=>roles[m]=left[i]);
+      out.push({trio, you, roles}); break;
+    }
+  }
+  return out;
+}
+const simRem = (st,k) => { if(st.lv[k]>=CAP || !REACH.has(k)) return 0; let r=needGuess(st.lv[k])-st.cur[k]; for(let L=st.lv[k]+1;L<CAP;L++) r+=needGuess(L); return Math.max(r,0); };
+function bestDungeon(st, trio){ const lo=Math.min(st.p.lv, ...trio.map(n=>st.lv[n])); let d=null; DUNGEONS.forEach(x=>{ if(x.lv<=lo) d=x; }); return d; }
+function applyRun(st, trio, exp){
+  if(st.p.lv<CAP){ st.p.cur+=exp; pSettle(st.p); }
+  trio.forEach(n=>{ if(st.lv[n]>=CAP) return; st.cur[n]+=exp;
+    while(st.lv[n]<CAP && st.cur[n]>=needGuess(st.lv[n])){ st.cur[n]-=needGuess(st.lv[n]); st.lv[n]++; }
+    if(st.lv[n]>=CAP){ st.lv[n]=CAP; st.cur[n]=0; } });
+}
+function quickPick(st){
+  const rem=Object.fromEntries(NAMES.map(n=>[n,simRem(st,n)]));
+  const maxRem=Math.max(1,...Object.values(rem));
+  let top=null;
+  for(const o of roles3){
+    const d=bestDungeon(st,o.trio); if(!d) continue;
+    const e=dExp(d);
+    const pr=pRem(st.p);
+    const sc=o.trio.reduce((s,n)=>s+Math.min(e,rem[n])*(1+2*rem[n]/maxRem),0) + Math.min(e,pr)*(1+2*pr/Math.max(maxRem,pr,1));
+    if(!top||sc>top.sc) top={o,d,sc};
+  }
+  return top;
+}
+function runsToFinish(st){ let n=0; while((NAMES.some(k=>st.lv[k]<CAP&&REACH.has(k))||st.p.lv<CAP)&&n<300){ const p=quickPick(st); if(!p) return 999; applyRun(st,p.o.trio,dExp(p.d)); n++; } return n; }
+const copy = () => ({lv:{...S.lv}, cur:{...S.cur}, p:{...P}});
+// Try every possible next party, play the rest out, keep the one that finishes in the fewest runs.
+function plan(){
+  let top=null;
+  for(const o of roles3){
+    const st=copy(); const d=bestDungeon(st,o.trio); if(!d) continue;
+    applyRun(st,o.trio,dExp(d));
+    const total=1+runsToFinish(st);
+    const rem=o.trio.reduce((s,n)=>s+simRem(S,n),0);
+    const useful=o.trio.reduce((s,n)=>s+Math.min(dExp(d),simRem(S,n)),0) + Math.min(dExp(d),pRem(P));
+    const key=[total,-useful,-rem];
+    if(!top||key[0]<top.key[0]||(key[0]===top.key[0]&&(key[1]<top.key[1]||(key[1]===top.key[1]&&key[2]<top.key[2])))) top={o,d,key,total};
+  }
+  return top;
+}
+
+// ---------- Rendering ----------
+function renderTabs(){
+  const t=document.getElementById("tabs");
+  t.innerHTML=Object.entries(EXPANSIONS).map(([id,x])=>{
+    const s=R.data[id], done=x.members.filter(m=>s.lv[m.k]>=x.cap).length;
+    return `<button class="tab ${id===R.active?"on":""}" data-x="${id}">${x.name}<small>Lv ${x.min}–${x.cap} · ${done}/${x.members.length} capped</small></button>`;
+  }).join("");
+  t.querySelectorAll("[data-x]").forEach(b=>b.onclick=()=>{ useExp(b.dataset.x); save(); render(); });
+}
+function renderNext(){
+  const el=document.getElementById("next");
+  const stuck=NAMES.filter(k=>!capped(k)&&!REACH.has(k));
+  const stuckNote = stuck.length ? `<p class="note warn" style="margin-top:10px">${stuck.join(" and ")} ${stuck.length>1?"aren't":"isn't"} in this plan, because the ${RN[P.role].toLowerCase()} slot is yours as ${JOB[R.player.job].name}. Switch to another role's job to level ${stuck.length>1?"them":"them too"}.</p>` : "";
+  if(NAMES.every(k=>capped(k)||!REACH.has(k)) && pDone(P)){ if(stuck.length){ el.innerHTML=`<h2>Nothing left you can level as ${JOB[R.player.job].name}</h2>${stuckNote}`; return; } el.innerHTML=`<div class="done-banner">Everyone is level ${CAP} 🎉</div><p class="muted" style="margin:4px 0 0">You and all ${X.name} trusts are capped. Nice work.</p>`; return; }
+  if(P.lv < DUNGEONS[0].lv){ el.innerHTML=`<h2>${JOB[R.player.job]?JOB[R.player.job].name:"Your job"} is too low for ${X.name}</h2><p class="muted" style="margin:4px 0 0">The first ${X.name} dungeon is level ${DUNGEONS[0].lv}. You're level ${P.lv}.</p>`; return; }
+  const p=plan();
+  if(!p){ el.innerHTML=`<h2>No dungeon available</h2><p class="muted">Check the levels below.</p>`; return; }
+  const {o,d}=p, e=dExp(d), order=["t","h","d"];
+  const slots=[{who:"You",r:o.you,you:true},...o.trio.map(n=>({who:n,r:o.roles[n]}))].sort((x,y)=>order.indexOf(x.r)-order.indexOf(y.r));
+  const prev=o.trio.map(n=>{
+    if(capped(n)) return `${n}: capped`;
+    let lv=S.lv[n], cur=S.cur[n]+e;
+    while(lv<CAP && cur>=needAt(lv)){ cur-=needAt(lv); lv++; }
+    return lv>=CAP ? `${n}: Lv ${CAP} 🎉` : `${n}: Lv ${lv} (${fmt(cur)} / ${fmt(needAt(lv))})`;
+  }).join(" · ") + (pDone(P) ? "" : (()=>{ const q={...P}; q.cur+=e; pSettle(q);
+      return ` · You: Lv ${q.lv}${q.lv<100?` (${fmt(q.cur)} / ${fmt(pNeed(q.lv))})`:" 🎉"}`; })());
+  const wasted=o.trio.filter(capped), losing=o.trio.filter(n=>!capped(n)&&simRem(S,n)<e);
+  el.innerHTML=`<h2>Next run #${S.log.length+1}</h2>
+    <div class="cycle-title" style="margin:6px 0 0;color:var(--gold)">Lv ${d.lv} · ${d.name} · ${fmt(e)} EXP each</div>
+    <div class="party">${slots.map(s=>`<div class="slot s-${RC[s.r]} ${s.you?"you":""}"><div class="role">${RN[s.r]}</div><div class="who">${s.who}</div></div>`).join("")}</div>
+    <div class="row"><button class="btn" id="doneBtn">✓ Done, add the EXP</button>
+      <span class="muted" style="margin:0">${p.total} run${p.total===1?"":"s"} left for everyone to cap</span></div>
+    <p class="note">After this run: ${prev}
+    ${wasted.length?`<br><span class="warn">${wasted.join(", ")} ${wasted.length>1?"are":"is"} already capped and only filling a slot.</span>`:""}
+    ${losing.length?`<br><span class="warn">${losing.join(", ")} will cap and lose some EXP. This is still the fastest plan.</span>`:""}</p>${stuckNote}`;
+  document.getElementById("doneBtn").onclick=()=>{
+    const snap={lv:{...S.lv},cur:{...S.cur},pj:R.player.job,p:{lv:P.lv,cur:P.cur}};
+    o.trio.forEach(n=>{ if(!capped(n)){ S.cur[n]+=e; settle(n); } });
+    if(R.player.job!=="any" && P.lv<100){ P.cur+=e; pSettle(P); }
+    S.ready=true;
+    S.log.push({party:slots.map(s=>s.who==="You"?`You (${RN[s.r]})`:s.who).join(", "), dungeon:`${d.name} (${d.lv})`, t:Date.now(), snap});
+    save(); render();
+  };
+}
+function renderLevels(){
+  document.getElementById("levelsNote").textContent = "Enter each member's level and current EXP. Done adds the EXP and handles level-ups." + (X.note?" "+X.note:"");
+  const g=document.getElementById("levels"); g.innerHTML="";
+  { const d=document.createElement("div"); const isAny=R.player.job==="any"; const done=P.lv>=100;
+    d.className="card"; d.style.cssText="border-left-color:var(--gold);background:#231f15";
+    let dg=null; DUNGEONS.forEach(x=>{ if(x.lv<=P.lv) dg=x; });
+    const groups=[["t","Tank"],["h","Healer"],["d","DPS"]];
+    const sel=`<select id="pJob" style="width:100%;min-width:0;background:#0f1420;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font:500 14px Inter">
+      <option value="any" ${isAny?"selected":""}>Any role (capped)</option>
+      ${groups.map(([r,lab])=>`<optgroup label="${lab}">${JOBS.filter(j=>j.r===r).map(j=>{ const q=R.player.jobs[j.id];
+        return `<option value="${j.id}" ${R.player.job===j.id?"selected":""}>${j.name} · Lv ${q.lv}</option>`; }).join("")}</optgroup>`).join("")}</select>`;
+    d.innerHTML=`<div class="cname"><span style="color:var(--gold)">You</span><span class="crole">${isAny?"Any role":RN[P.role]}${!isAny&&done?" · MAX":""}</span></div>
+      <div class="fields">
+        <label>Job</label>${sel}
+        ${isAny?"":`<label>Level</label><input class="lv" type="text" inputmode="numeric" value="${P.lv}" data-p="lv">
+        <label>EXP</label><div style="display:flex;align-items:center;gap:6px;min-width:0"><input type="text" inputmode="numeric" value="${P.cur}" data-p="cur" ${done?"disabled":""}>
+          <span class="crole" style="white-space:nowrap">/ ${done?"—":fmt(pNeed(P.lv))}</span></div>`}
+      </div>
+      ${isAny?"":`<div class="bar"><div style="width:${done?100:Math.min(P.cur/pNeed(P.lv),0.999)*100}%"></div></div>`}
+      <div class="crole" style="margin-top:5px">${isAny?"You fill whichever role the plan needs":pDone(P)?`At or above ${X.name}'s cap, so you won't hold anyone back`:`Can join up to ${dg?dg.name+" ("+dg.lv+")":"—"}`}</div>`;
+    g.appendChild(d);
+    d.querySelector("#pJob").onchange=e=>{ R.player.job=e.target.value; useExp(R.active); save(); render(); };
+    d.querySelectorAll("input[data-p]").forEach(inp=>inp.addEventListener("change",()=>{
+      let v=num(inp.value); if(inp.dataset.p==="lv") v=Math.max(1,Math.min(100,v));
+      P[inp.dataset.p]=v; pSettle(P); save(); renderKeepFocus();
+    }));
+  }
+  MEMBERS.forEach(m=>{
+    const k=m.k, d=document.createElement("div");
+    d.className=`card r-${RC[m.r]} ${capped(k)?"capped":""}`;
+    const dis=capped(k)?"disabled":"", need=needAt(S.lv[k]);
+    let dg=null; DUNGEONS.forEach(x=>{ if(x.lv<=S.lv[k]) dg=x; });
+    d.innerHTML=`<div class="cname"><span>${k}</span><span class="crole">${RN[m.r]}${capped(k)?" · MAX":""}</span></div>
+      <div class="fields">
+        <label>Level</label><input class="lv" type="text" inputmode="numeric" value="${S.lv[k]}" data-k="${k}" data-f="lv">
+        <label>EXP</label><div style="display:flex;align-items:center;gap:6px;min-width:0"><input type="text" inputmode="numeric" value="${S.cur[k]}" data-k="${k}" data-f="cur" ${dis}>
+          <span class="crole" style="white-space:nowrap">/ ${capped(k)?"—":fmt(need)}</span></div>
+      </div>
+      <div class="bar"><div style="width:${capped(k)?100:frac(k)*100}%"></div></div>
+      <div class="crole" style="margin-top:5px">${capped(k)?"Capped":!REACH.has(k)?`<span class="warn">Can't join while you're on ${JOB[R.player.job].name}</span>`:`Can join up to ${dg?dg.name+" ("+dg.lv+")":"—"}`}</div>`;
+    g.appendChild(d);
+  });
+  g.querySelectorAll("input[data-k]").forEach(inp=>inp.addEventListener("change",()=>{
+    const k=inp.dataset.k, f=inp.dataset.f; let v=num(inp.value);
+    if(f==="lv") v=Math.max(X.min,Math.min(CAP,v));
+    S[f][k]=v; settle(k); S.ready=true; save(); renderKeepFocus();
+  }));
+}
+function renderLog(){
+  const l=document.getElementById("log");
+  document.getElementById("count").textContent=`${S.log.length} run${S.log.length===1?"":"s"}`;
+  l.innerHTML=S.log.length ? S.log.slice().reverse().map((e,i)=>`<li><span class="tick"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#0f1420" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg></span><span class="n">#${S.log.length-i}</span><span class="p">${e.dungeon?esc(e.dungeon)+": ":""}${esc(e.party)}</span></li>`).join("")
+    : `<li class="p" style="border:0;color:var(--muted)">No runs logged yet.</li>`;
+}
+function renderSetup(){
+  const el=document.getElementById("setup");
+  if(S.ready){ el.style.display="none"; return; }
+  el.style.display="";
+  el.innerHTML=`<h2 style="color:var(--gold)">First time on ${X.name}?</h2>
+    <p class="muted" style="margin:4px 0 10px">The plan is only as good as the numbers it has. Before you follow it:</p>
+    <ol class="tips" style="margin:0 0 12px">
+      <li>Pick your <b>job</b> on the "You" card and enter its level and EXP. Pick "Any capped job" if you're capped and can play any role.</li>
+      <li>Enter each trust member's <b>level</b> and <b>EXP</b>, as shown in the game's Trust menu.</li>
+    </ol>
+    <div class="row"><button class="btn small" id="setupGo">Edit the levels</button><button class="btn ghost small" id="setupOk">My numbers are already right</button></div>`;
+  document.getElementById("setupGo").onclick=()=>document.getElementById("levels").scrollIntoView({behavior:"smooth",block:"start"});
+  document.getElementById("setupOk").onclick=()=>{ S.ready=true; save(); render(); };
+}
+// Log a run that differs from the suggestion: any dungeon, any 3 members
+let pick=[];
+function renderCustom(){
+  const el=document.getElementById("custom");
+  pick=pick.filter(n=>NAMES.includes(n));
+  const opts=DUNGEONS.map(d=>`<option value="${d.lv}">Lv ${d.lv} · ${d.name} (${fmt(d.exp)} EXP)</option>`).join("");
+  el.innerHTML=`<p class="muted" style="margin:0">Choose the dungeon and the three trust members you took. Their EXP${R.player.job!=="any"?" and your job's EXP":""} gets added, just like Done.</p>
+    <div class="fields" style="max-width:520px"><label>Dungeon</label><select id="cDungeon" style="background:#0f1420;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font:500 14px Inter">${opts}</select></div>
+    <div class="pick">${NAMES.map(n=>`<label class="${pick.includes(n)?"on":""}"><input type="checkbox" data-c="${esc(n)}" ${pick.includes(n)?"checked":""}>${n} <span class="crole">Lv ${S.lv[n]}</span></label>`).join("")}</div>
+    <div class="row"><button class="btn small" id="cLog">Log this run</button><span class="msg" id="cMsg"></span></div>`;
+  const sel=el.querySelector("#cDungeon");
+  if(el.dataset.d) sel.value=el.dataset.d;
+  sel.onchange=()=>{ el.dataset.d=sel.value; };
+  el.querySelectorAll("input[data-c]").forEach(cb=>cb.onchange=()=>{
+    const n=cb.dataset.c; pick=cb.checked?[...pick.filter(x=>x!==n),n]:pick.filter(x=>x!==n);
+    if(pick.length>3) pick=pick.slice(-3);
+    renderCustom();
+  });
+  el.querySelector("#cLog").onclick=()=>{
+    const msg=el.querySelector("#cMsg"); const bad=t=>{ msg.textContent=t; msg.className="msg err"; };
+    const d=DUNGEONS.find(x=>String(x.lv)===sel.value);
+    if(pick.length!==3) return bad("Pick exactly three trust members.");
+    const low=pick.filter(n=>S.lv[n]<d.lv);
+    if(low.length) return bad(`${low.join(", ")} ${low.length>1?"are":"is"} below level ${d.lv}, so ${low.length>1?"they":"they"} couldn't have joined ${d.name}.`);
+    if(R.player.job!=="any" && P.lv<d.lv) return bad(`Your ${JOB[R.player.job].name} is below level ${d.lv}.`);
+    const snap={lv:{...S.lv},cur:{...S.cur},pj:R.player.job,p:{lv:P.lv,cur:P.cur}};
+    pick.forEach(n=>{ if(!capped(n)){ S.cur[n]+=d.exp; settle(n); } });
+    if(R.player.job!=="any" && P.lv<100){ P.cur+=d.exp; pSettle(P); }
+    S.ready=true;
+    S.log.push({party:`You, ${pick.join(", ")} (your pick)`, dungeon:`${d.name} (${d.lv})`, t:Date.now(), snap});
+    pick=[]; save(); render();
+    document.getElementById("next").scrollIntoView({behavior:"smooth",block:"start"});
+  };
+}
+function render(){ settleAll(); renderTabs(); renderSetup(); renderNext(); renderCustom(); renderLevels(); renderLog(); }
+function renderKeepFocus(){
+  setTimeout(()=>{
+    const a=document.activeElement, ds=a&&a.dataset||{};
+    const key=ds.k?`input[data-k="${ds.k}"][data-f="${ds.f}"]`:ds.p?`input[data-p="${ds.p}"]`:null;
+    render();
+    if(key){ const el=document.querySelector(key); if(el){ el.focus(); try{ el.select(); }catch(e){} } }
+  },0);
+}
+
+// ---------- Buttons ----------
+document.getElementById("undo").onclick=()=>{ const e=S.log.pop(); if(e&&e.snap){ S.lv=e.snap.lv; S.cur=e.snap.cur; if(e.snap.p && e.snap.pj && R.player.jobs[e.snap.pj]){ Object.assign(R.player.jobs[e.snap.pj],e.snap.p); } } save(); render(); };
+const rb=document.getElementById("resetBtn"), rc=document.getElementById("resetConfirm");
+rb.onclick=()=>{rc.classList.add("show"); rb.style.display="none";};
+document.getElementById("resetNo").onclick=()=>{rc.classList.remove("show"); rb.style.display="";};
+document.getElementById("resetYes").onclick=()=>{ R.data[R.active]=freshExp(R.active); useExp(R.active); save(); rc.classList.remove("show"); rb.style.display=""; render(); };
+
+// Backup: export / import
+const ioText=document.getElementById("ioText"), ioMsg=document.getElementById("ioMsg");
+const say=(t,ok)=>{ ioMsg.textContent=t; ioMsg.className="msg "+(ok?"ok":"err"); };
+document.getElementById("exportBtn").onclick=async()=>{
+  const text=JSON.stringify({app:"ffxiv-trust-tracker", version:5, exported:new Date().toISOString(), active:R.active, player:{job:R.player.job, jobs:Object.fromEntries(Object.entries(R.player.jobs).map(([k,v])=>[k,{lv:v.lv,cur:v.cur}]))}, data:R.data});
+  ioText.value=text;
+  try{ await navigator.clipboard.writeText(text); say("Copied. Paste it into a note or file to keep it.",true); }
+  catch(e){ ioText.select(); say("Couldn't copy automatically. The text is selected below, so copy it yourself.",false); }
+};
+let pending=null;
+const ic=document.getElementById("importConfirm"), ib=document.getElementById("importBtn");
+function parseBackup(text){
+  const j=JSON.parse(text);
+  const data=j&&j.data, out={active:EXPANSIONS[j&&j.active]?j.active:"dt", player:cleanPlayer(j&&j.player), data:{}};
+  if(!data||typeof data!=="object") throw new Error("not a backup");
+  Object.keys(EXPANSIONS).forEach(id=>{ out.data[id]=cleanExp(id,data[id]); });
+  return out;
+}
+function askImport(text){
+  try{ pending=parseBackup(text); }catch(e){ pending=null; say("That doesn't look like a backup from this tracker.",false); return; }
+  ic.classList.add("show"); ib.style.display="none"; say("",true);
+}
+ib.onclick=()=>askImport(ioText.value.trim());
+document.getElementById("importFile").onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader(); r.onload=()=>{ ioText.value=r.result; askImport(String(r.result).trim()); }; r.readAsText(f); e.target.value="";
+};
+document.getElementById("importNo").onclick=()=>{ pending=null; ic.classList.remove("show"); ib.style.display=""; };
+document.getElementById("importYes").onclick=()=>{
+  if(pending){ R=pending; useExp(R.active); save(); render(); say("Imported.",true); }
+  pending=null; ic.classList.remove("show"); ib.style.display="";
+};
+
+useExp(R.active);
+render();
+</script>
+</body>
+</html>

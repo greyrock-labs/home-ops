@@ -13,6 +13,7 @@ spec:
     fullnameOverride: externaldns-cloudflare
     logLevel: info
     domainFilters:
+      - cadshosting.com
       - greyrock.io
     env:
       - name: CF_API_TOKEN

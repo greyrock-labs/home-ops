@@ -23,4 +23,5 @@ resources:
   - ./miniflux/ks.yaml
   - ./paperless/ks.yaml
   - ./thelounge/ks.yaml
+  - ./trusttracker/ks.yaml
   - ./searxng/ks.yaml
