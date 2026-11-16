@@ -346,9 +346,9 @@ function renderLevels(){
     let dg=null; DUNGEONS.forEach(x=>{ if(x.lv<=P.lv) dg=x; });
     const groups=[["t","Tank"],["h","Healer"],["d","DPS"]];
     const sel=`<select id="pJob" style="width:100%;min-width:0;background:#0f1420;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font:500 14px Inter">
-      <option value="any" ${isAny?"selected":""}>Role(s) at Lv ${CAP}</option>
-      ${groups.map(([r,lab])=>`<optgroup label="${lab}">${JOBS.filter(j=>j.r===r).map(j=>{ const q=R.player.jobs[j.id];
-        return `<option value="${j.id}" ${R.player.job===j.id?"selected":""}>${j.name} · Lv ${q.lv}</option>`; }).join("")}</optgroup>`).join("")}</select>`;
+      <option value="any" ${isAny?"selected":""}>Role(s)</option>
+      ${groups.map(([r,lab])=>`<optgroup label="${lab}">${JOBS.filter(j=>j.r===r).map(j=>
+        `<option value="${j.id}" ${R.player.job===j.id?"selected":""}>${j.name}</option>`).join("")}</optgroup>`).join("")}</select>`;
     const rolePick=`<div class="pick" style="margin:0">${ROLES.map(r=>`<label class="${R.player.roles.includes(r)?"on":""}"><input type="checkbox" data-role="${r}" ${R.player.roles.includes(r)?"checked":""}>${RN[r]}</label>`).join("")}</div>`;
     d.innerHTML=`<div class="cname"><span style="color:var(--gold)">You</span><span class="crole">${isAny?roleList(R.player.roles):RN[P.role]}${!isAny&&done?" · MAX":""}</span></div>
       <div class="fields">
