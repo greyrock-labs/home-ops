@@ -11,6 +11,7 @@ configMapGenerator:
 generatorOptions:
   disableNameSuffixHash: true
 resources:
+  - ./backendtrafficpolicy.yaml
   - ./ciliumnetworkpolicy.yaml
   - ./ocirepository.yaml
   - ./helmrelease.yaml

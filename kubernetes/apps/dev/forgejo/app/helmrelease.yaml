@@ -76,14 +76,11 @@ spec:
           REVERSE_PROXY_TRUSTED_PROXIES: 10.42.0.0/16
         server:
           APP_DATA_PATH: /data/gitea
-          # SSH disabled pending an upstream fix for a Forgejo SSH vulnerability.
-          DISABLE_SSH: true
           ROOT_URL: https://git.greyrock.io
           SSH_DOMAIN: git.greyrock.io
           SSH_PORT: &sshPort 22
           SSH_SERVER_HOST_KEYS: ssh/ssh_host_ed25519_key
           SSH_SERVER_USE_PROXY_PROTOCOL: true
-          START_SSH_SERVER: false
         service:
           ALLOW_ONLY_EXTERNAL_REGISTRATION: true
           DEFAULT_ENABLE_TIMETRACKING: false
@@ -140,7 +137,7 @@ spec:
       rootless: true
       registry: code.forgejo.org
       repository: forgejo/forgejo
-      tag: 17.0.1-rootless
+      tag: 17.0.2-rootless
     persistence:
       create: false
       claimName: forgejo
@@ -148,7 +145,7 @@ spec:
       ssh:
         port: *sshPort
     tcpRoute:
-      enabled: false
+      enabled: true
       parentRefs:
         - name: envoy-external
           namespace: network
