@@ -41,8 +41,8 @@ in-room uplinks are DACs.
 | 4001 | Work     | 192.168.24.0/24 |
 
 VLAN 1 carries no addresses. It stays untagged on the trunks only because RSTP runs on
-it. VLAN 2 (`UniFi-Mgmt`, 10.1.2.0/24) was carried during the migration for the UniFi
-devices and is still defined on the trunks; it carries nothing and can be removed.
+it. VLAN 2 (`UniFi-Mgmt`) carried the UniFi devices during the migration and was
+removed from every switch on 2026-11-20.
 
 `10.1.25.0/24` is the Cilium load-balancer pool. It is **not** a VLAN — those /32s are
 BGP-announced to the RB5009.
@@ -102,7 +102,7 @@ BGP-announced to the RB5009.
 jumbo in one shot:
 
 ```
-Tagged member of 8 L2 VLANs, untagged in VLAN 1, port state is FORWARDING
+Tagged member of 7 L2 VLANs, untagged in VLAN 1, port state is FORWARDING
 MTU 10200 bytes, encapsulation ethernet
 ```
 
