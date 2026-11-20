@@ -176,8 +176,17 @@ Every DHCP server is directly attached to its VLAN interface. Leases are 8h ever
 except guest at 4h. Pools start at `.100` on VLAN 99, `.2` on guest and work, and `.6` on
 everything else.
 
-Every network except guest and work hands out ctrld for DNS, the four time servers
-(10.1.20.16-.19) for NTP and the domain `internal.greyrock.io`. Guest gets the router for
+Every network except guest and work hands out ctrld for DNS and the four time servers
+(10.1.20.16-.19) for NTP. Every network except VLAN 20, guest and work also hands out the
+domain `internal.greyrock.io`.
+
+**VLAN 20 hands out no domain.** Talos takes it as a search domain and passes it to every
+pod, and `*.internal.greyrock.io` answers NOERROR with no records for names that do not
+exist (public resolvers included). glibc moves on to the next candidate, but musl (Alpine)
+stops at the first NOERROR, so with `ndots:5` an Alpine container's
+`dl-cdn.alpinelinux.org` became `dl-cdn.alpinelinux.org.internal.greyrock.io` and failed
+with "no address for host". This broke every image build's `apk add` after the 2026-11-20
+cutover until the domain was removed. Guest gets the router for
 DNS. Work hands out Cloudflare and Google (1.1.1.1, 8.8.8.8) so a work VPN client does not
 depend on anything at home.
 
