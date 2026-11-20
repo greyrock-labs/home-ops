@@ -275,8 +275,8 @@
           delegate_to: localhost
           become: false
           loop:
-            - Infrastructure/Skedaddle - Wireguard - UDM Public Edge/private_key
-            - Infrastructure/Skedaddle - Wireguard - UDM Public Edge/server_public_key
+            - Infrastructure/Skedaddle - Wireguard - MikroTik Public Edge/private_key
+            - Infrastructure/Skedaddle - Wireguard - MikroTik Public Edge/server_public_key
           check_mode: false
           changed_when: false
           no_log: true
