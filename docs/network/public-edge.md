@@ -8,7 +8,7 @@ home is exposed to the internet except the tunnel's UDP port.
 client ─► skedaddle caddy-l4 :443 / :80 / :22
             │  PROXY v2, raw TCP
             ▼
-          public-edge (10.254.45.2) ══ WireGuard ══► office-gw "Public Edge" :51822
+          public-edge (10.254.45.2) ══ WireGuard ══► office-gw wg-public-edge :51822
                                                       │  forward, no NAT
                                                       ▼
                                    envoy-external 10.1.25.41 :8443 / :8080 / :8022
@@ -24,15 +24,17 @@ For cadshosting.com, see [cadshosting.com](#cadshostingcom).
 
 - `/etc/wireguard/public-edge.conf`: address `10.254.45.2/32`, MTU 1420, `Table = off`,
   one peer (`office-gw`) with `AllowedIPs = 10.1.25.41/32`. The endpoint is
-  `public-edge.greyrock.io:51822`, which dexd (`docker/codswallop/01-dexd/`) keeps pointed at
-  the UDM's DHCP WAN address.
+  `public-edge.greyrock.io:51822`, a CNAME (the `public-edge` DNSEndpoint) to the router's
+  MikroTik cloud DDNS name, `hmm0bddpjam.sn.mynetname.net`, which follows the DHCP WAN address.
 - `public-edge-route.service` adds the only route through the tunnel,
   `10.1.25.41/32 dev public-edge src 10.254.45.2`. With `Table = off`, wg-quick installs
   no routes itself, so the VPS reaches nothing else at home.
 - `public_edge_start=false` stops and disables both units.
 
-Keys come from 1Password, `Infrastructure/Skedaddle - Wireguard - UDM Public Edge`:
-`private_key` is skedaddle's, and `server_public_key` is the UDM's.
+Keys come from 1Password, `Infrastructure/Skedaddle - Wireguard - MikroTik Public Edge`:
+`private_key` and `public_key` are skedaddle's, and `server_public_key` is the router's.
+The router's `skedaddle` peer must carry the same `public_key`; skedaddle's pair was rotated
+on 2026-11-20.
 
 Caddy (`docker/skedaddle/03-caddy-l4/`) answers the names in `VPS_LOCAL_HOSTS` itself.
 It forwards every other TLS connection on 443 to `10.1.25.41:8443`, every other HTTP
@@ -48,18 +50,26 @@ immediately.
 
 ## office-gw
 
-The UDM Pro Max. UniFi holds the config; this is what it does.
+The RB5009 (`office-gw`, 10.1.99.1).
 
-- WireGuard server `Public Edge`: port 51822 on the WAN, subnet `10.254.45.1/24`, one
-  client, `Skedaddle - Public Edge`, at `10.254.45.2`. It sits in the `Vpn` firewall zone.
-- `public edge: skedaddle to envoy-external` allows TCP from the Public Edge network to
-  `10.1.25.41` on the `envoy-external ports` group (8022, 8080, 8443), with Auto Allow
-  Return Traffic.
-- `public edge: drop everything else` (Vpn to Internal) sits below it.
-  `public edge: no gateway access`, `no internet` and `no guest` block Vpn to Gateway,
-  External and Hotspot.
-- No NAT. Envoy's policy matches on `10.254.45.2`, so the source must arrive unchanged.
-- `10.1.25.41` is a BGP-advertised service address; the UDM learns it from the cluster.
+- `wg-public-edge`: listen port 51822, MTU 1420, address `10.254.45.1/24`, a single peer
+  `skedaddle` with `allowed-address=10.254.45.2/32`.
+- Input: `wireguard public edge` accepts UDP 51822 from `WAN`, above
+  `drop all not coming from LAN`. The interface is in no interface list, so everything
+  else from it to the router hits that drop.
+- Forward: `public edge: skedaddle to envoy-external` accepts new TCP to `10.1.25.41`
+  ports 8022, 8080 and 8443. `public edge: drop everything else` drops the rest from the
+  tunnel.
+- No srcnat. Envoy's policy matches on `10.254.45.2`, so the source must arrive unchanged.
+
+**The drop rule must sit below `accept established,related, untracked`.** The accept
+rule only matches `connection-state=new`, and v4 forward is otherwise default-accept (see
+[router-baseline.md](router-baseline.md)). If the drop sits above the established accept,
+the handshake completes and every packet after it is dropped, and connections to the
+edge hang with no response.
+
+`10.1.25.41` is a BGP-advertised /32 the router learns from Cilium; traffic to it leaves on
+VLAN 20 with no NAT.
 
 ## Cluster
 
@@ -265,5 +275,4 @@ kubectl -n kube-system exec <cilium pod on that node> -c cilium-agent -- hubble 
 ```
 
 A repeating SYN-ACK with no ACK from `10.254.45.2` means `office-gw` is dropping the
-tunnel's return path. Check that the allow rule still has its return rule and sits above
-`public edge: drop everything else`.
+tunnel's return path. Check the forward rule order.
