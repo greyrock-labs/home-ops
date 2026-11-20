@@ -60,7 +60,7 @@ moved to another AP in the meantime stay there.
 | Grey Rock Guest | WPA2 (PSK), managed guest pass | 4000 | 5 GHz only   |
 
 Only Grey Rock IoT uses 2.4 GHz. Guest is WPA2 rather than OWE so every guest device can
-join; it is 5 GHz only. Guest is not built yet on the rebuilt controller.
+join; it is 5 GHz only.
 
 Grey Rock Work exists so a work laptop gets internet before anyone signs in; the router
 keeps it internet-only and hands it public DNS (see [router-baseline.md](router-baseline.md)).
@@ -81,21 +81,6 @@ Nothing on it is older than Wi-Fi 3 (802.11g); most of it is Wi-Fi 4.
 | Wi-Fi 6/7                 | Disabled                  | older chipsets refuse a BSS advertising 802.11be |
 | Background Scanning       | Enabled                   |                                                  |
 | 802.11d                   | Enabled                   |                                                  |
-| Inactivity Timeout        | 60 min                    | see below (previous build; re-apply)             |
-| DTIM                      | 2                         | previous build; re-apply                         |
-| Directed MC/BC            | Disabled                  | previous build; re-apply                         |
-
-The CLI's `show wlan` prints `Directed Multicast= Enabled` for this WLAN while the UI's
-Directed MC/BC toggle is off; they are separate settings.
-
-#### Why the Inactivity Timeout is 60 minutes
-
-At the default 5 minutes, APs repeatedly drop IoT clients with
-`[INACT] vap-N(wlan1): [<mac>]station kicked out due to excessive retries`, and each one
-is offline for a few seconds while it reconnects. At 60 minutes they are not kicked.
-
-The only cost is that a departed client lingers in the client list longer. The maximum
-the field accepts is 4200 minutes.
 
 ## CLI
 
