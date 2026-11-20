@@ -29,65 +29,16 @@ and 4001 tagged; see [switch-baseline.md](switch-baseline.md).
 AFC (6 GHz standard power) uses Minimum Floor 0 and Maximum Floor 1: ground floor is 0.
 Setting both to 0 disables AFC.
 
-### AP groups
-
-The groups and radio plan below are from the previous Unleashed build (October 2026).
-Re-apply them on the rebuilt controller; they are not yet confirmed there.
-
-| Group                | APs                                     | 2.4 GHz  | WLANs                                      |
-| -------------------- | --------------------------------------- | -------- | ------------------------------------------ |
-| `indoor`             | upstairs-hallway, garage                | on       | all four                                   |
-| `indoor-2g-disabled` | office, game-room, kitchen              | disabled | Grey Rock, Grey Rock Guest, Grey Rock Work |
-| `outdoor`            | side-yard, rear-driveway, side-driveway | disabled | Grey Rock, Grey Rock Guest, Grey Rock Work |
-
-System Default has no APs. Each group sets 5 GHz to 40 MHz at -9 dB and 6 GHz to 160 MHz,
-with the same 5 GHz channel list (below). Per-AP overrides carry the pinned channels, the
-2.4 GHz settings on the two `indoor` APs, the -10 dB 5 GHz power on Upstairs Hallway and Side
-Yard, and the -6 dB 5 GHz power on Office.
-
 ### Radios
 
-Channels are pinned per AP, and ChannelFly (System Settings > Automatic Wireless
-Optimization) is off on every band.
+Channels are not pinned in this build (decision 2026-11-20); Unleashed chooses them. The
+previous build (October 2026) pinned every radio, set 5 GHz to 40 MHz and 6 GHz to 160 MHz,
+kept 2.4 GHz on only two APs, and restricted 5 GHz to 36, 44, 52, 108, 132, 149 and 157
+after radar hits on 60 and 100. The reason, in case it comes back - watch the Kasa plugs and Matter if 2.4 GHz misbehaves:
 
-| AP                    | 2.4 GHz (20 MHz) | 5 GHz (40 MHz)   | 6 GHz (160 MHz) |
-| --------------------- | ---------------- | ---------------- | --------------- |
-| `upstairs-hallway-ap` | 6, -3 dB         | 149, -10 dB      | 5 (1–29)        |
-| `garage-ap`           | 1, -6 dB         | 108 (DFS), -9 dB | —               |
-| `office-ap`           | —                | 132 (DFS), -6 dB | 133 (129–157)   |
-| `game-room-ap`        | —                | 44, -9 dB        | 37 (33–61)      |
-| `kitchen-ap`          | —                | 52 (DFS), -9 dB  | 69 (65–93)      |
-| `side-yard-ap`        | —                | 36, -10 dB       | —               |
-| `rear-driveway-ap`    | —                | 149, -9 dB       | —               |
-| `side-driveway-ap`    | —                | 157, -9 dB       | —               |
+#### Why the previous build pinned 2.4 GHz
 
-Every radio has its own channel except Upstairs Hallway and Rear Driveway, which share 5 GHz
-149; they are the farthest apart. The 6 GHz blocks are the four 160 MHz blocks the channel
-picker marks "Allowed by AFC".
-
-The 5 GHz channel list (group and per-AP) allows only 36, 44, 52, 108, 132, 149 and 157, so
-a radar event can only move a radio to one of those:
-
-- 60–64 and 100–104: radar detected on 60 (Upstairs Hallway, 2026-10-24 and 10-25) and on
-  99 (Office, 2026-10-22).
-- 116–120 and 124–128: overlap the weather-radar band.
-- 140–144: unavailable at 40 MHz.
-
-The outdoor APs and the two indoor APs phones lean on most are on non-DFS channels.
-
-Upstairs Hallway's 5 GHz is one step below the rest so a phone between it and Game Room
-stops reassociating back and forth between them. Side Yard's 5 GHz is also at -10 dB.
-Office's 5 GHz is up at -6 dB so a phone in the main bedroom stays on it instead of
-switching between Office, Game Room and Side Yard; Side Yard was not lowered further because
-its next step is Min and the yard coverage must not suffer.
-
-Pinning the channel on an AP forces per-AP overrides of Channelization and the channel list
-as well, and the channel list resets to every channel; re-disable the excluded ones.
-
-#### Why 2.4 GHz is pinned
-
-Two radios carry 2.4 GHz, each on its own channel at reduced power, and every other AP has
-2.4 GHz disabled. On Auto, three radios ended up sharing channel 11 at minimum
+On Auto, three 2.4 GHz radios ended up sharing channel 11 at minimum
 power, and the Upstairs Hallway radio reported RF pollution 34 and estimated capacity 1410,
 against 3 and 8666 on a clean radio. Clients stayed associated but lost 40–95% of their
 traffic, which broke Matter sessions to the Kasa plugs.
