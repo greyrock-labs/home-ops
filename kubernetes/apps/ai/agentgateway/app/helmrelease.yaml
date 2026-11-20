@@ -329,28 +329,3 @@ spec:
           mcpAuthorization:
             rules:
             - allow: apiKey.client == "hermes"
-      - name: mcp-unifi-network
-        gateways:
-        - mcp
-        matches:
-        - path:
-            pathPrefix: /mcp/unifi-network
-        backends:
-        - mcp:
-            targets:
-            - name: unifi-network
-              mcp:
-                host: http://unifi-network-mcp.ai.svc.cluster.local:3000/mcp
-        policies:
-          urlRewrite:
-            path:
-              prefix: /mcp
-          apiKey:
-            mode: strict
-            keys:
-            - key: ${HERMES_API_KEY}
-              metadata:
-                client: hermes
-          mcpAuthorization:
-            rules:
-            - allow: apiKey.client == "hermes"
