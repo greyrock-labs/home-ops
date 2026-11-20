@@ -117,11 +117,13 @@ and 99; `Internal`, `IoT`, `Cameras` and `Guest` have their own Control D profil
 The router repeats mDNS between `vlan10-internal` and `vlan20-servers`.
 
 **Every DNS query from `LAN` and cameras goes through ctrld, whatever server the client
-asked for.** `dstnat` rules `dns: force lan to ctrld` and `dns: force cameras to ctrld`
-(UDP and TCP 53) send it to 10.1.30.2, excluding ctrld's own addresses (the `ctrld`
-address list) so its forwards to the router still work, and excluding `vlan30-container`
-itself, where a redirect would reply off-path. DNS-over-TLS (853) is rejected from all of
-`LAN`. Guest and work are not redirected. DNS-over-HTTPS cannot be caught this way.
+asked for, except from the servers VLAN.** `dstnat` rules `dns: force lan to ctrld` and
+`dns: force cameras to ctrld` (UDP and TCP 53) send it to 10.1.30.2, excluding ctrld's own
+addresses (the `ctrld` address list) so its forwards to the router still work, and excluding
+`vlan30-container` itself, where a redirect would reply off-path. DNS-over-TLS (853) is
+rejected from the same networks. **VLAN 20 (servers, the cluster) is never captured**
+(`src-address=!10.1.20.0/24` on both): servers resolve wherever they are configured to.
+Guest and work are not redirected either. DNS-over-HTTPS cannot be caught this way.
 
 Every static entry is either hand-made and commented, or created by automation that tracks
 it with a TXT ownership record:

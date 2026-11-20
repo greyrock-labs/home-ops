@@ -196,8 +196,8 @@ F = [
     'chain=forward comment="guest: no work" in-interface-list=GUEST out-interface-list=WORK action=drop',
     'chain=forward comment="work: internet only" in-interface-list=WORK out-interface-list=!WAN action=drop',
     'chain=forward comment="lan: no guest" connection-state=new in-interface-list=LAN out-interface-list=GUEST action=drop',
-    'chain=forward comment="internal: reject encrypted dns 853" dst-port=853 in-interface=!vlan30-container in-interface-list=LAN out-interface-list=WAN protocol=tcp action=reject reject-with=icmp-network-unreachable',
-    'chain=forward comment="internal: reject encrypted dns 853 udp" dst-port=853 in-interface=!vlan30-container in-interface-list=LAN out-interface-list=WAN protocol=udp action=reject reject-with=icmp-network-unreachable',
+    'chain=forward comment="internal: reject encrypted dns 853" dst-port=853 in-interface=!vlan30-container in-interface-list=LAN src-address=!10.1.20.0/24 out-interface-list=WAN protocol=tcp action=reject reject-with=icmp-network-unreachable',
+    'chain=forward comment="internal: reject encrypted dns 853 udp" dst-port=853 in-interface=!vlan30-container in-interface-list=LAN src-address=!10.1.20.0/24 out-interface-list=WAN protocol=udp action=reject reject-with=icmp-network-unreachable',
     'chain=forward comment="public edge: skedaddle to envoy-external" connection-state=new dst-address=10.1.25.41 dst-port=8022,8080,8443 in-interface=wg-public-edge protocol=tcp action=accept',
     'chain=forward comment=fasttrack connection-state=established,related action=fasttrack-connection',
     'chain=forward comment="accept established,related, untracked" connection-state=established,related,untracked action=accept',
@@ -209,9 +209,9 @@ for f in F:
     a("add " + f)
 a("/ip firewall nat")
 a("add action=masquerade chain=srcnat comment=masquerade ipsec-policy=out,none out-interface-list=WAN")
-# Every DNS query from LAN and cameras goes to ctrld; ctrld's own forwards and vlan30 are exempt.
+# Every DNS query from LAN (except servers, VLAN 20) and cameras goes to ctrld; ctrld's own forwards and vlan30 are exempt.
 for proto in ("udp", "tcp"):
-    a(f'add chain=dstnat action=dst-nat to-addresses=10.1.30.2 protocol={proto} dst-port=53 in-interface-list=LAN in-interface=!vlan30-container src-address-list=!ctrld dst-address-list=!ctrld comment="dns: force lan to ctrld {proto}"')
+    a(f'add chain=dstnat action=dst-nat to-addresses=10.1.30.2 protocol={proto} dst-port=53 in-interface-list=LAN in-interface=!vlan30-container src-address=!10.1.20.0/24 src-address-list=!ctrld dst-address-list=!ctrld comment="dns: force lan to ctrld {proto}"')
 for proto in ("udp", "tcp"):
     a(f'add chain=dstnat action=dst-nat to-addresses=10.1.30.2 protocol={proto} dst-port=53 in-interface-list=RESTRICTED dst-address-list=!ctrld comment="dns: force cameras to ctrld {proto}"')
 a("/ip service")
