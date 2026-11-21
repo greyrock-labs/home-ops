@@ -30,3 +30,17 @@ rebuilt device comes out the same as the running one. None of them emit secrets.
   the repo and are not needed for a restore.
 
 Generated output goes outside the repo; it is reproducible from these scripts.
+
+## Unleashed client names
+
+`unleashed_rename.py` sets Unleashed's client names from the reservations CSV (name and MAC
+per row), with an optional UniFi export as a fallback for clients without a reservation. It
+logs in once and stops on a failed login, so it cannot lock the account. Without `--apply` it
+only lists the changes.
+
+```
+UL_USER=$(kubectl -n network get secret wifi-cert-updater-ruckus -o jsonpath='{.data.UPDATER_USERNAME}' | base64 -d) \
+UL_PASS=$(kubectl -n network get secret wifi-cert-updater-ruckus -o jsonpath='{.data.RUCKUS_PASSWORD}' | base64 -d) \
+python3 unleashed_rename.py ~/Downloads/dhcp-reservations-2026-11-19.csv [--fallback <unifi-clients.csv>] [--apply]
+```
+
