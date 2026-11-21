@@ -26,5 +26,6 @@ resources:
   - ./plex/ks.yaml
   - ./plex-image-cleanup/ks.yaml
   - ./posteryard/ks.yaml
+  - ./posteryard-plex/ks.yaml
   - ./seerr/ks.yaml
   - ./watchstate/ks.yaml
