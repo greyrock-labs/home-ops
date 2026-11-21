@@ -27,7 +27,7 @@ Files: `1-prestage-*` (inert objects), `2-cutover-*` (the switch-over, run by sc
 ## 0. Check
 
 ```sh
-GW=admin@10.1.99.1; SW=admin@10.255.0.2   # office-crs309 is managed on transit
+GW=admin@10.1.99.1; SW=admin@10.255.255.10   # office-crs309 management loopback
 ssh $GW '/system ntp client print; /routing bgp session print; /ip route print count-only where bgp'
 ssh $SW '/system ntp client print'
 ```

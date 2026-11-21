@@ -14,8 +14,9 @@ L2 only except `office-crs309`, which routes VLANs 10 and 20 in hardware over tr
 VLAN 4090; the RB5009 routes the rest (see [router-baseline.md](router-baseline.md) and
 [tools/l3/README.md](tools/l3/README.md)).
 
-`office-crs309` is managed on its transit address, 10.255.0.2
-(`office-crs309.internal.greyrock.io`), and has **no address on VLAN 99**. A switch that
+`office-crs309` is managed on a loopback, 10.255.255.10/32 on RouterOS's built-in `lo`
+(`office-crs309.internal.greyrock.io`; `office-gw` routes it via 10.255.0.2), and has
+**no address on VLAN 99**. Loopbacks come from 10.255.255.0/24, one /32 per device. A switch that
 routes must not sit in the management subnet: with 10.1.99.10/24 on `vlan99-mgmt` it
 delivered VLAN 10/20 traffic straight into VLAN 99 while the replies returned through
 `office-gw`, which dropped them as invalid. A management VRF does not fix it on this
@@ -24,6 +25,11 @@ the VRF address are routed in hardware by the main table and loop through `offic
 the TTL expires. With no VLAN 99 address, traffic between VLAN 10/20 and VLAN 99 always
 crosses the RB5009, in both directions. `vlan99-mgmt` stays, unaddressed, for netinstall and
 bench work.
+
+Changing the switch's addressing can leave stale entries in the switch chip's L3 table that
+`/ip route` and `/ip arp` no longer show; the symptom is routed traffic to a few hosts
+silently disappearing. Turning `l3-hw-offloading` off and on did not clear them on
+2026-11-21; a reboot did.
 
 ```
 office-gw sfp-sfpplus1

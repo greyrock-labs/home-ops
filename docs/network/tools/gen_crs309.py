@@ -61,9 +61,11 @@ a(f"add dst-address=0.0.0.0/0 gateway={'10.255.0.1' if room == 'office' else '10
 if room == "office":
     # L3 for VLAN 10/20 over transit VLAN 4090 (docs/network/tools/l3/README.md). The
     # IPv6 /59 needs sync-office-pd on office-gw with this switch's DUID.
-    # Managed on transit (10.255.0.2), never on VLAN 99: an address there makes the switch
-    # route VLAN 10/20 straight into VLAN 99 while replies return through office-gw, which
-    # drops them. A VRF does not help, the L3 offload ignores it. See switch-baseline.md.
+    # Managed on a loopback, never on VLAN 99: an address there makes the switch route
+    # VLAN 10/20 straight into VLAN 99 while replies return through office-gw, which drops
+    # them. A VRF does not help, the L3 offload ignores it. See switch-baseline.md.
+    a("/ip address")
+    a('add address=10.255.255.10/32 comment="management loopback" interface=lo')
     a("/interface bridge")
     a("set bridge mtu=9000")
     a("/interface bridge port")

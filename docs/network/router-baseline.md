@@ -30,6 +30,8 @@ VLAN 99 for bench and recovery work.
 
 VLAN 1 carries no addresses; it is only the native VLAN that RSTP runs on.
 
+A static route sends 10.255.255.10/32, `office-crs309`'s management loopback, via 10.255.0.2.
+
 ### Interface lists
 
 `LAN` holds `vlan4090-transit`, `vlan30-container`, `vlan50-iot` and `vlan99-mgmt`.
