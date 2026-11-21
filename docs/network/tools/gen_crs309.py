@@ -60,6 +60,16 @@ a(f"add dst-address=0.0.0.0/0 gateway={'10.255.0.1' if room == 'office' else '10
 if room == "office":
     # L3 for VLAN 10/20 over transit VLAN 4090 (docs/network/tools/l3/README.md). The
     # IPv6 /59 needs sync-office-pd on office-gw with this switch's DUID.
+    # Management lives in its own VRF: with vlan99-mgmt in main, the switch would route
+    # VLAN 10/20 straight into VLAN 99 while replies come back through office-gw,
+    # which drops them as invalid. The routing table appears just after the VRF.
+    a("/ip vrf")
+    a("add interfaces=vlan99-mgmt name=mgmt")
+    a(":delay 2s")
+    a("/ip route")
+    a('add comment="mgmt default" dst-address=0.0.0.0/0 gateway=10.1.99.1@mgmt routing-table=mgmt')
+    a("/ip service")
+    a("set ssh,winbox vrf=mgmt")
     a("/interface bridge")
     a("set bridge mtu=9000")
     a("/interface bridge port")

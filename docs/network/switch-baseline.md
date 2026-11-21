@@ -14,6 +14,14 @@ L2 only except `office-crs309`, which routes VLANs 10 and 20 in hardware over tr
 VLAN 4090; the RB5009 routes the rest (see [router-baseline.md](router-baseline.md) and
 [tools/l3/README.md](tools/l3/README.md)).
 
+`office-crs309` keeps its management (`vlan99-mgmt`, 10.1.99.10/24) in a VRF named `mgmt`,
+with its own default route via 10.1.99.1; SSH and Winbox listen only there. A switch that
+routes must not also sit in the management subnet in its main table: it would deliver
+VLAN 10/20 traffic straight into VLAN 99 while the replies return through `office-gw`,
+which drops them as invalid. With the VRF, traffic between VLAN 10/20 and VLAN 99 always
+crosses the RB5009, in both directions. The switch's own DNS and NTP stay in main and leave
+over transit from 10.255.0.2.
+
 ```
 office-gw sfp-sfpplus1
    |
