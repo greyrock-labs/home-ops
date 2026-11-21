@@ -18,7 +18,7 @@ spec:
           seed-public:
             image:
               repository: ghcr.io/greyrock-labs/unleashed-voucher-manager
-              tag: 1.0.0@sha256:7fe97634122010a7ba35fd907b5f376be2772135b4cd031804649eb2d87ade92
+              tag: 1.0.1@sha256:75e4f6bacda26cbe47acd888728291a9d1aab8fca55db667fe8a67ef50e39d99
             command:
               - sh
               - -c
@@ -27,7 +27,7 @@ spec:
           app:
             image:
               repository: ghcr.io/greyrock-labs/unleashed-voucher-manager
-              tag: 1.0.0@sha256:7fe97634122010a7ba35fd907b5f376be2772135b4cd031804649eb2d87ade92
+              tag: 1.0.1@sha256:75e4f6bacda26cbe47acd888728291a9d1aab8fca55db667fe8a67ef50e39d99
             env:
               GUEST_SUBNETWORK: 192.168.23.0/24
               TIMEZONE: America/New_York
