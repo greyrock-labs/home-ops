@@ -79,9 +79,9 @@ sandbox for hostile code or a move to dedicated compute.
   DinD job gets a separate 25Gi generic ephemeral PVC for `/var/lib/docker`,
   which Kubernetes removes with the job pod. Renovate uses a 10Gi claim on the
   same class for each per-run scratch volume. These volumes are node-local and
-  unreplicated; their contents are disposable. Capacity remains four CI jobs,
+  unreplicated; their contents are disposable. Capacity is eight CI jobs,
   plus Renovate's configured parallelism of five, so simultaneous jobs can
-  request up to 200Gi from the Miroir NVMe pool including the runner cache claim. Miroir
+  request up to 300Gi from the Miroir NVMe pool including the runner cache claim. Miroir
   uses an LVM thin pool, so monitor physical pool and metadata usage as well as
   PVC requests. Requests/limits, images, labels, scheduling, native-sidecar
   ordering, and shutdown settings are otherwise unchanged. There was no

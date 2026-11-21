@@ -41,7 +41,7 @@ spec:
                     limits:
                       memory: 1Gi
             runner:
-              capacity: 4
+              capacity: 8
               labels:
                 - ubuntu-latest:k8s:///config/podspec-default.yaml
                 - ubuntu-26.04:k8s:///config/podspec-default.yaml
