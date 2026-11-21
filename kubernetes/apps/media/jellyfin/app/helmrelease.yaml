@@ -29,6 +29,9 @@ spec:
                   app.kubernetes.io/name: maintainerr
               - matchLabels:
                   k8s:io.kubernetes.pod.namespace: media
+                  app.kubernetes.io/name: posteryard
+              - matchLabels:
+                  k8s:io.kubernetes.pod.namespace: media
                   app.kubernetes.io/name: seerr
               - matchLabels:
                   k8s:io.kubernetes.pod.namespace: media
