@@ -1,7 +1,5 @@
 # office-crs309, step 2: take the VLAN 10/20 gateways. Run by scheduler at T+5s.
 :log warning "l3: cutover starting (office-crs309)"
-/interface bridge vlan set [find comment=trunk] vlan-ids=50,60,4000,4001
-/interface bridge vlan add bridge=bridge comment=routed tagged=bridge,sfp-sfpplus1,sfp-sfpplus2,sfp-sfpplus3,sfp-sfpplus4 vlan-ids=10,20
 /ip address add address=10.1.10.1/24 comment="vlan 10 gateway" interface=vlan10-internal
 /ip address add address=10.1.20.1/24 comment="vlan 20 gateway" interface=vlan20-servers
 /ipv6 address add address=fdc0:ffee:215:a::1/64 interface=vlan10-internal

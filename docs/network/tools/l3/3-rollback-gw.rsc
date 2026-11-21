@@ -1,9 +1,7 @@
 # office-gw: undo step 2. Scheduled at T+15m by the arm step, the same time as the switch.
 :log warning "l3: rollback starting (office-gw)"
-/ip dhcp-server set dhcp-vlan10 interface=vlan10-internal
-/ip dhcp-server unset dhcp-vlan10 relay
-/ip dhcp-server set dhcp-vlan20 interface=vlan20-servers
-/ip dhcp-server unset dhcp-vlan20 relay
+/ip dhcp-server set dhcp-vlan10 interface=vlan10-internal relay=0.0.0.0
+/ip dhcp-server set dhcp-vlan20 interface=vlan20-servers relay=0.0.0.0
 /ip dhcp-server network set [find address="10.1.10.0/24"] next-server=10.1.10.1
 /ip dhcp-server network set [find address="10.1.20.0/24"] next-server=10.1.20.1
 /ip route remove [find comment~"^l3: "]

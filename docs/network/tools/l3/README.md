@@ -48,8 +48,8 @@ kubectl -n kube-system rollout restart deploy/coredns   # only if 10.1.20.10 sho
 ```sh
 scp 1-prestage-crs309.rsc 2-cutover-crs309.rsc 3-rollback-crs309.rsc $SW:
 scp 1-prestage-gw.rsc 2-cutover-gw.rsc 3-rollback-gw.rsc $GW:
-for f in 1-prestage-crs309 2-cutover-crs309 3-rollback-crs309; do ssh $SW "/import file-name=$f.rsc dry-run"; done
-for f in 1-prestage-gw 2-cutover-gw 3-rollback-gw; do ssh $GW "/import file-name=$f.rsc dry-run"; done
+for f in 1-prestage-crs309 2-cutover-crs309 3-rollback-crs309; do ssh $SW "/import file-name=$f.rsc dry-run verbose=yes"; done
+for f in 1-prestage-gw 2-cutover-gw 3-rollback-gw; do ssh $GW "/import file-name=$f.rsc dry-run verbose=yes"; done
 ssh $SW '/import file-name=1-prestage-crs309.rsc verbose=yes'
 ssh $GW '/import file-name=1-prestage-gw.rsc verbose=yes'
 ssh $GW '/ping 10.255.0.2 count=3; /ping fdc0:ffee:215:fe::2 count=3'

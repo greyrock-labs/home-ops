@@ -15,6 +15,4 @@
 /ipv6 address remove [find interface=vlan20-servers and !link-local]
 /ip address remove [find interface=vlan10-internal]
 /ip address remove [find interface=vlan20-servers]
-/interface bridge vlan remove [find comment=routed]
-/interface bridge vlan set [find comment=trunk] vlan-ids=10,20,50,60,4000,4001
 :log warning "l3: rollback done (office-crs309)"

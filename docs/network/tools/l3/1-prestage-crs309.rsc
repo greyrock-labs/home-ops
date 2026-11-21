@@ -3,8 +3,7 @@
 # relays and BGP connections are disabled.
 /interface bridge set bridge mtu=9000
 /interface bridge port set [find interface=sfp-sfpplus1] multicast-router=permanent
-/interface bridge vlan set [find where !dynamic and untagged~"ether1"] comment=mgmt
-/interface bridge vlan set [find where !dynamic and !(untagged~"ether1")] comment=trunk
+# Creating vlan10/vlan20 adds a dynamic bridge VLAN entry tagging the bridge itself.
 /interface bridge vlan add bridge=bridge comment=transit tagged=bridge,sfp-sfpplus1 vlan-ids=4090
 /interface vlan add interface=bridge mtu=9000 name=vlan4090-transit vlan-id=4090 comment="transit to office-gw"
 /interface vlan add interface=bridge mtu=9000 name=vlan10-internal vlan-id=10
