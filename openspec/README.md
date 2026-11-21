@@ -70,7 +70,7 @@ into OpenSpec.
 
 ## Source and Bootstrap Boundary
 
-Forgejo at `https://git.greyrock.io/todd/home-ops.git` is the authoritative
+Forgejo at `https://git.greyrock.io/greyrock-labs/home-ops.git` is the authoritative
 repository. It is mirrored to `https://github.com/greyrock-labs/home-ops.git`, which
 is the source configured for Flux. The operator confirmed this architecture:
 GitHub keeps manifests accessible during bootstrap or recovery when the cluster

@@ -24,7 +24,7 @@ spec:
           # The accounts this connection serves, not the bot that owns the
           # integration: kritika lists and polls repositories per account.
           accounts:
-            - todd
+            - greyrock-labs
           audience: u:3:97fa4d03-04e2-4dc4-b2e0-4191e78c040e
           privateKey:
             env: KRITIKA_FORGEJO_PRIVATE_KEY

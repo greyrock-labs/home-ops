@@ -30,7 +30,7 @@ metadata:
   name: kanidm-provision
 spec:
   interval: 1h
-  url: ssh://git@git.greyrock.io/todd/kanidm-provision.git
+  url: ssh://git@git.greyrock.io/greyrock-labs/kanidm-provision.git
   ref:
     branch: main
   secretRef:
