@@ -8,7 +8,7 @@ rebuilt device comes out the same as the running one. None of them emit secrets.
 | Script             | Output                                                     | Usage                                                                                               |
 | ------------------ | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | `gen_icx.py`       | FastIron 10.0 CLI config for one ICX8200                   | `gen_icx.py <office\|gameroom\|garage>-<c08zp\|c08pf> <out.txt>`                                    |
-| `gen_crs309.py`    | RouterOS import for one CRS309 (L2 spine)                  | `gen_crs309.py <office\|gameroom\|garage> <out.rsc>`                                                |
+| `gen_crs309.py`    | RouterOS import for one CRS309 (office also routes 10/20)  | `gen_crs309.py <office\|gameroom\|garage> <out.rsc>`                                                |
 | `gen_office_gw.py` | First RB5009 build (record only, see below)                | `gen_office_gw.py <sept-backup.txt> <reservations.csv> <out-main.rsc> <out-ipv6.rsc> <hostnames.txt>` |
 
 ## Building a device
