@@ -8,7 +8,7 @@ services:
       MIKROTIK_BASEURL: https://office-gw.internal.greyrock.io
       MIKROTIK_PASSWORD: ${DEXD_MIKROTIK_PASSWORD}
       MIKROTIK_USERNAME: ${DEXD_MIKROTIK_USERNAME}
-    image: ghcr.io/greyrock-labs/dexd-mikrotik:0.1.0@sha256:47237284c1f9e8519f7ef53734d86a35e9352ab2e8205c2ed6473147086d3696
+    image: ghcr.io/greyrock-labs/dexd-mikrotik:1.0.2@sha256:d84060335a26dd3e59498286c1a79f0cf567835feb087ea7a8a703f2671f8495
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
