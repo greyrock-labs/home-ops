@@ -14,6 +14,11 @@ spec:
     - name: RENOVATE_ALLOWED_COMMANDS
       value: |-
         ["pnpm run bundle"]
+    # npm 12 refuses registry tarballs of packages with bundleDependencies
+    # under --package-lock-only (EALLOWREMOTE, npm/cli#9800); drop once fixed
+    - name: RENOVATE_CONSTRAINTS
+      value: |-
+        {"npm": "^11"}
     - name: RENOVATE_HOST_RULES
       value: >-
         [
