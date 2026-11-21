@@ -21,8 +21,8 @@ rebuilt device comes out the same as the running one. None of them emit secrets.
   (`/import file-name=<file> dry-run verbose=yes`). The import adds a `bench` 192.168.88.x
   address for the build; remove it once the switch is in its rack.
 - **RB5009:** restore from the router's own config, not the generator. 1Password
-  (Infrastructure vault) holds `office-gw (RB5009) backup 2026-11-20` (binary, unencrypted,
-  includes secrets: `/system backup load`) and `office-gw (RB5009) export 2026-11-20`
+  (Infrastructure vault) holds `office-gw (RB5009) backup 2026-11-21` (binary, unencrypted,
+  includes secrets: `/system backup load`) and `office-gw (RB5009) export 2026-11-21`
   (`/export`, no secrets: import on a no-defaults 7.25.1 router, then add the Cloudflare token,
   the `externaldns`/`dexd` passwords and the acme setup by hand). Take a fresh pair after any
   significant change. `gen_office_gw.py` is the record of how the router was first built from
