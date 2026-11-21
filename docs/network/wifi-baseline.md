@@ -85,7 +85,7 @@ Nothing on it is older than Wi-Fi 3 (802.11g); most of it is Wi-Fi 4.
 ## CLI
 
 `ssh unleashed.internal.greyrock.io` answers with its own `Please login:` prompt; the
-username and password are in the 1Password item "Ruckus Unleashed" (Private vault). Key
+username and password are in the 1Password item "Ruckus Unleashed" (Infrastructure vault). Key
 auth does not work.
 `enable` needs no further password. Read-only commands worth knowing:
 
