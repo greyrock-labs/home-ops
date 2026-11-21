@@ -30,11 +30,68 @@ spec:
           securityContext:
             fsGroup: 0
             fsGroupChangePolicy: OnRootMismatch
-        containers:
-          app:
-            image:
+        initContainers:
+          # Point Unimus at its CloudNativePG database so the setup wizard skips the
+          # database step. Runs only while database.type is unset: once Unimus has
+          # written its own config (encryption key, license), the file is left alone.
+          db-config:
+            image: &image
               repository: docker.io/croc/unimus
               tag: 2.9.1@sha256:e049c2b0df9e2e08d0e8efccbf1cf54647c7903d0505529d2424d1a48efd403d
+            command:
+              - /bin/sh
+              - -c
+              - |
+                f=/etc/unimus/unimus.properties
+                touch "$f"
+                grep -Eq '^database\.type *= *[A-Z]' "$f" && exit 0
+                set_prop() {
+                  if grep -q "^$1 *=" "$f"; then
+                    sed -i "s|^$1 *=.*|$1 = $2|" "$f"
+                  else
+                    echo "$1 = $2" >> "$f"
+                  fi
+                }
+                set_prop database.type POSTGRESQL
+                set_prop database.host "$DB_HOST"
+                set_prop database.port "$DB_PORT"
+                set_prop database.name "$DB_NAME"
+                set_prop database.user "$DB_USER"
+                set_prop database.password "$DB_PASSWORD"
+            env:
+              DB_HOST:
+                valueFrom:
+                  secretKeyRef:
+                    name: unimus-postgres-app
+                    key: host
+              DB_NAME:
+                valueFrom:
+                  secretKeyRef:
+                    name: unimus-postgres-app
+                    key: dbname
+              DB_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: unimus-postgres-app
+                    key: password
+              DB_PORT:
+                valueFrom:
+                  secretKeyRef:
+                    name: unimus-postgres-app
+                    key: port
+              DB_USER:
+                valueFrom:
+                  secretKeyRef:
+                    name: unimus-postgres-app
+                    key: username
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+        containers:
+          app:
+            image: *image
             env:
               JAVA_OPTS: -Xms256M -Xmx1024M -Dunimus.core.connect-timeout=20000 -Dunimus.core.inter-connection-delay=1000 -Dunimus.core.cli-expect-timeout=30000
               TZ: America/New_York
