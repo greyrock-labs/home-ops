@@ -6,15 +6,24 @@ metadata:
   name: unimus
 spec:
   components:
+    - ../../../../components/cnpg/pg18
     - ../../../../components/kopiur/backup
   dependsOn:
+    - name: cloudnative-pg-barman-plugin
+      namespace: database
     - name: miroir
       namespace: miroir-system
+  healthCheckExprs:
+    - apiVersion: postgresql.cnpg.io/v1
+      kind: Cluster
+      failed: status.conditions.filter(e, e.type == 'Ready').all(e, e.status == 'False')
+      current: status.conditions.filter(e, e.type == 'Ready').all(e, e.status == 'True')
   interval: 1h
   path: "./kubernetes/apps/network/unimus/app"
   postBuild:
     substitute:
       APP: unimus
+      CNPG_CAPACITY: 4Gi
       KOPIUR_CLAIM: unimus-config
   prune: true
   sourceRef:
