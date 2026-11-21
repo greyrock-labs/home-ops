@@ -15,7 +15,8 @@ spec:
       value: |-
         ["pnpm run bundle"]
     # npm 12 refuses registry tarballs of packages with bundleDependencies
-    # under --package-lock-only (EALLOWREMOTE, npm/cli#9800); drop once fixed
+    # under --package-lock-only (EALLOWREMOTE)
+    # drop once https://github.com/npm/cli/issues/9800 is fixed
     - name: RENOVATE_CONSTRAINTS
       value: |-
         {"npm": "^11"}

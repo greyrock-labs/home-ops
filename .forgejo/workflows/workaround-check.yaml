@@ -1,0 +1,23 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: Workaround check
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 9 * * 1"
+
+jobs:
+  workaround-check:
+    name: Workaround check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check upstream fixes for workarounds
+        env:
+          FORGEJO_TOKEN: ${{ forgejo.token }}
+        run: python3 .forgejo/scripts/workaround_check.py
