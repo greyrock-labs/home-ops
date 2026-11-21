@@ -16,7 +16,8 @@ VLAN 4090; the RB5009 routes the rest (see [router-baseline.md](router-baseline.
 
 `office-crs309` is managed on a loopback, 10.255.255.10/32 on RouterOS's built-in `lo`
 (`office-crs309.internal.greyrock.io`; `office-gw` routes it via 10.255.0.2), and has
-**no address on VLAN 99**. Loopbacks come from 10.255.255.0/24, one /32 per device. A switch that
+**no address on VLAN 99**. The loopback is also its BGP router ID. Loopbacks come from
+10.255.255.0/24, one /32 per device. A switch that
 routes must not sit in the management subnet: with 10.1.99.10/24 on `vlan99-mgmt` it
 delivered VLAN 10/20 traffic straight into VLAN 99 while the replies returned through
 `office-gw`, which dropped them as invalid. A management VRF does not fix it on this

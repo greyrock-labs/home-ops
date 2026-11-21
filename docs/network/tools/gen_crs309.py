@@ -100,7 +100,7 @@ if room == "office":
     a("/ip dns")
     a("set mdns-repeat-ifaces=vlan10-internal,vlan20-servers")
     a("/routing id")
-    a('add comment="bgp router-id" id=10.255.0.2 name=router-id select-from-vrf=main')
+    a('add comment="bgp router-id" id=10.255.255.10 name=router-id select-from-vrf=main')
     a("/routing bgp instance")
     a("add as=64516 name=greyrock-l3")
     a("/routing filter rule")
