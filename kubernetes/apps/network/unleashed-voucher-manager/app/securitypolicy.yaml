@@ -1,0 +1,15 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.envoyproxy.io/securitypolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: unleashed-voucher-manager
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: unleashed-voucher-manager
+  # Replaces envoy-internal's guest deny for this route, so the guest network can load the
+  # captive-portal page. The app itself limits guests to /welcome (GUEST_SUBNETWORK).
+  authorization:
+    defaultAction: Allow
