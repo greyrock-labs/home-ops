@@ -149,9 +149,14 @@ spec:
           # must cover runner.shutdown_timeout plus the plugin's 60s cleanup budget
           terminationGracePeriodSeconds: 300
         replicas: 1
-        # Recreate: the cache server's /data/cache/bolt.db is exclusively
-        # locked; an overlapping pod times out opening it and disables the cache
-        strategy: Recreate
+        # No surge: the cache server's /data/cache/bolt.db is exclusively
+        # locked; an overlapping pod times out opening it and disables the cache.
+        # (Switching to Recreate is rejected: the live object keeps defaulted
+        # rollingUpdate fields that server-side apply does not clear.)
+        rollingUpdate:
+          maxSurge: 0
+          maxUnavailable: 1
+        strategy: RollingUpdate
         initContainers:
           # native sidecar: started before, and terminated after, the runner
           # container, so the plugin socket outlives job draining on shutdown
