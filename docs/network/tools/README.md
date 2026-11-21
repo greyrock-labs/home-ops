@@ -24,8 +24,11 @@ rebuilt device comes out the same as the running one. None of them emit secrets.
   (Infrastructure vault) holds `office-gw (RB5009) backup 2026-11-21` (binary, unencrypted,
   includes secrets: `/system backup load`) and `office-gw (RB5009) export 2026-11-21`
   (`/export`, no secrets: import on a no-defaults 7.25.1 router, then add the Cloudflare token,
-  the `externaldns`/`dexd` passwords and the acme setup by hand). Take a fresh pair after any
-  significant change. `gen_office_gw.py` is the record of how the router was first built from
+  the `externaldns`/`dexd` passwords and the acme setup by hand). Routine config history is
+  Unimus's job: it backs up every switch and the router (export with secrets, every version,
+  diffs) into its PostgreSQL database. Refresh the 1Password pair only before risky work such
+  as a RouterOS upgrade; it adds what an export lacks (local user passwords, certificates,
+  SSH host keys). Neither covers `usb1` (ctrld, acme, tftp). `gen_office_gw.py` is the record of how the router was first built from
   the 2026-09-29 backup; its inputs (that backup and the reservations CSV) were kept outside
   the repo and are not needed for a restore.
 
