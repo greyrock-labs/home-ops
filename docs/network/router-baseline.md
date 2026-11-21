@@ -201,9 +201,10 @@ cutover until the domain was removed.
 Work hands out Cloudflare and Google (1.1.1.1, 8.8.8.8) so a work VPN client does not
 depend on anything at home.
 
-Every known device has a **static lease** on the address it already had, 117 in all,
-taken from `~/Downloads/dhcp-reservations-2026-11-19.csv` (UniFi fixed and current
-addresses). The lease comment is its name, and it has a `static-lease` DNS entry. ctrld
+Every known device has a **static lease** on the address it already had, first taken from
+`~/Downloads/dhcp-reservations-2026-11-19.csv` (UniFi fixed and current addresses) and kept
+in step with it since. Reservations for hosts with static addresses (Scrypted, Bambuddy,
+Codswallop) only hold the address and name. The lease comment is its name, and it has a `static-lease` DNS entry. ctrld
 resolves client names by reverse lookup against the router, so that one name per address
 is what shows up there.
 
