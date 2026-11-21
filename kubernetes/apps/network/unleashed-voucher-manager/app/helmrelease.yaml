@@ -33,6 +33,8 @@ spec:
               TIMEZONE: America/New_York
               UNLEASHED_SSID: Grey Rock Guest
               UNLEASHED_URL: https://unleashed.internal.greyrock.io
+              WIFI_PASSWORD: ""
+              WIFI_SSID: Grey Rock Guest
             envFrom:
               - secretRef:
                   name: unleashed-voucher-manager-secret
