@@ -51,7 +51,8 @@ t = ",".join(trunks)
 a(f"add bridge=bridge tagged={t} vlan-ids=10,20,50,60,4000,4001")
 a(f"add bridge=bridge tagged=bridge,{t} untagged=ether1 vlan-ids=99")
 a("/ip address")
-a(f"add address={cfg['ip']}/24 interface=vlan99-mgmt")
+if room != "office":  # office-crs309 is managed on transit, see below
+    a(f"add address={cfg['ip']}/24 interface=vlan99-mgmt")
 a("/ip dns")
 a("set servers=10.1.30.2,10.1.30.4")
 a("/ip route")
@@ -60,16 +61,9 @@ a(f"add dst-address=0.0.0.0/0 gateway={'10.255.0.1' if room == 'office' else '10
 if room == "office":
     # L3 for VLAN 10/20 over transit VLAN 4090 (docs/network/tools/l3/README.md). The
     # IPv6 /59 needs sync-office-pd on office-gw with this switch's DUID.
-    # Management lives in its own VRF: with vlan99-mgmt in main, the switch would route
-    # VLAN 10/20 straight into VLAN 99 while replies come back through office-gw,
-    # which drops them as invalid. The routing table appears just after the VRF.
-    a("/ip vrf")
-    a("add interfaces=vlan99-mgmt name=mgmt")
-    a(":delay 2s")
-    a("/ip route")
-    a('add comment="mgmt default" dst-address=0.0.0.0/0 gateway=10.1.99.1@mgmt routing-table=mgmt')
-    a("/ip service")
-    a("set ssh,winbox vrf=mgmt")
+    # Managed on transit (10.255.0.2), never on VLAN 99: an address there makes the switch
+    # route VLAN 10/20 straight into VLAN 99 while replies return through office-gw, which
+    # drops them. A VRF does not help, the L3 offload ignores it. See switch-baseline.md.
     a("/interface bridge")
     a("set bridge mtu=9000")
     a("/interface bridge port")
