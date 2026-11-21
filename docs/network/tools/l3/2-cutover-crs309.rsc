@@ -14,7 +14,7 @@
 /ip route set [find dst-address="0.0.0.0/0" gateway="10.1.99.1"] gateway=10.255.0.1
 /ip dhcp-relay enable relay-vlan10,relay-vlan20
 /routing bgp connection enable l3-cilium-kerfuffle,l3-frr-codswallop
-/ip dns set allow-remote-requests=yes mdns-repeat-ifaces=vlan10-internal,vlan20-servers
+/ip dns set mdns-repeat-ifaces=vlan10-internal,vlan20-servers
 /interface ethernet switch set switch1 l3-hw-offloading=yes
 /interface ethernet switch l3hw-settings set ipv6-hw=yes
 :log warning "l3: cutover done (office-crs309)"

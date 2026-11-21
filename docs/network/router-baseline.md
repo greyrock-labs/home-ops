@@ -117,8 +117,8 @@ The router runs `allow-remote-requests` with Quad9 upstream, but clients are poi
 while everything else goes out to Control D. ctrld's `Minimal` network covers VLANs 20, 30
 and 99; `Internal`, `IoT`, `Cameras` and `Guest` have their own Control D profiles.
 
-`office-crs309` repeats mDNS between VLANs 10 and 20, and answers DNS on 10.1.10.1 and
-10.1.20.1 (forwarding to ctrld) for hosts that point at their gateway, such as kerfuffle.
+`office-crs309` repeats mDNS between VLANs 10 and 20. It does not answer DNS: a host that
+asks its VLAN 10/20 gateway for DNS gets no answer, so everything must use ctrld.
 
 **Every DNS query from `LAN`, cameras and guest goes through ctrld, whatever server the
 client asked for, except from the servers VLAN.** `dstnat` rules `dns: force lan to ctrld`,

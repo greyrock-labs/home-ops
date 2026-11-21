@@ -4,7 +4,7 @@
 :log warning "l3: rollback starting (office-crs309)"
 /interface ethernet switch l3hw-settings set ipv6-hw=no
 /interface ethernet switch set switch1 l3-hw-offloading=no
-/ip dns set allow-remote-requests=no mdns-repeat-ifaces=""
+/ip dns set mdns-repeat-ifaces=""
 /routing bgp connection disable l3-cilium-kerfuffle,l3-frr-codswallop
 /ip dhcp-relay disable relay-vlan10,relay-vlan20
 /ip route set [find dst-address="0.0.0.0/0" gateway="10.255.0.1"] gateway=10.1.99.1

@@ -1,6 +1,6 @@
 # office-crs309, step 1: transit, routed VLAN interfaces, BGP and relays, all inert.
 # Nothing here changes forwarding: the VLAN 10/20 interfaces have no addresses, the
-# relays and BGP connections are disabled and DNS stays closed to clients.
+# relays and BGP connections are disabled.
 /interface bridge set bridge mtu=9000
 /interface bridge port set [find interface=sfp-sfpplus1] multicast-router=permanent
 /interface bridge vlan set [find where !dynamic and untagged~"ether1"] comment=mgmt
@@ -16,13 +16,6 @@
 
 /ip dhcp-relay add name=relay-vlan10 interface=vlan10-internal dhcp-server=10.255.0.1 local-address=10.1.10.1 disabled=yes
 /ip dhcp-relay add name=relay-vlan20 interface=vlan20-servers dhcp-server=10.255.0.1 local-address=10.1.20.1 disabled=yes
-
-# DNS on the gateways is for hosts that point at them (kerfuffle uses 10.1.20.1);
-# it forwards to ctrld. Only VLAN 10/20 may use it.
-/ip firewall address-list add address=10.1.10.0/24 list=dns-clients comment="vlan 10"
-/ip firewall address-list add address=10.1.20.0/24 list=dns-clients comment="vlan 20"
-/ip firewall filter add action=drop chain=input comment="dns: only vlan 10/20 (udp)" dst-port=53 protocol=udp src-address-list=!dns-clients
-/ip firewall filter add action=drop chain=input comment="dns: only vlan 10/20 (tcp)" dst-port=53 protocol=tcp src-address-list=!dns-clients
 
 /routing id add comment="bgp router-id" id=10.255.0.2 name=router-id select-from-vrf=main
 /routing bgp instance add as=64516 name=greyrock-l3

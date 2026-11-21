@@ -17,7 +17,6 @@ addresses.
 | VLAN 10/20        | routes via 10.255.0.2              | 10.1.10.1/24, 10.1.20.1/24, RA, relays |
 | BGP               | AS 64513, sessions from 10.255.0.1 | AS 64516, sessions from 10.1.20.1      |
 | DHCP              | servers on transit, `relay=`       | relays to 10.255.0.1                   |
-| DNS on gateway    | -                                  | forwards to ctrld (kerfuffle uses it)  |
 | mDNS repeat       | -                                  | vlan10-internal, vlan20-servers        |
 | IPv6 public       | binds /59 to the switch (script)   | `office-pd` pool, `::a` and `::14`     |
 
@@ -35,6 +34,15 @@ ssh $SW '/system ntp client print'
 
 Both clocks `synchronized`, two BGP sessions established, the service /32s present.
 
+Nothing may use 10.1.10.1 or 10.1.20.1 for DNS: the switch does not answer DNS there.
+CoreDNS forwards to the node resolv.conf it got at pod start, so restart it if this shows
+kerfuffle:
+
+```sh
+ssh $GW '/ip firewall connection print terse proplist=src-address,dst-address where dst-port=53 and (dst-address=10.1.10.1 or dst-address=10.1.20.1)'
+kubectl -n kube-system rollout restart deploy/coredns   # only if 10.1.20.10 shows up
+```
+
 ## 1. Prestage (no traffic change)
 
 ```sh
@@ -45,20 +53,6 @@ for f in 1-prestage-gw 2-cutover-gw 3-rollback-gw; do ssh $GW "/import file-name
 ssh $SW '/import file-name=1-prestage-crs309.rsc verbose=yes'
 ssh $GW '/import file-name=1-prestage-gw.rsc verbose=yes'
 ssh $GW '/ping 10.255.0.2 count=3; /ping fdc0:ffee:215:fe::2 count=3'
-```
-
-### ctrld: add transit to Minimal
-
-The switch's own DNS (and what it forwards for kerfuffle) arrives from 10.255.0.2.
-
-```sh
-scp $GW:usb1/ctrld/ctrld.toml /tmp/ctrld.toml
-sed -i '' 's|cidrs = \["10.1.20.0/24", "10.1.30.0/24", "10.1.99.0/24"\]|cidrs = ["10.1.20.0/24", "10.1.30.0/24", "10.1.99.0/24", "10.255.0.0/30"]|' /tmp/ctrld.toml
-grep -n 10.255 /tmp/ctrld.toml
-scp /tmp/ctrld.toml $GW:usb1/ctrld/ctrld.toml && rm /tmp/ctrld.toml
-ssh $GW '/container stop ctrld'; sleep 5; ssh $GW '/container start ctrld'; sleep 10
-ssh $GW '/container stop ctrld-b'; sleep 5; ssh $GW '/container start ctrld-b'
-dig +short @10.1.30.2 k8s.internal.greyrock.io; dig +short @10.1.30.4 k8s.internal.greyrock.io
 ```
 
 ### IPv6 delegation
@@ -127,7 +121,7 @@ Both must log `cutover done`. A missing `done` means the import stopped on that 
 ssh $SW '/interface ethernet switch print; /routing bgp session print; /ip route print where dst-address in 10.1.25.0/24; /ip dhcp-relay print'
 ssh $GW '/routing bgp session print; /ip route print where bgp; /ip dhcp-server lease print count-only where server=dhcp-vlan10 and last-seen<2m'
 ping -c3 10.1.10.1; traceroute -n -m3 10.1.20.12; traceroute -n -m3 10.1.25.42
-dig +short k8s.internal.greyrock.io; dig +short @10.1.20.1 google.com
+dig +short k8s.internal.greyrock.io
 curl -sI https://grafana.greyrock.io | head -1; ping6 -c3 google.com
 kubectl get nodes; kubectl -n default run dnscheck --rm -it --restart=Never --image=alpine -- nslookup dl-cdn.alpinelinux.org
 uv run --no-project --with websockets python ../../../homeassistant/matter-check.py --live
@@ -165,5 +159,7 @@ To roll back early instead: `ssh $GW '/import file-name=3-rollback-gw.rsc'` and
 - **Firewall:** traffic between VLAN 10 and 20, and VLAN 10 to the service /32s, no longer
   crosses the RB5009; nothing filters it there today. Everything to or from VLANs
   30/50/60/99/guest/work still goes through the RB5009's rules, symmetrically.
+- **DNS to a gateway address** (e.g. the Tesla Wall Connector, 10.1.10.39, asks 10.1.10.1)
+  stops working: the router redirected it to ctrld, the switch does not answer DNS.
 - If the switch loses its BGP routes, VLAN 10 to the /32s still works through the RB5009
   (asymmetric, slower).
