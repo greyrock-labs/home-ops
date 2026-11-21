@@ -1,7 +1,8 @@
 # Router baseline
 
 `office-gw`, an RB5009UG+S+ on RouterOS 7.25.1, the only gateway since the UniFi removal
-(cut over 2026-11-20). Every VLAN is routed here; the switches are L2 only. Its management
+(cut over 2026-11-20). Every VLAN except 10 and 20 is routed here; `office-crs309` routes
+those two in hardware (see [tools/l3/README.md](tools/l3/README.md)). Its management
 endpoint is `office-gw.internal.greyrock.io` (10.1.99.1). See
 [switch-baseline.md](switch-baseline.md) for the switch side and
 [router-acme.md](router-acme.md) for certificates.
@@ -11,15 +12,14 @@ running config cannot explain about itself.
 
 ## Interfaces and addressing
 
-The trunk to `office-crs309` is `sfp-sfpplus1`, carrying VLANs 10, 20, 50, 60, 99, 4000 and
-4001 tagged on a VLAN-filtering `bridge`. `ether2`-`ether8` are untagged access ports on
+The trunk to `office-crs309` is `sfp-sfpplus1`, carrying VLANs 10, 20, 50, 60, 99, 4000,
+4001 and 4090 (transit) tagged on a VLAN-filtering `bridge`. `ether2`-`ether8` are untagged access ports on
 VLAN 99 for bench and recovery work.
 
 | Interface          | IPv4            | Purpose                                                      |
 | ------------------ | --------------- | ------------------------------------------------------------ |
 | `ether1`           | DHCP (Spectrum) | WAN                                                          |
-| `vlan10-internal`  | 10.1.10.1/24    | Internal                                                     |
-| `vlan20-servers`   | 10.1.20.1/24    | Servers                                                      |
+| `vlan4090-transit` | 10.255.0.1/30   | Transit to `office-crs309` (10.255.0.2), which owns VLAN 10/20 |
 | `vlan30-container` | 10.1.30.1/24    | Router containers                                            |
 | `vlan50-iot`       | 10.1.50.1/24    | IoT                                                          |
 | `vlan60-cameras`   | 10.1.60.1/24    | Cameras                                                      |
@@ -32,8 +32,8 @@ VLAN 1 carries no addresses; it is only the native VLAN that RSTP runs on.
 
 ### Interface lists
 
-`LAN` holds `vlan10-internal`, `vlan20-servers`, `vlan30-container`, `vlan50-iot` and
-`vlan99-mgmt`. `WAN` is `ether1`. `vlan60-cameras` is `RESTRICTED`, `vlan4000-guest` is
+`LAN` holds `vlan4090-transit`, `vlan30-container`, `vlan50-iot` and `vlan99-mgmt`.
+Traffic from VLANs 10 and 20 arrives on transit, so it keeps its `LAN` policy. `WAN` is `ether1`. `vlan60-cameras` is `RESTRICTED`, `vlan4000-guest` is
 `GUEST` and `vlan4001-work` is `WORK`, all deliberately outside `LAN` - the v4 input chain
 and both v6 chains end in a drop for anything not from `LAN`.
 
@@ -70,6 +70,9 @@ everything downstream - the 2026-11-20 cutover from the UDM did exactly that.
 ### Subnets
 
 Public /64s come from `spectrum-pd` (`from-pool=spectrum-pd`); the subnet IDs match the ULA.
+IDs `00`-`1f` are a /59 delegated to `office-crs309` by the `sync-office-pd` script
+([sync-office-pd.rsc](sync-office-pd.rsc)), so VLAN 10 and 20 live on the switch; keep
+other allocations out of that range. Transit is ULA `fdc0:ffee:215:fe::/64`, no RA prefix.
 
 | VLAN | Subnet ID | Public address    | ULA                      |
 | ---- | --------- | ----------------- | ------------------------ |
@@ -114,7 +117,8 @@ The router runs `allow-remote-requests` with Quad9 upstream, but clients are poi
 while everything else goes out to Control D. ctrld's `Minimal` network covers VLANs 20, 30
 and 99; `Internal`, `IoT`, `Cameras` and `Guest` have their own Control D profiles.
 
-The router repeats mDNS between `vlan10-internal` and `vlan20-servers`.
+`office-crs309` repeats mDNS between VLANs 10 and 20, and answers DNS on 10.1.10.1 and
+10.1.20.1 (forwarding to ctrld) for hosts that point at their gateway, such as kerfuffle.
 
 **Every DNS query from `LAN`, cameras and guest goes through ctrld, whatever server the
 client asked for, except from the servers VLAN.** `dstnat` rules `dns: force lan to ctrld`,
@@ -173,7 +177,9 @@ The API groups are `read,write,web,api,rest-api` with no `ssh`, `winbox` or `loc
 
 ## DHCP
 
-Every DHCP server is directly attached to its VLAN interface. Leases are 8h everywhere
+Every DHCP server is directly attached to its VLAN interface, except VLAN 10 and 20: those
+listen on `vlan4090-transit` with `relay=10.1.10.1` / `relay=10.1.20.1`, fed by relays on
+`office-crs309`. Leases are 8h everywhere
 except guest at 4h. Pools start at `.100` on VLAN 99, `.2` on guest and work, and `.6` on
 everything else.
 
@@ -213,7 +219,7 @@ server!=dhcp-vlan4001`. Then on the lease: `make-static`, set `comment="<name>"`
 The router's built-in TFTP server hands out netboot.xyz on VLANs 10 and 20; the menus
 and installers load from `boot.netboot.xyz` over HTTPS. The boot files live in
 `usb1/tftp`, and each has an `/ip tftp` entry limited to those two subnets. The VLAN 10
-and 20 DHCP networks set `next-server` to their own gateway and `boot-file-name` to
+and 20 DHCP networks set `next-server` to 10.255.0.1 (the router's transit address) and `boot-file-name` to
 `netboot.xyz-snponly.efi`, which uses the firmware's network driver rather than iPXE's
 own. `netboot.xyz.efi` (iPXE drivers) and `netboot.xyz.kpxe` (BIOS) are served too, if a
 machine needs them.
@@ -254,14 +260,17 @@ stops, repulls and starts the container on its own. Do one ctrld at a time.
 ## BGP
 
 Local AS 64513 (instance `greyrock`), router ID 10.1.99.1 from `/routing id`. Both
-sessions are sourced from 10.1.20.1.
+sessions are sourced from transit, 10.255.0.1, with `multihop=yes` (the peers set eBGP
+multihop 2). `office-crs309` (AS 64516) peers with the same hosts on 10.1.20.1 and imports
+only the service /32s. Next hops resolve through the static VLAN 20 route, which is
+`scope=10` for that reason.
 
 | Peer       | Address    | AS    | Source                                          |
 | ---------- | ---------- | ----- | ----------------------------------------------- |
 | kerfuffle  | 10.1.20.10 | 64514 | Cilium, `CiliumBGPClusterConfig`                |
 | codswallop | 10.1.20.12 | 64515 | FRR, `docker/codswallop/00-frr/config/frr.conf` |
 
-The Cilium config selects all linux nodes with one `localASN` and `peerAddress: 10.1.20.1`,
+The Cilium config selects all linux nodes with one `localASN` and both peers,
 so any k8s node peers the same way. codswallop advertises `10.1.25.21/32`; Cilium
 advertises the load-balancer /32s.
 

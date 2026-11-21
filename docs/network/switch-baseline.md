@@ -10,7 +10,9 @@ documents the *decisions* and the *gotchas*, not per-device running-configs.
 ## Topology
 
 Daisy chain, RB5009 (`office-gw`, 10.1.99.1) at the head in the Office. Every switch is
-L2 only; the RB5009 routes every VLAN (see [router-baseline.md](router-baseline.md)).
+L2 only except `office-crs309`, which routes VLANs 10 and 20 in hardware over transit
+VLAN 4090; the RB5009 routes the rest (see [router-baseline.md](router-baseline.md) and
+[tools/l3/README.md](tools/l3/README.md)).
 
 ```
 office-gw sfp-sfpplus1
