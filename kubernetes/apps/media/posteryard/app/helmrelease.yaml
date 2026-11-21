@@ -33,7 +33,7 @@ spec:
               DATA_DIR: /data
               DRY_RUN: "false"
               JELLYFIN_URL: http://jellyfin.media.svc.cluster.local:8096
-              LIBRARIES: Movies,TV Shows,Concerts
+              LIBRARIES: Movies,Shows
               LISTEN_PORT: &httpPort 8000
               STATUS_LABELS: "false"
             envFrom:
