@@ -163,7 +163,7 @@ a(f"add address=10.1.20.0/24 boot-file-name=netboot.xyz-snponly.efi dns-server={
 a(f"add address=10.1.50.0/24 dns-server={ctrld} domain=internal.greyrock.io gateway=10.1.50.1 ntp-server={ntp}")
 a(f"add address=10.1.60.0/24 dns-server={ctrld} domain=internal.greyrock.io gateway=10.1.60.1 ntp-server={ntp}")
 a(f"add address=10.1.99.0/24 dns-server=10.1.30.2,10.1.30.4 domain=internal.greyrock.io gateway=10.1.99.1 ntp-server={ntp}")
-a("add address=192.168.23.0/24 dns-server=192.168.23.1 gateway=192.168.23.1")
+a("add address=192.168.23.0/24 dns-server=10.1.30.2,10.1.30.4 gateway=192.168.23.1")
 a("add address=192.168.24.0/24 dns-server=1.1.1.1,8.8.8.8 gateway=192.168.24.1")
 a("/ip dns")
 a("set allow-remote-requests=yes mdns-repeat-ifaces=vlan10-internal,vlan20-servers servers=9.9.9.9,149.112.112.112")
@@ -191,6 +191,8 @@ F = [
     'chain=forward comment=ntp dst-address=10.1.20.16/30 dst-port=123 protocol=udp action=accept',
     'chain=forward comment="cameras: nvr to internet" connection-state=new src-address=10.1.60.2 out-interface-list=WAN action=accept',
     'chain=forward comment="cameras: no forwarding out of vlan 60" connection-state=new in-interface-list=RESTRICTED log=yes log-prefix=cam-block action=drop',
+    'chain=forward comment="guest: reject encrypted dns 853 tcp" dst-port=853 in-interface-list=GUEST out-interface-list=WAN protocol=tcp action=reject reject-with=icmp-network-unreachable',
+    'chain=forward comment="guest: reject encrypted dns 853 udp" dst-port=853 in-interface-list=GUEST out-interface-list=WAN protocol=udp action=reject reject-with=icmp-network-unreachable',
     'chain=forward comment="guest: voucher portal" dst-address=10.1.25.42 dst-port=443 in-interface-list=GUEST protocol=tcp action=accept',
     'chain=forward comment="guest: no lan" in-interface-list=GUEST log=yes log-prefix=guest-lan out-interface-list=LAN action=drop',
     'chain=forward comment="guest: no cameras" in-interface-list=GUEST log=yes log-prefix=guest-cam out-interface-list=RESTRICTED action=drop',
@@ -213,6 +215,8 @@ a("add action=masquerade chain=srcnat comment=masquerade ipsec-policy=out,none o
 # Every DNS query from LAN (except servers, VLAN 20) and cameras goes to ctrld; ctrld's own forwards and vlan30 are exempt.
 for proto in ("udp", "tcp"):
     a(f'add chain=dstnat action=dst-nat to-addresses=10.1.30.2 protocol={proto} dst-port=53 in-interface-list=LAN in-interface=!vlan30-container src-address=!10.1.20.0/24 src-address-list=!ctrld dst-address-list=!ctrld comment="dns: force lan to ctrld {proto}"')
+for proto in ("udp", "tcp"):
+    a(f'add chain=dstnat action=dst-nat to-addresses=10.1.30.2 protocol={proto} dst-port=53 in-interface-list=GUEST dst-address-list=!ctrld comment="dns: force guest to ctrld {proto}"')
 for proto in ("udp", "tcp"):
     a(f'add chain=dstnat action=dst-nat to-addresses=10.1.30.2 protocol={proto} dst-port=53 in-interface-list=RESTRICTED dst-address-list=!ctrld comment="dns: force cameras to ctrld {proto}"')
 a("/ip service")

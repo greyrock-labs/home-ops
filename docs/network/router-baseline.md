@@ -116,14 +116,15 @@ and 99; `Internal`, `IoT`, `Cameras` and `Guest` have their own Control D profil
 
 The router repeats mDNS between `vlan10-internal` and `vlan20-servers`.
 
-**Every DNS query from `LAN` and cameras goes through ctrld, whatever server the client
-asked for, except from the servers VLAN.** `dstnat` rules `dns: force lan to ctrld` and
-`dns: force cameras to ctrld` (UDP and TCP 53) send it to 10.1.30.2, excluding ctrld's own
+**Every DNS query from `LAN`, cameras and guest goes through ctrld, whatever server the
+client asked for, except from the servers VLAN.** `dstnat` rules `dns: force lan to ctrld`,
+`dns: force guest to ctrld` and `dns: force cameras to ctrld` (UDP and TCP 53) send it to 10.1.30.2, excluding ctrld's own
 addresses (the `ctrld` address list) so its forwards to the router still work, and excluding
 `vlan30-container` itself, where a redirect would reply off-path. DNS-over-TLS (853) is
-rejected from the same networks. **VLAN 20 (servers, the cluster) is never captured**
+rejected from the same networks (guest has its own `guest: reject encrypted dns 853` pair).
+**VLAN 20 (servers, the cluster) is never captured**
 (`src-address=!10.1.20.0/24` on both): servers resolve wherever they are configured to.
-Guest and work are not redirected either. DNS-over-HTTPS cannot be caught this way.
+Work is not redirected. DNS-over-HTTPS cannot be caught this way.
 
 Every static entry is either hand-made and commented, or created by automation that tracks
 it with a TXT ownership record:
@@ -176,7 +177,8 @@ Every DHCP server is directly attached to its VLAN interface. Leases are 8h ever
 except guest at 4h. Pools start at `.100` on VLAN 99, `.2` on guest and work, and `.6` on
 everything else.
 
-Every network except guest and work hands out ctrld for DNS and the four time servers
+Every network except work hands out ctrld for DNS (guest lands in ctrld's `Guest` Control D
+profile), and every network except guest and work hands out the four time servers
 (10.1.20.16-.19) for NTP. Every network except VLAN 20, guest and work also hands out the
 domain `internal.greyrock.io`.
 
@@ -186,8 +188,9 @@ exist (public resolvers included). glibc moves on to the next candidate, but mus
 stops at the first NOERROR, so with `ndots:5` an Alpine container's
 `dl-cdn.alpinelinux.org` became `dl-cdn.alpinelinux.org.internal.greyrock.io` and failed
 with "no address for host". This broke every image build's `apk add` after the 2026-11-20
-cutover until the domain was removed. Guest gets the router for
-DNS. Work hands out Cloudflare and Google (1.1.1.1, 8.8.8.8) so a work VPN client does not
+cutover until the domain was removed.
+
+Work hands out Cloudflare and Google (1.1.1.1, 8.8.8.8) so a work VPN client does not
 depend on anything at home.
 
 Every known device has a **static lease** on the address it already had, 117 in all,
