@@ -233,7 +233,6 @@ Stack ports reject all interface config, including `port-name`.
 | 1/1/8 | kvm-codswallop | 20       |
 | 2/1/1 | kvm-kerfuffle  | 20       |
 | 2/1/2 | kvm-gallivant  | 20       |
-| 2/1/4 | up-chime       | 60       |
 
 ### Game Room C08ZP (.21)
 
