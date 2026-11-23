@@ -66,6 +66,10 @@ spec:
     externalSecrets:
       camera-cert-updater-hikvision:
         data:
+          - secretKey: GARAGE_CAMERA_ANDY_PASSWORD
+            remoteRef:
+              key: Garage Camera - Andy
+              property: password
           - secretKey: SIDE_YARD_CAMERA_PASSWORD
             remoteRef:
               key: Side Yard Camera
@@ -81,6 +85,7 @@ spec:
           # Camera HTTPS only; DNS comes from allow-dns-egress.
           - toCIDR:
               - 10.1.60.13/32
+              - 10.1.60.16/32
             toPorts:
               - ports:
                   - port: "443"
