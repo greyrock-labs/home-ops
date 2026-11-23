@@ -105,7 +105,7 @@ spec:
     route:
       app:
         hostnames:
-          - nvr.greyrock.io
+          - scrypted.greyrock.io
         parentRefs:
           - name: envoy-internal
             namespace: network
