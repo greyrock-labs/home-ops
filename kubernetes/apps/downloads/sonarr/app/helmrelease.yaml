@@ -26,6 +26,8 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         pod:
+          labels:
+            egress.policy.home.arpa/internet: "true"
           securityContext:
             fsGroup: 2000
             fsGroupChangePolicy: "OnRootMismatch"
@@ -84,6 +86,68 @@ spec:
               capabilities:
                 drop:
                   - ALL
+    networkpolicies:
+      sonarr:
+        type: cilium
+        egress:
+          - toEndpoints:
+              - matchLabels:
+                  k8s:io.kubernetes.pod.namespace: downloads
+                  app.kubernetes.io/name: prowlarr
+            toPorts:
+              - ports:
+                  - port: "9696"
+                    protocol: TCP
+          - toEndpoints:
+              - matchLabels:
+                  k8s:io.kubernetes.pod.namespace: downloads
+                  app.kubernetes.io/name: sabnzbd
+            toPorts:
+              - ports:
+                  - port: "8080"
+                    protocol: TCP
+          - toEndpoints:
+              - matchLabels:
+                  k8s:io.kubernetes.pod.namespace: media
+                  app.kubernetes.io/name: jellyfin
+            toPorts:
+              - ports:
+                  - port: "8096"
+                    protocol: TCP
+        endpointSelector:
+          matchLabels:
+            app.kubernetes.io/controller: sonarr
+            app.kubernetes.io/instance: sonarr
+            app.kubernetes.io/name: sonarr
+        ingress:
+          - fromEndpoints:
+              - matchLabels:
+                  k8s:io.kubernetes.pod.namespace: network
+                  gateway.networking.k8s.io/gateway-name: envoy-internal
+              - matchLabels:
+                  k8s:io.kubernetes.pod.namespace: downloads
+                  k8s:app.kubernetes.io/controller: prowlarr
+                  k8s:app.kubernetes.io/instance: prowlarr
+                  k8s:app.kubernetes.io/name: prowlarr
+              - matchLabels:
+                  k8s:io.kubernetes.pod.namespace: downloads
+                  k8s:app.kubernetes.io/controller: recyclarr
+                  k8s:app.kubernetes.io/instance: recyclarr
+                  k8s:app.kubernetes.io/name: recyclarr
+              - matchLabels:
+                  k8s:io.kubernetes.pod.namespace: media
+                  k8s:app.kubernetes.io/controller: maintainerr
+                  k8s:app.kubernetes.io/instance: maintainerr
+                  k8s:app.kubernetes.io/name: maintainerr
+              - matchLabels:
+                  k8s:io.kubernetes.pod.namespace: media
+                  k8s:app.kubernetes.io/controller: seerr
+                  k8s:app.kubernetes.io/instance: seerr
+                  k8s:app.kubernetes.io/name: seerr
+            toPorts:
+              - ports:
+                  - port: "8989"
+                    protocol: TCP
     persistence:
       config:
         existingClaim: sonarr-config
