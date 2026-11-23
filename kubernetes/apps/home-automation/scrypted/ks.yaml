@@ -6,12 +6,15 @@ metadata:
   name: scrypted
 spec:
   components:
+    - ../../../../components/gpu
     - ../../../../components/kopiur/backup
   dependsOn:
     - name: miroir
       namespace: miroir-system
     - name: multus-networks
       namespace: network
+    - name: intel-gpu-resource-driver
+      namespace: kube-system
   interval: 1h
   path: "./kubernetes/apps/home-automation/scrypted/app"
   postBuild:

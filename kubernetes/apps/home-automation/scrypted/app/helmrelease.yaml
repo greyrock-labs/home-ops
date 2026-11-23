@@ -29,6 +29,9 @@ spec:
                 "ips": ["10.1.60.3/24"],
                 "mac": "2e:7e:33:e1:dd:60"
               }]
+          resourceClaims:
+            - name: gpu
+              resourceClaimTemplateName: scrypted-gpu
           securityContext:
             fsGroup: 0
             fsGroupChangePolicy: OnRootMismatch
@@ -62,13 +65,13 @@ spec:
                   failureThreshold: 30
                   periodSeconds: 10
             resources:
+              claims:
+                - name: gpu
               requests:
                 cpu: 100m
                 memory: 512Mi
               limits:
                 memory: 4Gi
-            securityContext:
-              privileged: true
     persistence:
       config:
         existingClaim: scrypted
@@ -77,15 +80,13 @@ spec:
             app:
               - path: /server/volume
       nvr-0:
-        type: hostPath
-        hostPath: /var/mnt/nvr-0
+        existingClaim: scrypted-nvr-0
         advancedMounts:
           scrypted:
             app:
               - path: /mnt/nvr-0
       nvr-1:
-        type: hostPath
-        hostPath: /var/mnt/nvr-1
+        existingClaim: scrypted-nvr-1
         advancedMounts:
           scrypted:
             app:

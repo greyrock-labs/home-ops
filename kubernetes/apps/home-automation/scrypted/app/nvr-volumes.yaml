@@ -1,0 +1,76 @@
+---
+# The NVR drives are Talos user volumes (nvr-0, nvr-1) mounted at /var/mnt/nvr-*
+# on kerfuffle. Static local PersistentVolumes expose them without a hostPath
+# volume, so the namespace can enforce baseline Pod Security. Retain keeps the
+# recordings if a claim or volume object is ever deleted.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: scrypted-nvr-0
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 20Ti
+  local:
+    path: /var/mnt/nvr-0
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - kerfuffle
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: scrypted-nvr-1
+spec:
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 20Ti
+  local:
+    path: /var/mnt/nvr-1
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - kerfuffle
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: scrypted-nvr-0
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Ti
+  storageClassName: ""
+  volumeName: scrypted-nvr-0
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: scrypted-nvr-1
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Ti
+  storageClassName: ""
+  volumeName: scrypted-nvr-1
