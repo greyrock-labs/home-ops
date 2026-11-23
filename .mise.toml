@@ -13,7 +13,6 @@ pipx.uvx = true
 
 [tools]
 actionlint = "latest"
-ansible = "latest"
 ansible-core = "latest"
 helmfile = "latest"
 talosctl = "1.14.6"

@@ -1,0 +1,8 @@
+[Unit]
+Description=Weekly reboot into a staged rpm-ostree deployment
+
+[Timer]
+OnCalendar=Sun *-*-* 04:00:00
+
+[Install]
+WantedBy=timers.target

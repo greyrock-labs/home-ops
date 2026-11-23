@@ -1,0 +1,7 @@
+[Unit]
+Description=Reboot into a staged rpm-ostree deployment
+ConditionPathExists=/run/ostree/staged-deployment
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl reboot

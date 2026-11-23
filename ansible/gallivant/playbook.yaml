@@ -10,11 +10,13 @@
     gallivant_lan_interface: eno1
     gallivant_lan_connection: Wired connection 1
     gallivant_tailscale_routes:
-      - 10.1.0.0/24
       - 10.1.10.0/24
       - 10.1.20.0/24
       - 10.1.25.0/24
+      - 10.1.30.0/24
       - 10.1.50.0/24
+      - 10.1.60.0/24
+      - 10.1.99.0/24
 
   tasks:
     - name: Check host connectivity
@@ -32,6 +34,16 @@
             group: root
             mode: "0440"
             validate: visudo -cf %s
+
+    - name: system
+      tags:
+        - system
+      block:
+        # Without a static hostname tailscaled starts before DHCP sets the
+        # transient one and registers as localhost.
+        - name: system | Set the static hostname
+          ansible.builtin.hostname:
+            name: gallivant
 
     - name: packages
       tags:
@@ -81,6 +93,48 @@
           changed_when: false
           check_mode: false
           when: not ansible_check_mode
+
+    - name: updates
+      tags:
+        - updates
+      block:
+        # Stage new OS images (including layered Tailscale) in the background;
+        # the weekly reboot timer below boots into them.
+        - name: updates | Stage automatic rpm-ostree updates
+          ansible.builtin.copy:
+            src: templates/rpm-ostreed.conf
+            dest: /etc/rpm-ostreed.conf
+            owner: root
+            group: root
+            mode: "0644"
+          register: rpm_ostreed_conf
+
+        - name: updates | Reload rpm-ostreed
+          ansible.builtin.command: rpm-ostree reload
+          when: not ansible_check_mode and rpm_ostreed_conf is changed
+          changed_when: true
+
+        - name: updates | Install the staged-deployment reboot units
+          ansible.builtin.copy:
+            src: "templates/{{ item }}"
+            dest: "/etc/systemd/system/{{ item }}"
+            owner: root
+            group: root
+            mode: "0644"
+          loop:
+            - rpm-ostree-staged-reboot.service
+            - rpm-ostree-staged-reboot.timer
+          register: staged_reboot_units
+
+        - name: updates | Enable update timers
+          ansible.builtin.systemd:
+            name: "{{ item }}"
+            enabled: true
+            state: started
+            daemon_reload: "{{ staged_reboot_units is changed }}"
+          loop:
+            - rpm-ostreed-automatic.timer
+            - rpm-ostree-staged-reboot.timer
 
     - name: network
       tags:
@@ -221,6 +275,7 @@
               - tailscale
               - set
               - --advertise-exit-node
+              - --hostname=gallivant
               - "--advertise-routes={{ gallivant_tailscale_routes | join(',') }}"
               - --accept-dns=false
               - --snat-subnet-routes=true
