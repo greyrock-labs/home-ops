@@ -7,3 +7,12 @@ resources:
   - ./ocirepository.yaml
   - ./helmrelease.yaml
   - ./prometheusrule.yaml
+  - ./grafanadashboard.yaml
+configMapGenerator:
+  - name: stackdriver-exporter-dashboard
+    files:
+      - gemini.json=./resources/gemini.json
+generatorOptions:
+  disableNameSuffixHash: true
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled

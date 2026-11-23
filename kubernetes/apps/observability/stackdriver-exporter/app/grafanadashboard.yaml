@@ -1,0 +1,29 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/grafana.integreatly.org/grafanafolder_v1beta1.json
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: gemini
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  title: Gemini
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/grafana.integreatly.org/grafanadashboard_v1beta1.json
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: gemini-scrypted
+spec:
+  allowCrossNamespaceImport: true
+  configMapRef:
+    name: stackdriver-exporter-dashboard
+    key: gemini.json
+  datasources:
+    - datasourceName: prometheus
+      inputName: DS_PROMETHEUS
+  folderRef: gemini
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana

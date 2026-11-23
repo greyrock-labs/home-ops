@@ -1,0 +1,367 @@
+{
+  "title": "Gemini API (Scrypted)",
+  "uid": "gemini-scrypted",
+  "tags": [
+    "gemini",
+    "scrypted"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "5m",
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "description": "Gemini API calls from Scrypted NVR's AI Summary (Google Cloud project gen-lang-client-0278640389), via stackdriver-exporter. Google reports request counts only; cost comes from the Cloud Billing budget email. Counts are Google's request_count for the Gemini API, as recorded in Cloud Monitoring.",
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Requests (24h)",
+      "description": "Gemini GenerateContent calls in the last 24 hours.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "(sum(max_over_time(stackdriver_consumed_api_serviceruntime_googleapis_com_api_request_count{exported_service=\"generativelanguage.googleapis.com\"}[24h])) or vector(0)) - (sum(stackdriver_consumed_api_serviceruntime_googleapis_com_api_request_count{exported_service=\"generativelanguage.googleapis.com\"} offset 24h) or vector(0))",
+          "instant": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Requests (7d)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "(sum(max_over_time(stackdriver_consumed_api_serviceruntime_googleapis_com_api_request_count{exported_service=\"generativelanguage.googleapis.com\"}[7d])) or vector(0)) - (sum(stackdriver_consumed_api_serviceruntime_googleapis_com_api_request_count{exported_service=\"generativelanguage.googleapis.com\"} offset 7d) or vector(0))",
+          "instant": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Errors (24h)",
+      "description": "Non-2xx responses, e.g. 429 rate limits or 503 overloaded.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "(sum(max_over_time(stackdriver_consumed_api_serviceruntime_googleapis_com_api_request_count{exported_service=\"generativelanguage.googleapis.com\",response_code_class!=\"2xx\"}[24h])) or vector(0)) - (sum(stackdriver_consumed_api_serviceruntime_googleapis_com_api_request_count{exported_service=\"generativelanguage.googleapis.com\",response_code_class!=\"2xx\"} offset 24h) or vector(0))",
+          "instant": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Exporter",
+      "description": "Whether stackdriver-exporter can read Cloud Monitoring.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "max(stackdriver_monitoring_last_scrape_error{project_id=\"gen-lang-client-0278640389\"})",
+          "instant": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "OK"
+                },
+                "1": {
+                  "text": "Failing"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Requests per hour by result",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "interval": "1h",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "sum by (response_code_class) (max_over_time(stackdriver_consumed_api_serviceruntime_googleapis_com_api_request_count{exported_service=\"generativelanguage.googleapis.com\"}[$__interval])) - (sum by (response_code_class) (stackdriver_consumed_api_serviceruntime_googleapis_com_api_request_count{exported_service=\"generativelanguage.googleapis.com\"} offset $__interval) or (sum by (response_code_class) (max_over_time(stackdriver_consumed_api_serviceruntime_googleapis_com_api_request_count{exported_service=\"generativelanguage.googleapis.com\"}[$__interval])) * 0))",
+          "legendFormat": "{{response_code_class}}"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "stacking": {
+              "mode": "normal"
+            },
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Requests per hour by response code",
+      "description": "Individual HTTP codes, so 429 and 503 errors stand out.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "interval": "1h",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "expr": "sum by (response_code) (max_over_time(stackdriver_consumed_api_serviceruntime_googleapis_com_api_request_count{exported_service=\"generativelanguage.googleapis.com\"}[$__interval])) - (sum by (response_code) (stackdriver_consumed_api_serviceruntime_googleapis_com_api_request_count{exported_service=\"generativelanguage.googleapis.com\"} offset $__interval) or (sum by (response_code) (max_over_time(stackdriver_consumed_api_serviceruntime_googleapis_com_api_request_count{exported_service=\"generativelanguage.googleapis.com\"}[$__interval])) * 0))",
+          "legendFormat": "{{response_code}}"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "stacking": {
+              "mode": "normal"
+            },
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      }
+    }
+  ]
+}

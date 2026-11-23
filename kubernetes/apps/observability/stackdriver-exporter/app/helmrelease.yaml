@@ -27,7 +27,9 @@ spec:
             # Gemini API usage for the scrypted project (Scrypted's LLM plugin).
             # Each Prometheus scrape makes Cloud Monitoring API calls, so the
             # ServiceMonitor scrapes every 5m. DELTA metrics are aggregated
-            # into counters so increase() works.
+            # into counters; a long TTL keeps sparse series counting instead of
+            # restarting after idle gaps. The service label arrives as
+            # exported_service (Prometheus sets its own service label).
             args:
               - --google.project-ids=gen-lang-client-0278640389
               - --monitoring.metrics-prefixes=serviceruntime.googleapis.com/api/request_count
@@ -35,7 +37,7 @@ spec:
               - --monitoring.filters=serviceruntime.googleapis.com/api/request_count:resource.labels.service="generativelanguage.googleapis.com"
               - --monitoring.filters=serviceruntime.googleapis.com/quota/rate/net_usage:resource.labels.service="generativelanguage.googleapis.com"
               - --monitoring.aggregate-deltas
-              - --monitoring.aggregate-deltas-ttl=2h
+              - --monitoring.aggregate-deltas-ttl=720h
               - --monitoring.metrics-ingest-delay
             env:
               GOOGLE_APPLICATION_CREDENTIALS: /secrets/credentials.json
