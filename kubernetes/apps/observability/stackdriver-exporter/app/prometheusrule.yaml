@@ -1,0 +1,19 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: stackdriver-exporter-rules
+spec:
+  groups:
+    - name: stackdriver-exporter.rules
+      rules:
+        - alert: StackdriverExporterScrapeFailing
+          annotations:
+            summary: |
+              stackdriver-exporter cannot read Cloud Monitoring for project
+              {{ $labels.project_id }}, so Gemini usage is not being recorded.
+          expr: stackdriver_monitoring_last_scrape_error == 1
+          for: 30m
+          labels:
+            severity: warning

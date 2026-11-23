@@ -1,0 +1,79 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: stackdriver-exporter
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: stackdriver-exporter
+  interval: 30m
+  values:
+    controllers:
+      stackdriver-exporter:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          securityContext:
+            runAsGroup: 2000
+            runAsNonRoot: true
+            runAsUser: 2000
+        containers:
+          app:
+            image:
+              repository: quay.io/prometheuscommunity/stackdriver-exporter
+              tag: v0.19.0@sha256:c0a0cbf76570bb7b50455a44d32f3fc9e9012812e5510ec85f7c65170420a737
+            # Gemini API usage for the scrypted project (Scrypted's LLM plugin).
+            # Each Prometheus scrape makes Cloud Monitoring API calls, so the
+            # ServiceMonitor scrapes every 5m. DELTA metrics are aggregated
+            # into counters so increase() works.
+            args:
+              - --google.project-ids=gen-lang-client-0278640389
+              - --monitoring.metrics-prefixes=serviceruntime.googleapis.com/api/request_count
+              - --monitoring.metrics-prefixes=serviceruntime.googleapis.com/quota/rate/net_usage
+              - --monitoring.filters=serviceruntime.googleapis.com/api/request_count:resource.labels.service="generativelanguage.googleapis.com"
+              - --monitoring.filters=serviceruntime.googleapis.com/quota/rate/net_usage:resource.labels.service="generativelanguage.googleapis.com"
+              - --monitoring.aggregate-deltas
+              - --monitoring.aggregate-deltas-ttl=2h
+              - --monitoring.metrics-ingest-delay
+            env:
+              GOOGLE_APPLICATION_CREDENTIALS: /secrets/credentials.json
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 128Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              readOnlyRootFilesystem: true
+    persistence:
+      credentials:
+        type: secret
+        name: stackdriver-exporter-secret
+        globalMounts:
+          - path: /secrets
+            readOnly: true
+    service:
+      app:
+        ports:
+          http:
+            port: 9255
+    serviceMonitor:
+      app:
+        endpoints:
+          - interval: 5m
+            path: /metrics
+            port: http
+            scheme: http
+            scrapeTimeout: 1m
+        service:
+          identifier: app
