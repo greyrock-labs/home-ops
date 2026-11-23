@@ -4,6 +4,10 @@
     "password_env": "GARAGE_CAMERA_ANDY_PASSWORD"
   },
   {
+    "host": "garage-camera-todd.internal.greyrock.io",
+    "password_env": "GARAGE_CAMERA_TODD_PASSWORD"
+  },
+  {
     "host": "side-yard-camera.internal.greyrock.io",
     "password_env": "SIDE_YARD_CAMERA_PASSWORD"
   }
