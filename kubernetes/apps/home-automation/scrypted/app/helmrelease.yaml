@@ -69,9 +69,9 @@ spec:
                 - name: gpu
               requests:
                 cpu: 100m
-                memory: 512Mi
+                memory: 3Gi
               limits:
-                memory: 4Gi
+                memory: 8Gi
     persistence:
       config:
         existingClaim: scrypted
@@ -100,7 +100,7 @@ spec:
     route:
       app:
         hostnames:
-          - scrypted.greyrock.io
+          - nvr.greyrock.io
         parentRefs:
           - name: envoy-internal
             namespace: network
