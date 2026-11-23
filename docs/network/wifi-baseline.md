@@ -197,6 +197,6 @@ account (`API_CommonUserAdminLock`). See
 
 ## Logging
 
-The APs and the six ICX switches log to the controller (`logging host 10.1.99.2`); there is
-no central syslog listener in the cluster any more. Client MACs in AP logs are lower case
+The APs and the six ICX switches log to the controller (`logging host 10.1.99.2`), which
+forwards to VictoriaLogs at `10.1.25.44`; see [syslog.md](syslog.md). Client MACs in AP logs are lower case
 (`3c:6a:d2:97:70:5c`), while the router's DHCP log uses upper case.
