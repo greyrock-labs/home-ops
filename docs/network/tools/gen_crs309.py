@@ -11,7 +11,7 @@ cfg = {
     "office":   {"ip": "10.1.99.10", "prio": "0x1000", "mac_from": "ether1",
                  "ports": {"sfp-sfpplus1": "uplink-office-gw", "sfp-sfpplus2": "downlink-gameroom-crs309",
                            "sfp-sfpplus3": "office-c08zp", "sfp-sfpplus4": "office-c08pf"},
-                 "access": {"sfp-sfpplus6": (60, "nvr-pro")}},
+                 "access": {}},
     "gameroom": {"ip": "10.1.99.20", "prio": "0x2000",
                  "ports": {"sfp-sfpplus1": "uplink-office-crs309", "sfp-sfpplus2": "downlink-garage-crs309",
                            "sfp-sfpplus3": "gameroom-c08zp", "sfp-sfpplus4": "gameroom-c08pf"},

@@ -21,12 +21,12 @@ S = {
     },
     "garage-c08pf": {
         "ip": "10.1.99.32", "querier": False, "up": "2/2/2",
-        "names": {"2/1/1": "g4-doorbell-pro", "2/1/2": "garage-todd-cam", "2/1/3": "g6-turret-1",
-                  "2/1/4": "g6-turret-2", "2/1/5": "side-yard-cam", "2/1/6": "g5-pro-enhancer",
-                  "2/2/2": "uplink-garage-crs309"},
+        "names": {"2/1/1": "courtyard-doorbell", "2/1/2": "garage-todd-cam", "2/1/5": "side-yard-cam",
+                  "2/1/6": "garage-andy-cam", "2/2/2": "uplink-garage-crs309"},
         "ap": [],
-        "access": {"2/1/1": 60, "2/1/2": 60, "2/1/3": 60, "2/1/4": 60, "2/1/5": 60, "2/1/6": 60},
+        "access": {"2/1/1": 60, "2/1/2": 60, "2/1/5": 60, "2/1/6": 60},
         "tagged_extra": {},
+        "poe_off": ["2/1/3", "2/1/4"],  # reserved for cameras; old G6 Turrets still cabled
     },
     "gameroom-c08zp": {
         "ip": "10.1.99.21", "querier": False,
@@ -45,10 +45,10 @@ S = {
     },
     "office-c08zp": {
         "ip": "10.1.99.11", "querier": True,
-        "names": {"1/1/1": "ai-key", "1/1/5": "kerfuffle", "1/1/6": "codswallop", "1/1/7": "office-ap", "1/1/8": "uh-ap",
+        "names": {"1/1/5": "kerfuffle", "1/1/6": "codswallop", "1/1/7": "office-ap", "1/1/8": "uh-ap",
                   "1/2/2": "uplink-office-crs309"},
         "ap": ["1/1/7", "1/1/8"],
-        "access": {"1/1/1": 60, "1/1/5": 20, "1/1/6": 20},
+        "access": {"1/1/5": 20, "1/1/6": 20},
         "tagged_extra": {"1/1/5": [10, 60]},
     },
     "office-c08pf": {
@@ -125,6 +125,10 @@ a("no global-stp")
 for p, n in c["names"].items():
     a(f"interface ethernet {p}")
     a(f" port-name {n}")
+    a("exit")
+for p in c.get("poe_off", []):
+    a(f"interface ethernet {p}")
+    a(" no inline power")
     a("exit")
 a("interface ve 99")
 a(f" ip address {c['ip']} 255.255.255.0")

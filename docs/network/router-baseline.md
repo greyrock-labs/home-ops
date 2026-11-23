@@ -89,8 +89,8 @@ DNS servers DHCP gives them.
 ### Firewall
 
 **The v4 and v6 filter chains have opposite shapes and this matters.** v4 forward is
-default-accept with targeted drops (cameras get no new outbound connections except the
-NVR, guest cannot reach `LAN` or `RESTRICTED`). v6 forward is stock defconf: default-deny,
+default-accept with targeted drops (cameras get no new outbound connections beyond DNS to
+ctrld and NTP, guest cannot reach `LAN` or `RESTRICTED`). v6 forward is stock defconf: default-deny,
 ending in `drop everything else not coming from LAN`.
 
 The consequence is that anything outside the `LAN` list gets v4 connectivity for free and

@@ -37,7 +37,6 @@ office-gw sfp-sfpplus1
    |
 [Office CRS309 .10] -- C08ZP .11
    |                -- C08PF .12 (stack)
-   |                -- NVR Pro (sfp-sfpplus6, VLAN 60)
 [GameRoom CRS309 .20] -- C08ZP .21
    |                  -- C08PF .22
 [Garage CRS309 .30] -- C08ZP .31
@@ -199,13 +198,12 @@ All six are ICX8200 on FastIron `10.0.10g_cd6T253`, uplinked on `1/2/2` (`2/2/2`
 Garage stack) to their room's CRS309. office-c08zp is the **active** IGMP/MLD querier for
 every VLAN; the other five are passive with flooding. PoE allocation is dynamic. The C08ZP
 ports `1/1/1`-`1/1/4` are 2.5G and `1/1/5`-`1/1/8` 10G, all 802.3bt; the C08PF ports are
-1G PoE+ (30 W), so anything needing more (the AI Key, Class 5) goes on a C08ZP.
+1G PoE+ (30 W), so anything needing more (Class 5 and up) goes on a C08ZP.
 
 ### Office C08ZP (.11)
 
 | Port  | Name       | Untagged | Tagged         |
 | ----- | ---------- | -------- | -------------- |
-| 1/1/1 | ai-key     | 60       | -              |
 | 1/1/5 | kerfuffle  | 20       | 10, 60         |
 | 1/1/6 | codswallop | 20       | -              |
 | 1/1/7 | office-ap  | 99       | 10, 4000, 4001 |
@@ -262,14 +260,18 @@ Stack ports reject all interface config, including `port-name`.
 
 A two-unit stack. The uplink is `2/2/2` on unit 2, and the cameras are on unit 2 as well.
 
-| Port  | Name            | Untagged |
-| ----- | --------------- | -------- |
-| 2/1/1 | g4-doorbell-pro | 60       |
-| 2/1/2 | garage-todd-cam | 60       |
-| 2/1/3 | g6-turret-1     | 60       |
-| 2/1/4 | g6-turret-2     | 60       |
-| 2/1/5 | side-yard-cam   | 60       |
-| 2/1/6 | g5-pro-enhancer | 60       |
+| Port  | Name               | Untagged |
+| ----- | ------------------ | -------- |
+| 2/1/1 | courtyard-doorbell | 60       |
+| 2/1/2 | garage-todd-cam    | 60       |
+| 2/1/5 | side-yard-cam      | 60       |
+| 2/1/6 | garage-andy-cam    | 60       |
+
+`2/1/3` and `2/1/4` are reserved for cameras that are still to come. Until then the
+retired UniFi G6 Turrets stay cabled there, so PoE is off on both (`no inline power`)
+and they sit unnamed in VLAN 1. To bring one back, put it untagged in VLAN 60, give it a
+`port-name` and `inline power`, and move it from `poe_off` to `names`/`access` in
+`gen_icx.py`.
 
 ### Joining a second C08PF unit
 
@@ -354,7 +356,6 @@ bridge at pvid 1.
 | sfp-sfpplus2 | downlink-gameroom-crs309 |
 | sfp-sfpplus3 | office-c08zp             |
 | sfp-sfpplus4 | office-c08pf             |
-| sfp-sfpplus6 | nvr-pro (pvid 60)        |
 
 ### Game Room CRS309 (.20), RSTP priority `0x2000`
 

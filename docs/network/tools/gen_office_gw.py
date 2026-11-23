@@ -189,7 +189,6 @@ F = [
     'chain=forward comment="dns to ctrld udp" dst-address-list=ctrld dst-port=53 protocol=udp action=accept',
     'chain=forward comment="dns to ctrld tcp" dst-address-list=ctrld dst-port=53 protocol=tcp action=accept',
     'chain=forward comment=ntp dst-address=10.1.20.16/30 dst-port=123 protocol=udp action=accept',
-    'chain=forward comment="cameras: nvr to internet" connection-state=new src-address=10.1.60.2 out-interface-list=WAN action=accept',
     'chain=forward comment="cameras: no forwarding out of vlan 60" connection-state=new in-interface-list=RESTRICTED log=yes log-prefix=cam-block action=drop',
     'chain=forward comment="guest: reject encrypted dns 853 tcp" dst-port=853 in-interface-list=GUEST out-interface-list=WAN protocol=tcp action=reject reject-with=icmp-network-unreachable',
     'chain=forward comment="guest: reject encrypted dns 853 udp" dst-port=853 in-interface-list=GUEST out-interface-list=WAN protocol=udp action=reject reject-with=icmp-network-unreachable',
