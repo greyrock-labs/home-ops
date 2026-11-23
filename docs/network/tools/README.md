@@ -47,3 +47,16 @@ UL_PASS=$(kubectl -n network get secret wifi-cert-updater-ruckus -o jsonpath='{.
 python3 unleashed_rename.py ~/Downloads/dhcp-reservations-2026-11-19.csv [--fallback <unifi-clients.csv>] [--apply]
 ```
 
+
+## Unleashed airtime
+
+`unleashed_airtime.sh` prints every AP's channel and channel use (total, busy, own tx and rx)
+for one radio, reading each AP's own CLI in parallel; the master is read through `ap-mode`.
+It is read-only and needs `expect` plus the Unleashed login in `UL_USER` / `UL_PASS`
+(1Password item "Ruckus Unleashed", Infrastructure vault). See
+[wifi-baseline.md](../wifi-baseline.md) for what the numbers meant during the 2026-11 2.4 GHz
+work.
+
+```
+UL_USER=... UL_PASS=... ./unleashed_airtime.sh [wifi0|wifi1|wifi2]
+```

@@ -15,37 +15,71 @@ All eight are on VLAN 99 with static addresses (mask /24, gateway 10.1.99.1, DNS
 ctrlds 10.1.30.2 and 10.1.30.4). Their switch ports carry VLAN 99 untagged and 10, 4000
 and 4001 tagged; see [switch-baseline.md](switch-baseline.md).
 
-| Name                  | IP         | Model  | Switch port          |
-| --------------------- | ---------- | ------ | -------------------- |
-| `office-ap`           | 10.1.99.13 | R770   | office-c08zp 1/1/7   |
-| `upstairs-hallway-ap` | 10.1.99.14 | R770   | office-c08zp 1/1/8   |
-| `game-room-ap`        | 10.1.99.23 | R770   | gameroom-c08zp 1/1/5 |
-| `garage-ap`           | 10.1.99.33 | R650   | garage-c08zp 1/1/5   |
-| `kitchen-ap`          | 10.1.99.34 | R770   | garage-c08zp 1/1/6   |
-| `rear-driveway-ap`    | 10.1.99.35 | T750SE | garage-c08zp 1/1/1   |
-| `side-yard-ap`        | 10.1.99.36 | T750SE | garage-c08zp 1/1/2   |
-| `side-driveway-ap`    | 10.1.99.37 | T750SE | garage-c08zp 1/1/3   |
+| Name                  | IP         | Model  | MAC                 | Switch port          |
+| --------------------- | ---------- | ------ | ------------------- | -------------------- |
+| `office-ap`           | 10.1.99.13 | R770   | `5c:83:6c:3b:0e:d0` | office-c08zp 1/1/7   |
+| `upstairs-hallway-ap` | 10.1.99.14 | R770   | `00:33:58:2b:0b:e0` | office-c08zp 1/1/8   |
+| `game-room-ap`        | 10.1.99.23 | R770   | `5c:83:6c:3b:10:90` | gameroom-c08zp 1/1/5 |
+| `garage-ap`           | 10.1.99.33 | R650   | `80:03:84:2e:df:60` | garage-c08zp 1/1/5   |
+| `kitchen-ap`          | 10.1.99.34 | R770   | `5c:83:6c:3a:f3:80` | garage-c08zp 1/1/6   |
+| `rear-driveway-ap`    | 10.1.99.35 | T750SE | `80:03:84:21:79:10` | garage-c08zp 1/1/1   |
+| `side-yard-ap`        | 10.1.99.36 | T750SE | `5c:df:89:01:5d:d0` | garage-c08zp 1/1/2   |
+| `side-driveway-ap`    | 10.1.99.37 | T750SE | `80:03:84:21:78:70` | garage-c08zp 1/1/3   |
 
 AFC (6 GHz standard power) uses Minimum Floor 0 and Maximum Floor 1: ground floor is 0.
 Setting both to 0 disables AFC.
 
 ### Radios
 
-Channels are not pinned in this build (decision 2026-11-20); Unleashed chooses them. The
-previous build (October 2026) pinned every radio, set 5 GHz to 40 MHz and 6 GHz to 160 MHz,
-kept 2.4 GHz on only two APs, and restricted 5 GHz to 36, 44, 52, 108, 132, 149 and 157
-after radar hits on 60 and 100. The reason, in case it comes back - watch the Kasa plugs and Matter if 2.4 GHz misbehaves:
+5 and 6 GHz channels are on Auto (decision 2026-11-20). 2.4 GHz is held on one channel
+(2026-11-22), set on the System Default AP group:
 
-#### Why the previous build pinned 2.4 GHz
+| 2.4 GHz setting          | Value                                |
+| ------------------------ | ------------------------------------ |
+| Allowed channels         | 6 only (Channel stays Auto)          |
+| Auto-channel method      | Background Scanning (not ChannelFly) |
+| Background scan interval | 600 s (5 GHz 60 s, 6 GHz 20 s)       |
+| TX power                 | Min                                  |
+| Radios serving 2.4 GHz   | all eight                            |
+| Channelization           | 20 MHz                               |
 
-On Auto, three 2.4 GHz radios ended up sharing channel 11 at minimum
-power, and the Upstairs Hallway radio reported RF pollution 34 and estimated capacity 1410,
-against 3 and 8666 on a clean radio. Clients stayed associated but lost 40–95% of their
-traffic, which broke Matter sessions to the Kasa plugs.
+Only Grey Rock IoT is bound to 2.4 GHz. The previous build (October 2026) pinned every radio,
+set 5 GHz to 40 MHz and 6 GHz to 160 MHz, kept 2.4 GHz on only two APs, and restricted
+5 GHz to 36, 44, 52, 108, 132, 149 and 157 after radar hits on 60 and 100.
 
-ChannelFly would not have moved it: outside the optimization period it only changes a
-channel when few clients are associated, and Ruckus recommends it off for 2.4 GHz when
-clients lack 802.11h channel-switch support, as most IoT devices do.
+#### Why 2.4 GHz is held on channel 6
+
+The Kasa (KP125M, 2.4 GHz only) plugs and other IoT clients do not follow an AP's
+channel-switch announcement. When an AP changes channel they stay behind: Unleashed still
+lists them as connected, they pass no traffic (orange LED on a Kasa), and Matter marks them
+unavailable until they reconnect or are power-cycled. Stranded clients retrying and probing
+also show up as "busy" airtime on nearby radios.
+
+With all eight 2.4 GHz radios on Auto (ChannelFly, channels 1/6/11, power Min, then 1/8),
+Nov 20–22 had hourly plug drops. The worst cases followed channel moves: ChannelFly's
+early-morning optimisation moved five APs between 04:17 and 05:17 on Nov 22, and plugs on
+the moved APs dropped at 05:35, 06:00 and 07:40. Radios also showed 2.4 GHz busy spells of
+20–78% that followed the AP across channels. On Nov 21 the Office radio's capacity fell
+from 848 to 47 and its plugs dropped off together.
+
+Things tried along the way that did not fix it on their own: power Min to 1/8, background
+scan 60 s to 600 s, 2.4 GHz off on the Office AP, removing channel 11 (adjacent to Thread on
+channel 25), and 2.4 GHz on only Office and Garage at 1/2 power.
+
+The fix, applied at about 11:50 on Nov 22: auto-channel by Background Scanning instead of
+ChannelFly, then channel 6 as the only allowed 2.4 GHz channel, power back to Min and
+2.4 GHz back on for every AP. Through 09:15 on Nov 23 (21 hours) there were no plug drops, no channel
+changes (including the 04:00–06:00 window), and no AP above 7% busy. A live Matter read
+of all 76 nodes matched Home Assistant's cached state.
+
+Ruled out: hardware (the three R770s from serial batch `932439`, built week 3 of 2024, ran
+clean once channels were fixed); the switches (UniFi ran clean on them); directed multicast
+(threshold 1 = off); PoE and cabling; Thread or other interference as the main cause.
+Unrelated but found on the way: a Razer wireless mouse in the game room raised that AP's
+busy while in use, without causing drops.
+
+If 2.4 GHz misbehaves again, check for channel changes first, then use the per-AP
+`get airtime wifi0` reading (see [CLI](#cli)).
 
 After an AP reboot, its 2.4 GHz WLAN takes about five minutes to come back, and clients that
 moved to another AP in the meantime stay there.
@@ -98,6 +132,19 @@ auth does not work.
 | `show performance ap-radio2-4 mac <ap mac>` | per-radio RF pollution, estimated capacity, client count           |
 
 Output pages with `--More--`; script it with `expect` and send a space on each prompt.
+`show performance` sometimes returns a radio's MAC with no figures; ask again.
+
+Each AP also answers SSH on its own address with the same login and drops into the AP CLI
+(`rkscli:`). On the master, the controller CLI gets there with `ap-mode` (leave with `quit`).
+`wifi0` is 2.4 GHz, `wifi1` 5 GHz, `wifi2` 6 GHz.
+
+| AP command          | Shows                                                              |
+| ------------------- | ------------------------------------------------------------------ |
+| `get channel wifi0` | channel in use                                                     |
+| `get airtime wifi0` | channel use %: total, busy (other BSSs and noise), own tx, own rx  |
+| `get boarddata`     | serial (first four digits are week and year of manufacture), board |
+
+`tools/unleashed_airtime.sh` reads channel and airtime from every AP at once.
 
 ## Wi-Fi Calling profiles
 
