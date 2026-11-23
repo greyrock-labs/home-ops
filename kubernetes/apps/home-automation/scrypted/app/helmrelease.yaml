@@ -29,9 +29,6 @@ spec:
                 "ips": ["10.1.60.3/24"],
                 "mac": "2e:7e:33:e1:dd:60"
               }]
-          resourceClaims:
-            - name: gpu
-              resourceClaimTemplateName: scrypted-gpu
           securityContext:
             fsGroup: 0
             fsGroupChangePolicy: OnRootMismatch
@@ -40,8 +37,18 @@ spec:
             image:
               repository: ghcr.io/koush/scrypted
               tag: v0.148.6-noble-full
+            # Cluster server: ingests and records the cameras. Detection and
+            # decoding run on the Mac mini worker (Scrypted desktop app, CoreML),
+            # which joins on the internal VLAN; Scrypted no longer uses the
+            # kerfuffle GPU.
             env:
+              SCRYPTED_CLUSTER_ADDRESS: 10.1.10.2
+              SCRYPTED_CLUSTER_LABELS: storage
+              SCRYPTED_CLUSTER_MODE: server
               SCRYPTED_INSECURE_PORT: &httpPort 11080
+            envFrom:
+              - secretRef:
+                  name: scrypted-secret
             probes:
               liveness:
                 enabled: true
@@ -65,8 +72,6 @@ spec:
                   failureThreshold: 30
                   periodSeconds: 10
             resources:
-              claims:
-                - name: gpu
               requests:
                 cpu: 100m
                 memory: 3Gi

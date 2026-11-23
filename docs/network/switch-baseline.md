@@ -204,6 +204,7 @@ ports `1/1/1`-`1/1/4` are 2.5G and `1/1/5`-`1/1/8` 10G, all 802.3bt; the C08PF p
 
 | Port  | Name       | Untagged | Tagged         |
 | ----- | ---------- | -------- | -------------- |
+| 1/1/1 | mac-mini   | 10       | -              |
 | 1/1/5 | kerfuffle  | 20       | 10, 60         |
 | 1/1/6 | codswallop | 20       | -              |
 | 1/1/7 | office-ap  | 99       | 10, 4000, 4001 |
@@ -231,6 +232,7 @@ Stack ports reject all interface config, including `port-name`.
 | 1/1/8 | kvm-codswallop | 20       |
 | 2/1/1 | kvm-kerfuffle  | 20       |
 | 2/1/2 | kvm-gallivant  | 20       |
+| 2/1/3 | kvm-mac-mini   | 20       |
 
 ### Game Room C08ZP (.21)
 
