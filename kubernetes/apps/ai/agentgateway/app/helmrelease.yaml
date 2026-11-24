@@ -52,6 +52,16 @@ spec:
           secretKeyRef:
             name: agentgateway
             key: CONTEXT7_API_KEY
+      - name: CLAUDE_CODE_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: agentgateway
+            key: CLAUDE_CODE_API_KEY
+      - name: NETBOX_MCP_AUTH_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: agentgateway
+            key: NETBOX_MCP_AUTH_TOKEN
     gateway:
       service:
         type: ClusterIP
@@ -336,3 +346,88 @@ spec:
             mcpAuthorization:
               rules:
                 - allow: apiKey.client == "hermes"
+        - name: mcp-netbox
+          gateways:
+            - mcp
+          matches:
+            - path:
+                pathPrefix: /mcp/netbox
+          backends:
+            - mcp:
+                targets:
+                  - name: netbox
+                    mcp:
+                      host: http://netbox-mcp.ai.svc.cluster.local:8000/mcp
+                    policies:
+                      backendAuth:
+                        key: ${NETBOX_MCP_AUTH_TOKEN}
+          policies:
+            urlRewrite:
+              path:
+                prefix: /mcp
+            apiKey:
+              mode: strict
+              keys:
+                - key: ${HERMES_API_KEY}
+                  metadata:
+                    client: hermes
+            mcpAuthorization:
+              rules:
+                - allow: apiKey.client == "hermes"
+        # Single endpoint for Claude Code: every MCP server above, multiplexed.
+        # Tools are prefixed with the target name; a target that is down is
+        # skipped instead of failing the whole session.
+        - name: mcp-claude-code
+          gateways:
+            - mcp
+          matches:
+            - path:
+                pathPrefix: /mcp/claude-code
+          backends:
+            - mcp:
+                failureMode: failOpen
+                prefixMode: always
+                targets:
+                  - name: context7
+                    mcp:
+                      host: https://mcp.context7.com/mcp
+                    policies:
+                      backendAuth:
+                        key: ${CONTEXT7_API_KEY}
+                  - name: flux
+                    mcp:
+                      host: http://flux-mcp.ai.svc.cluster.local:8000/mcp
+                  - name: grafana
+                    mcp:
+                      host: http://grafana-mcp.observability.svc.cluster.local:8000/mcp
+                  - name: home-assistant
+                    mcp:
+                      host: http://home-assistant-mcp.ai.svc.cluster.local:8086/mcp
+                  - name: kguardian
+                    mcp:
+                      host: http://kguardian-llm-bridge.kguardian.svc.cluster.local:8080/mcp
+                  - name: kubectl
+                    mcp:
+                      host: http://kubectl-mcp.ai.svc.cluster.local:8000/mcp
+                  - name: kubesearch
+                    mcp:
+                      host: http://kubesearch-mcp.ai.svc.cluster.local:3000/mcp
+                  - name: netbox
+                    mcp:
+                      host: http://netbox-mcp.ai.svc.cluster.local:8000/mcp
+                    policies:
+                      backendAuth:
+                        key: ${NETBOX_MCP_AUTH_TOKEN}
+          policies:
+            urlRewrite:
+              path:
+                prefix: /mcp
+            apiKey:
+              mode: strict
+              keys:
+                - key: ${CLAUDE_CODE_API_KEY}
+                  metadata:
+                    client: claude-code
+            mcpAuthorization:
+              rules:
+                - allow: apiKey.client == "claude-code"
