@@ -1,0 +1,26 @@
+---
+# Issuer: https://idm.greyrock.io/oauth2/openid/netbox
+# kaniop writes credentials to netbox-kanidm-oauth2-credentials (CLIENT_ID/CLIENT_SECRET).
+apiVersion: kaniop.rs/v1beta1
+kind: KanidmOAuth2Client
+metadata:
+  name: netbox
+spec:
+  kanidmRef:
+    name: sso
+    namespace: security
+  displayname: NetBox
+  origin: https://netbox.greyrock.io/
+  redirectUrl:
+    - https://netbox.greyrock.io/oauth/complete/oidc/
+  # The group is managed in kanidm-provision. NetBox grants new OIDC users no
+  # permissions; assign them in NetBox.
+  scopeMap:
+    - group: netbox_users@idm.greyrock.io
+      scopes:
+        - openid
+        - profile
+        - email
+  preferShortUsername: true
+  strictRedirectUrl: true
+  disableConsentPrompt: true

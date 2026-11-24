@@ -1,0 +1,125 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/helm.toolkit.fluxcd.io/helmrelease_v2.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: netbox
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: netbox
+  interval: 30m
+  values:
+    cachingDatabase: &valkey
+      host: netbox-valkey
+      port: 6379
+    commonAnnotations:
+      reloader.stakater.com/auto: "true"
+    csrf:
+      trustedOrigins:
+        - https://netbox.greyrock.io
+    existingSecret: netbox-secret
+    externalDatabase:
+      host: netbox-postgres-rw
+      port: 5432
+      database: netbox
+      username: netbox
+      existingSecretName: netbox-postgres-app
+      existingSecretKey: password
+    extraVolumeMounts:
+      - name: oidc-config
+        mountPath: /etc/netbox/config/oidc.py
+        subPath: oidc.py
+        readOnly: true
+      - name: oidc-credentials
+        mountPath: /run/secrets/oidc
+        readOnly: true
+    extraVolumes:
+      - name: oidc-config
+        configMap:
+          name: netbox-oidc-config
+      - name: oidc-credentials
+        secret:
+          secretName: netbox-kanidm-oauth2-credentials
+    httpRoute:
+      enabled: true
+      hostnames:
+        - netbox.greyrock.io
+      parentRefs:
+        - name: envoy-internal
+          namespace: network
+    # The media, reports and scripts subPaths live on one kopiur-backed PVC.
+    # Create them as the netbox user so the subPath mounts are writable.
+    initContainers:
+      - name: init-subpaths
+        image: "{{ include \"netbox.init.image\" . }}"
+        command:
+          - /bin/sh
+          - -c
+          - mkdir -p /data/media /data/reports /data/scripts
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 1000
+          runAsNonRoot: true
+          runAsUser: 1000
+        volumeMounts:
+          - name: media
+            mountPath: /data
+    loginRequired: true
+    persistence:
+      enabled: true
+      existingClaim: netbox
+      subPath: media
+    postgresql:
+      enabled: false
+    remoteAuth:
+      enabled: true
+      autoCreateUser: true
+      backends:
+        - social_core.backends.open_id_connect.OpenIdConnectAuth
+    reportsPersistence:
+      enabled: true
+      existingClaim: netbox
+      subPath: reports
+    resources:
+      requests:
+        cpu: 50m
+        memory: 512Mi
+      limits:
+        memory: 1536Mi
+    resourcesPreset: none
+    scriptsPersistence:
+      enabled: true
+      existingClaim: netbox
+      subPath: scripts
+    superuser:
+      existingSecret: netbox-superuser
+    tasksDatabase: *valkey
+    timeZone: America/New_York
+    updateStrategy:
+      type: Recreate
+    valkey:
+      enabled: false
+    worker:
+      # The PVC is ReadWriteOnce, so the worker must share the web pod's node.
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/component: netbox
+                  app.kubernetes.io/instance: netbox
+              topologyKey: kubernetes.io/hostname
+      resources:
+        requests:
+          cpu: 10m
+          memory: 256Mi
+        limits:
+          memory: 768Mi
+      resourcesPreset: none
+      updateStrategy:
+        type: Recreate

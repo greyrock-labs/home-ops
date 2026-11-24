@@ -25,6 +25,7 @@ resources:
   - ./external-dns/ks.yaml
   - ./internal-greyrock-io-cert/ks.yaml
   - ./multus/ks.yaml
+  - ./netbox/ks.yaml
   - ./printer-cert-updater-brother/ks.yaml
   - ./unleashed-voucher-manager/ks.yaml
   - ./unimus/ks.yaml

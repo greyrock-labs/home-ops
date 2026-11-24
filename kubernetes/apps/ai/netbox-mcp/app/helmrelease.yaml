@@ -1,0 +1,59 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: netbox-mcp
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: netbox-mcp
+  interval: 30m
+  values:
+    controllers:
+      netbox-mcp:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          labels:
+            egress.policy.home.arpa/block-all: "true"
+          automountServiceAccountToken: false
+          securityContext:
+            runAsGroup: 65532
+            runAsNonRoot: true
+            runAsUser: 65532
+        containers:
+          app:
+            image:
+              repository: ghcr.io/zariel/netbox-mcp
+              tag: 0.1.1@sha256:f0443501db00e59d5b2ca40a8e0c8f69ebdb27c566406fa028a94b2d1998fdce
+            env:
+              NETBOX_PUBLIC_URL: https://netbox.greyrock.io
+              NETBOX_URL: http://netbox.network.svc.cluster.local
+            envFrom:
+              - secretRef:
+                  name: netbox-mcp-secret
+            probes:
+              liveness:
+                enabled: true
+                type: TCP
+              readiness:
+                enabled: true
+                type: TCP
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 256Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              readOnlyRootFilesystem: true
+    service:
+      app:
+        ports:
+          http:
+            port: 8000

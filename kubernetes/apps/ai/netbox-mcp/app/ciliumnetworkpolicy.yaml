@@ -1,0 +1,32 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/cilium.io/ciliumnetworkpolicy_v2.json
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: netbox-mcp
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: netbox-mcp
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: ai
+            app.kubernetes.io/name: agentgateway
+            app.kubernetes.io/instance: agentgateway
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+  egress:
+    # NetBox's Service maps port 80 to the web pod's port 8080.
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: network
+            app.kubernetes.io/component: netbox
+            app.kubernetes.io/instance: netbox
+            app.kubernetes.io/name: netbox
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
