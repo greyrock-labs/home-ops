@@ -1,0 +1,75 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: mikrotik-mcp
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: mikrotik-mcp
+  interval: 30m
+  values:
+    controllers:
+      mikrotik-mcp:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          labels:
+            egress.policy.home.arpa/block-all: "true"
+          automountServiceAccountToken: false
+          securityContext:
+            runAsGroup: 1000
+            runAsNonRoot: true
+            runAsUser: 1000
+        containers:
+          app:
+            image:
+              repository: ghcr.io/wiresage/mikrotik-mcp
+              tag: 0.29.8@sha256:93cef5af2d7cb83f22acfcd65ebc16baaf14976daf567d7194737e9f89dcc238
+            env:
+              MIKROTIK_INVENTORY_FILE: /config/inventory.yaml
+              # Host-header allowlist for DNS-rebinding protection; agentgateway
+              # calls the Service name.
+              MIKROTIK_MCP__ALLOWED_HOSTS: mikrotik-mcp.ai.svc.cluster.local:8000,mikrotik-mcp.ai.svc.cluster.local
+              MIKROTIK_MCP__TRANSPORT: streamable-http
+              MIKROTIK_SENSITIVE_HIDING: "true"
+              TZ: America/New_York
+            probes:
+              # TCP, not /health: kubelet sends the pod IP as Host, which the
+              # Host allowlist above would reject.
+              liveness:
+                enabled: true
+                type: TCP
+              readiness:
+                enabled: true
+                type: TCP
+            resources:
+              requests:
+                cpu: 10m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              readOnlyRootFilesystem: true
+    persistence:
+      inventory:
+        type: secret
+        name: mikrotik-mcp-inventory
+        globalMounts:
+          - path: /config/inventory.yaml
+            subPath: inventory.yaml
+            readOnly: true
+      tmpfs:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+    service:
+      app:
+        ports:
+          http:
+            port: 8000

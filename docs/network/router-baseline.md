@@ -172,10 +172,16 @@ deprecated.
 | `externaldns` | `externaldns` | external-dns MikroTik webhook             | `MikroTik - External DNS` |
 | `dexd`        | `dexd`        | dexd-mikrotik on codswallop               | `MikroTik - dexd`         |
 | `acme`        | `acme`        | acme.sh deploy hook, see `router-acme.md` | -                         |
+| `mcp`         | `mcp`         | mikrotik-mcp (`ai` namespace), over SSH   | `MikroTik MCP`            |
 
 The API groups are `read,write,web,api,rest-api` with no `ssh`, `winbox` or `local`.
 `rest-api` alone is not enough: without `web` and `api` every REST call returns 500
 `not allowed (9)`.
+
+The `mcp` group is the opposite: `ssh,ftp,read,write,test` and nothing else (no `policy`,
+`sensitive`, `reboot` or REST), because mikrotik-mcp drives RouterOS over SSH and uses SFTP
+for file tools. The same user and group exist on all three CRS309s. The user is limited to
+`address=10.1.20.0/24`: the cluster reaches the routers as its node address.
 
 ## DHCP
 
