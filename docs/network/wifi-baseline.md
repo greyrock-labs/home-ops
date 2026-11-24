@@ -13,18 +13,8 @@ and the settings that deviate from defaults.
 
 All eight are on VLAN 99 with static addresses (mask /24, gateway 10.1.99.1, DNS the
 ctrlds 10.1.30.2 and 10.1.30.4). Their switch ports carry VLAN 99 untagged and 10, 4000
-and 4001 tagged; see [switch-baseline.md](switch-baseline.md).
-
-| Name                  | IP         | Model  | MAC                 | Switch port          |
-| --------------------- | ---------- | ------ | ------------------- | -------------------- |
-| `office-ap`           | 10.1.99.13 | R770   | `5c:83:6c:3b:0e:d0` | office-c08zp 1/1/7   |
-| `upstairs-hallway-ap` | 10.1.99.14 | R770   | `00:33:58:2b:0b:e0` | office-c08zp 1/1/8   |
-| `game-room-ap`        | 10.1.99.23 | R770   | `5c:83:6c:3b:10:90` | gameroom-c08zp 1/1/5 |
-| `garage-ap`           | 10.1.99.33 | R650   | `80:03:84:2e:df:60` | garage-c08zp 1/1/5   |
-| `kitchen-ap`          | 10.1.99.34 | R770   | `5c:83:6c:3a:f3:80` | garage-c08zp 1/1/6   |
-| `rear-driveway-ap`    | 10.1.99.35 | T750SE | `80:03:84:21:79:10` | garage-c08zp 1/1/1   |
-| `side-yard-ap`        | 10.1.99.36 | T750SE | `5c:df:89:01:5d:d0` | garage-c08zp 1/1/2   |
-| `side-driveway-ap`    | 10.1.99.37 | T750SE | `80:03:84:21:78:70` | garage-c08zp 1/1/3   |
+and 4001 tagged; see [switch-baseline.md](switch-baseline.md). Names, models, addresses,
+MACs and switch ports are in [NetBox](https://netbox.greyrock.io) (role Access Point).
 
 AFC (6 GHz standard power) uses Minimum Floor 0 and Maximum Floor 1: ground floor is 0.
 Setting both to 0 disables AFC.

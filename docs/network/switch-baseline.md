@@ -7,6 +7,10 @@ conventions, and the platform syntax that differs from the published documentati
 Configs themselves are not stored here. This file
 documents the *decisions* and the *gotchas*, not per-device running-configs.
 
+**[NetBox](https://netbox.greyrock.io) is the source of truth for inventory**: devices,
+management addresses, VLANs, prefixes, port names and VLAN membership, and cabling. When a
+port moves, update NetBox and the matching generator in [tools/](tools/README.md).
+
 ## Topology
 
 Daisy chain, RB5009 (`office-gw`, 10.1.99.1) at the head in the Office. Every switch is
@@ -32,35 +36,14 @@ Changing the switch's addressing can leave stale entries in the switch chip's L3
 silently disappearing. Turning `l3-hw-offloading` off and on did not clear them on
 2026-11-21; a reboot did.
 
-```
-office-gw sfp-sfpplus1
-   |
-[Office CRS309 .10] -- C08ZP .11
-   |                -- C08PF .12 (stack)
-[GameRoom CRS309 .20] -- C08ZP .21
-   |                  -- C08PF .22
-[Garage CRS309 .30] -- C08ZP .31
-                    -- C08PF .32 (stack)
-```
-
-Garage traffic transits Game Room and Office. Rooms are joined by 10G-SR multimode fiber;
-in-room uplinks are DACs.
+Each room has a CRS309 spine with a C08ZP and a C08PF leaf; the spines are chained Office →
+Game Room → Garage, so Garage traffic transits Game Room and Office. Rooms are joined by
+10G-SR multimode fiber; in-room uplinks are DACs. The cable map is in NetBox.
 
 ## VLANs
 
-| VLAN | Name     | Subnet          |
-| ---- | -------- | --------------- |
-| 1    | Default  | none            |
-| 10   | Internal | 10.1.10.0/24    |
-| 20   | Servers  | 10.1.20.0/24    |
-| 50   | IoT      | 10.1.50.0/24    |
-| 60   | Cameras  | 10.1.60.0/24    |
-| 99   | Mgmt     | 10.1.99.0/24    |
-| 4000 | Guest    | 192.168.23.0/24 |
-| 4001 | Work     | 192.168.24.0/24 |
-
-VLAN 1 carries no addresses. It stays untagged on the trunks only because RSTP runs on
-it. VLAN 2 (`UniFi-Mgmt`) carried the UniFi devices during the migration and was
+VLAN IDs, names and subnets are in NetBox. VLAN 1 carries no addresses. It stays untagged
+on the trunks only because RSTP runs on it. VLAN 2 (`UniFi-Mgmt`) carried the UniFi devices during the migration and was
 removed from every switch on 2026-11-20.
 
 `10.1.25.0/24` is the Cilium load-balancer pool. It is **not** a VLAN — those /32s are
@@ -192,88 +175,29 @@ Each of these cost a round trip on the first switch. The published docs describe
 | `?` in a pasted block                              | Swallowed. Help queries must be typed by hand.                                                                                                                                                                                                                        |
 
 
-## ICX as-built (2026-11-20)
+## ICX notes
 
 All six are ICX8200 on FastIron `10.0.10g_cd6T253`, uplinked on `1/2/2` (`2/2/2` on the
 Garage stack) to their room's CRS309. office-c08zp is the **active** IGMP/MLD querier for
-every VLAN; the other five are passive with flooding. PoE allocation is dynamic. The C08ZP
-ports `1/1/1`-`1/1/4` are 2.5G and `1/1/5`-`1/1/8` 10G, all 802.3bt; the C08PF ports are
-1G PoE+ (30 W), so anything needing more (Class 5 and up) goes on a C08ZP.
-
-### Office C08ZP (.11)
-
-| Port  | Name       | Untagged | Tagged         |
-| ----- | ---------- | -------- | -------------- |
-| 1/1/1 | mac-mini   | 10       | -              |
-| 1/1/5 | kerfuffle  | 20       | 10, 60         |
-| 1/1/6 | codswallop | 20       | -              |
-| 1/1/7 | office-ap  | 99       | 10, 4000, 4001 |
-| 1/1/8 | uh-ap      | 99       | 10, 4000, 4001 |
+every VLAN; the other five are passive with flooding. PoE allocation is dynamic. The C08PF
+ports are 1G PoE+ (30 W), so anything needing more (Class 5 and up) goes on a C08ZP.
+Per-port names and VLANs are in NetBox.
 
 `kerfuffle` is the Talos node. Its `bond0` is `active-backup` over a single link,
 **not** LACP, so it takes a plain port with no LAG, with VLANs 10 and 60 tagged for
 Multus. `codswallop` is the TrueNAS host, on a plain VLAN 20 port (`enp36s0f0`, no bond).
 
-### Office C08PF (.12, stack)
+**Office C08PF** is a two-unit stack; unit 1 (priority 128, holding the uplink) is active.
+The stack link is `1/2/1`-`2/2/1`; those are the only stack ports, so `1/2/2` and `2/2/2`
+stay data ports. Stack ports reject all interface config, including `port-name`.
 
-A two-unit stack; unit 1 (priority 128, holding the uplink) is active. The stack link is
-`1/2/1`-`2/2/1`; those are the only stack ports, so `1/2/2` and `2/2/2` stay data ports.
-Stack ports reject all interface config, including `port-name`.
-
-| Port  | Name           | Untagged |
-| ----- | -------------- | -------- |
-| 1/1/1 | time1          | 20       |
-| 1/1/2 | time2          | 20       |
-| 1/1/3 | time3          | 20       |
-| 1/1/4 | time4          | 20       |
-| 1/1/5 | homeassistant  | 10       |
-| 1/1/6 | gallivant      | 20       |
-| 1/1/7 | kvm-hass       | 20       |
-| 1/1/8 | kvm-codswallop | 20       |
-| 2/1/1 | kvm-kerfuffle  | 20       |
-| 2/1/2 | kvm-gallivant  | 20       |
-| 2/1/3 | kvm-mac-mini   | 20       |
-
-### Game Room C08ZP (.21)
-
-| Port  | Name          | Untagged | Tagged         |
-| ----- | ------------- | -------- | -------------- |
-| 1/1/1 | andys-desktop | 10       | -              |
-| 1/1/2 | todds-desktop | 10       | -              |
-| 1/1/5 | game-room-ap  | 99       | 10, 4000, 4001 |
-
-### Game Room C08PF (.22)
-
-| Port  | Name      | Untagged |
-| ----- | --------- | -------- |
-| 1/1/1 | solaredge | 50       |
-
-### Garage C08ZP (.31)
-
-| Port  | Name       | Untagged | Tagged         |
-| ----- | ---------- | -------- | -------------- |
-| 1/1/1 | rd-ap      | 99       | 10, 4000, 4001 |
-| 1/1/2 | sy-ap      | 99       | 10, 4000, 4001 |
-| 1/1/3 | sd-ap      | 99       | 10, 4000, 4001 |
-| 1/1/5 | garage-ap  | 99       | 10, 4000, 4001 |
-| 1/1/6 | kitchen-ap | 99       | 10, 4000, 4001 |
-
-### Garage C08PF (.32, stack)
-
-A two-unit stack. The uplink is `2/2/2` on unit 2, and the cameras are on unit 2 as well.
-
-| Port  | Name               | Untagged |
-| ----- | ------------------ | -------- |
-| 2/1/1 | courtyard-doorbell | 60       |
-| 2/1/2 | garage-todd-cam    | 60       |
-| 2/1/5 | side-yard-cam      | 60       |
-| 2/1/6 | garage-andy-cam    | 60       |
-
+**Garage C08PF** is a two-unit stack with the same `1/2/1`-`2/2/1` stack link, the uplink
+on `2/2/2` and the cameras on unit 2.
 `2/1/3` and `2/1/4` are reserved for cameras that are still to come. Until then the
 retired UniFi G6 Turrets stay cabled there, so PoE is off on both (`no inline power`)
 and they sit unnamed in VLAN 1. To bring one back, put it untagged in VLAN 60, give it a
-`port-name` and `inline power`, and move it from `poe_off` to `names`/`access` in
-`gen_icx.py`.
+`port-name` and `inline power`, move it from `poe_off` to `names`/`access` in
+`gen_icx.py`, and enable the port in NetBox.
 
 ### Joining a second C08PF unit
 
@@ -343,41 +267,14 @@ RouterOS expresses the same trunk profile differently: a `pvid` on each bridge p
   `/interface bridge add name=bridge auto-mac=no admin-mac=[/interface ethernet get ether1 mac-address] ...`
 
 
-## CRS309 as-built (2026-11-20)
+## CRS309 builds
 
 All three are CRS309-1G-8S+ on RouterOS 7.25.1, netinstalled from the RB5009, with
-management on `vlan99-mgmt` and hardware offload on every port. `ether1` is pvid 99
-(`bench-or-recovery`), so it is a management access port. Unused SFP+ ports stay in the
-bridge at pvid 1.
-
-### Office CRS309 (.10), RSTP priority `0x1000` - the root bridge
-
-| Port         | Comment                  |
-| ------------ | ------------------------ |
-| sfp-sfpplus1 | uplink-office-gw         |
-| sfp-sfpplus2 | downlink-gameroom-crs309 |
-| sfp-sfpplus3 | office-c08zp             |
-| sfp-sfpplus4 | office-c08pf             |
-
-### Game Room CRS309 (.20), RSTP priority `0x2000`
-
-| Port         | Comment                |
-| ------------ | ---------------------- |
-| sfp-sfpplus1 | uplink-office-crs309   |
-| sfp-sfpplus2 | downlink-garage-crs309 |
-| sfp-sfpplus3 | gameroom-c08zp         |
-| sfp-sfpplus4 | gameroom-c08pf         |
-
-This unit is the 32MB board revision; the Office and Garage units are 16MB boards. See
+hardware offload on every port. `ether1` is pvid 99 (`bench-or-recovery`), so it is a
+management access port. Unused SFP+ ports stay in the bridge at pvid 1. Port comments match
+the interface descriptions in NetBox. The Game Room unit is the 32MB board revision; the
+Office and Garage units are 16MB boards. See
 [CRS309 flash revisions](#crs309-flash-revisions) before upgrading any of them.
-
-### Garage CRS309 (.30), RSTP priority `0x3000`
-
-| Port         | Comment                |
-| ------------ | ---------------------- |
-| sfp-sfpplus1 | uplink-gameroom-crs309 |
-| sfp-sfpplus2 | garage-c08zp           |
-| sfp-sfpplus3 | garage-c08pf           |
 
 ## CRS309 flash revisions
 
@@ -407,8 +304,8 @@ power - one of these logged `rebooted without proper shutdown, probably power ou
 
 ## Garage stack
 
-garage-c08pf is a two-unit stack (see its as-built section). The two units run under the
-one name and address.
+garage-c08pf is a two-unit stack (see [ICX notes](#icx-notes)). The two units run under
+the one name and address.
 
 
 The SFP+ ports are also the stacking ports, but a two-unit stack only consumes one per
@@ -430,9 +327,9 @@ the end of the daisy chain and needs its uplink.
 
 **Module 2 must be clean before stacking is enabled.** From the same notes: "Stacking
 cannot be enabled on an ICX 8200 device containing configuration for Module 2, including
-port speed. The configuration must be removed before stacking is enabled." The existing
-C08ZP carries inert default `stack-port` lines on both SFP+ (see *Office C08ZP
-as-built*), so expect the same on a new unit and clear Module 2 first.
+port speed. The configuration must be removed before stacking is enabled." A factory unit
+carries default `stack-port` lines on both SFP+ (see *Stack ports* under Conventions), so
+clear Module 2 first.
 
 C08PF supports 10-Gbps stacking only, which is moot here - the ports are 10G.
 

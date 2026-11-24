@@ -9,6 +9,7 @@ endpoint is `office-gw.internal.greyrock.io` (10.1.99.1). See
 
 Configs are not stored here. This documents the _decisions_ and the conventions that the
 running config cannot explain about itself.
+[NetBox](https://netbox.greyrock.io) is the source of truth for addressing and inventory.
 
 ## Interfaces and addressing
 
@@ -16,17 +17,9 @@ The trunk to `office-crs309` is `sfp-sfpplus1`, carrying VLANs 10, 20, 50, 60, 9
 4001 and 4090 (transit) tagged on a VLAN-filtering `bridge`. `ether2`-`ether8` are untagged access ports on
 VLAN 99 for bench and recovery work.
 
-| Interface          | IPv4            | Purpose                                                      |
-| ------------------ | --------------- | ------------------------------------------------------------ |
-| `ether1`           | DHCP (Spectrum) | WAN                                                          |
-| `vlan4090-transit` | 10.255.0.1/30   | Transit to `office-crs309` (10.255.0.2), which owns VLAN 10/20 |
-| `vlan30-container` | 10.1.30.1/24    | Router containers                                            |
-| `vlan50-iot`       | 10.1.50.1/24    | IoT                                                          |
-| `vlan60-cameras`   | 10.1.60.1/24    | Cameras                                                      |
-| `vlan99-mgmt`      | 10.1.99.1/24    | Switch and AP management                                     |
-| `vlan4000-guest`   | 192.168.23.1/24 | Guest                                                        |
-| `vlan4001-work`    | 192.168.24.1/24 | Work                                                         |
-| `wg-public-edge`   | 10.254.45.1/24  | WireGuard to skedaddle, see [public-edge.md](public-edge.md) |
+Interface addresses, VLANs and prefixes are in [NetBox](https://netbox.greyrock.io)
+(device `office-gw`). `ether1` is the WAN (Spectrum DHCP) and `wg-public-edge` is the
+WireGuard tunnel to skedaddle; see [public-edge.md](public-edge.md).
 
 VLAN 1 carries no addresses; it is only the native VLAN that RSTP runs on.
 
@@ -137,7 +130,7 @@ it with a TXT ownership record:
 
 | Comment         | Source               | Notes                                                                   |
 | --------------- | -------------------- | ----------------------------------------------------------------------- |
-| `static-lease`  | Hand-made            | One per reservation, named from the reservations CSV                    |
+| `static-lease`  | Hand-made            | `static-lease name` / `static-lease hostname`, one set per reservation   |
 | `infra`         | Hand-made            | Router, switches, APs, `unleashed` (10.1.99.2) and time1-4              |
 | `service`       | Hand-made            | `k8s.internal.greyrock.io` → 10.1.25.50, the Kubernetes API             |
 | _(none)_        | `external-dns`       | Owned via TXT registry, `txtPrefix: k8s.main.%{record_type}-`           |
@@ -208,11 +201,13 @@ Work hands out Cloudflare and Google (1.1.1.1, 8.8.8.8) so a work VPN client doe
 depend on anything at home.
 
 Every known device has a **static lease** on the address it already had, first taken from
-`~/Downloads/dhcp-reservations-2026-11-19.csv` (UniFi fixed and current addresses) and kept
-in step with it since. Reservations for hosts with static addresses (Scrypted, Bambuddy,
-Codswallop) only hold the address and name. The lease comment is its name, and it has a `static-lease` DNS entry. ctrld
-resolves client names by reverse lookup against the router, so that one name per address
-is what shows up there.
+the UniFi fixed and current addresses at the 2026-11-20 cutover. NetBox holds every
+reservation as an IP address tagged `dhcp-reservation` (name, DNS name, MAC and DHCP
+server). Reservations for hosts with static addresses (Scrypted, Bambuddy, Codswallop) only
+hold the address and name. The lease comment is its name, and it has a DNS entry commented
+`static-lease name` (the lease name, slugified) and sometimes a second one commented
+`static-lease hostname` (the client's own hostname). ctrld resolves client names by reverse
+lookup against the router, so the `name` entry is what shows up there.
 
 There is no DHCP lease script. Anything still dynamic has no DNS name and shows in ctrld
 as a bare address, which is the cue to give it a static lease. Deliberately dynamic:
@@ -221,7 +216,9 @@ everything on guest and work.
 To add a device, find its lease - it is the only dynamic one outside guest and work:
 `/ip dhcp-server lease print where dynamic and server!=dhcp-vlan4000 and
 server!=dhcp-vlan4001`. Then on the lease: `make-static`, set `comment="<name>"`, then
-`/ip dns static add name=<name>.internal.greyrock.io address=<ip> comment=static-lease`.
+`/ip dns static add name=<name>.internal.greyrock.io address=<ip> comment="static-lease name"`,
+and add the address to NetBox with the `dhcp-reservation` tag. Run each as its own command
+when scripting over SSH: a `:local` from one line is gone on the next.
 
 ### Network boot
 

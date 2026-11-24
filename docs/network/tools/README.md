@@ -2,8 +2,9 @@
 
 Scripts that produce the configs the 2026-11 rebuild was built from. They hold the port maps
 and conventions described in [switch-baseline.md](../switch-baseline.md) and
-[router-baseline.md](../router-baseline.md); change the data here when a port moves, so a
-rebuilt device comes out the same as the running one. None of them emit secrets.
+[router-baseline.md](../router-baseline.md). [NetBox](https://netbox.greyrock.io) is the
+source of truth for that data; when a port moves, update NetBox and the data here together,
+so a rebuilt device comes out the same as the running one. None of them emit secrets.
 
 | Script             | Output                                                     | Usage                                                                                               |
 | ------------------ | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
