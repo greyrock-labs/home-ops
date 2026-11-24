@@ -193,11 +193,10 @@ stay data ports. Stack ports reject all interface config, including `port-name`.
 
 **Garage C08PF** is a two-unit stack with the same `1/2/1`-`2/2/1` stack link, the uplink
 on `2/2/2` and the cameras on unit 2.
-`2/1/3` and `2/1/4` are reserved for cameras that are still to come. Until then the
-retired UniFi G6 Turrets stay cabled there, so PoE is off on both (`no inline power`)
-and they sit unnamed in VLAN 1. To bring one back, put it untagged in VLAN 60, give it a
-`port-name` and `inline power`, move it from `poe_off` to `names`/`access` in
-`gen_icx.py`, and enable the port in NetBox.
+`2/1/4` is the rear driveway Hikvision. `2/1/3` is reserved for a camera still to come:
+it has PoE on but sits unnamed in VLAN 1. To bring it into use, put it untagged in
+VLAN 60, give it a `port-name`, add it to `names`/`access` in `gen_icx.py`, and enable
+the port in NetBox.
 
 ### Joining a second C08PF unit
 

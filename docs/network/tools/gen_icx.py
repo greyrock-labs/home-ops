@@ -21,12 +21,11 @@ S = {
     },
     "garage-c08pf": {
         "ip": "10.1.99.32", "querier": False, "up": "2/2/2",
-        "names": {"2/1/1": "courtyard-doorbell", "2/1/2": "garage-todd-cam", "2/1/5": "side-yard-cam",
-                  "2/1/6": "garage-andy-cam", "2/2/2": "uplink-garage-crs309"},
+        "names": {"2/1/1": "courtyard-doorbell", "2/1/2": "garage-todd-cam", "2/1/4": "rear-driveway-cam",
+                  "2/1/5": "side-yard-cam", "2/1/6": "garage-andy-cam", "2/2/2": "uplink-garage-crs309"},
         "ap": [],
-        "access": {"2/1/1": 60, "2/1/2": 60, "2/1/5": 60, "2/1/6": 60},
+        "access": {"2/1/1": 60, "2/1/2": 60, "2/1/4": 60, "2/1/5": 60, "2/1/6": 60},
         "tagged_extra": {},
-        "poe_off": ["2/1/3", "2/1/4"],  # reserved for cameras; old G6 Turrets still cabled
     },
     "gameroom-c08zp": {
         "ip": "10.1.99.21", "querier": False,

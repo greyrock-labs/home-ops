@@ -70,6 +70,10 @@ spec:
             remoteRef:
               key: Garage Camera - Andy
               property: password
+          - secretKey: GARAGE_CAMERA_REAR_DRIVEWAY_PASSWORD
+            remoteRef:
+              key: Garage Camera - Rear Driveway
+              property: password
           - secretKey: GARAGE_CAMERA_TODD_PASSWORD
             remoteRef:
               key: Garage Camera - Todd
@@ -88,6 +92,7 @@ spec:
         egress:
           # Camera HTTPS only; DNS comes from allow-dns-egress.
           - toCIDR:
+              - 10.1.60.10/32
               - 10.1.60.13/32
               - 10.1.60.16/32
               - 10.1.60.17/32

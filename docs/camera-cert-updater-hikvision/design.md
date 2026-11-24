@@ -8,6 +8,7 @@ lists each camera's hostname and the environment variable holding its password.
 | Camera (`.internal.greyrock.io`) | Address | Model | Firmware | 1Password item (`password` field) |
 | --- | --- | --- | --- | --- |
 | `garage-camera-andy` | `10.1.60.16` | DS-2CD2087G2H-LIU/SL | V5.7.17 build 240606 | `Garage Camera - Andy` |
+| `garage-camera-rear-driveway` | `10.1.60.10` | DS-2CD2386G2-ISU/SL | V5.7.19 build 241207 | `Garage Camera - Rear Driveway` |
 | `garage-camera-todd` | `10.1.60.17` | DS-2CD2087G2H-LIU/SL | V5.7.17 build 240606 | `Garage Camera - Todd` |
 | `side-yard-camera` | `10.1.60.13` | DS-2CD2386G2-ISU/SL | V5.7.19 build 241207 | `Side Yard Camera` |
 
