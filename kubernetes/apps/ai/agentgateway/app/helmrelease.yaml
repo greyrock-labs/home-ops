@@ -346,6 +346,31 @@ spec:
             mcpAuthorization:
               rules:
                 - allow: apiKey.client == "hermes"
+        - name: mcp-mikrotik
+          gateways:
+            - mcp
+          matches:
+            - path:
+                pathPrefix: /mcp/mikrotik
+          backends:
+            - mcp:
+                targets:
+                  - name: mikrotik
+                    mcp:
+                      host: http://mikrotik-mcp.ai.svc.cluster.local:8000/mcp
+          policies:
+            urlRewrite:
+              path:
+                prefix: /mcp
+            apiKey:
+              mode: strict
+              keys:
+                - key: ${HERMES_API_KEY}
+                  metadata:
+                    client: hermes
+            mcpAuthorization:
+              rules:
+                - allow: apiKey.client == "hermes"
         - name: mcp-netbox
           gateways:
             - mcp
@@ -412,6 +437,9 @@ spec:
                   - name: kubesearch
                     mcp:
                       host: http://kubesearch-mcp.ai.svc.cluster.local:3000/mcp
+                  - name: mikrotik
+                    mcp:
+                      host: http://mikrotik-mcp.ai.svc.cluster.local:8000/mcp
                   - name: netbox
                     mcp:
                       host: http://netbox-mcp.ai.svc.cluster.local:8000/mcp

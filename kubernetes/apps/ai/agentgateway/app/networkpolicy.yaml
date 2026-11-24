@@ -68,6 +68,9 @@ spec:
             app.kubernetes.io/name: kubesearch-mcp
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: ai
+            app.kubernetes.io/name: mikrotik-mcp
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: ai
             app.kubernetes.io/name: netbox-mcp
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: observability
