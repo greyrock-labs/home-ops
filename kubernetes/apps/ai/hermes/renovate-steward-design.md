@@ -138,6 +138,7 @@ Every printed line starts with a UTC timestamp. Lines about a PR also carry `own
       - **Blocked, failed or timed out:** the PR becomes tier 3, labelled and commented, with the failure taken from the task as the reason.
       - In every case, the log prints the task id and the path of its worker log (`/opt/data/kanban/logs/<task>.log`). The worker's full session is in the profile's `state.db`.
     - **Tier 3:** apply the `tier-3` label, and post a comment headed "needs human intervention" with the reasons and the marker.
+    - **Review requests:** PRs that need Todd get a review request for `todd` from `agent-smith`: tier 3, failed migrations, tier-2 PRs once the migration result is posted, and tier-1 PRs that could not be merged. Merged PRs and pending migrations never request one, so Forgejo email can be limited to review requests. Failures are logged and never stop the run.
     - **Labels:** if a `tier-N` label is missing in a repo, it is created. When a new evaluation gives a different tier, the old tier label is removed.
 11. **Limits.** One tier-2 migration at a time, across all repos, so two migrations never overlap. Further tier-2 PRs wait, and the log says `deferred: migration already in progress (task t_xxx for <repo>#<pr>)`. Waiting PRs are queued oldest first.
 12. **Summary.** One line per PR (`merged`, `tier 2 queued`, `tier 2 staged`, `tier 3`, `not touched: <why>` or `error: <what>`), then the totals. A run with no PRs prints `No Renovate PRs open in N repos`.
