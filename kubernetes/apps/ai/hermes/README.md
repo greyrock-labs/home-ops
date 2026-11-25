@@ -163,6 +163,30 @@ Forge Toolkit files are operator-maintained on the PVC and are not refreshed by
 pod startup. Git and Python remain available from the Hermes image and mise
 shims on `PATH`.
 
+## renovate-steward
+
+The `renovate-steward` profile tiers every open Renovate PR (author `renovate`)
+in the Forgejo repos `agent-smith` can see; other PRs are ignored. Tier 1 is
+merged, tier 2 gets its migration staged on the PR branch for review (never
+merged), and tier 3 gets a comment saying why it needs human intervention. Each
+PR gets a `tier-N` label and is evaluated once per commit; the hidden marker in
+the steward's comment is the only record.
+
+It is operator-maintained on the PVC only, under
+`/opt/data/profiles/renovate-steward/`: `steward/` (code), `tests/`,
+`prompts/classify.md`, `skills/renovate-migrate/`, and `docs/` (design, plan,
+decision ledger). The hourly `--no-agent` cron job `renovate-steward` (minute
+20) runs `scripts/steward.py`; its output in the Hermes UI logs every repo, PR,
+decision with reasons, and action. Hard rules in `steward/rules.py` set a
+minimum tier (core components such as Talos, Flux, Cilium, CNPG and doco-cd are
+tier 3; major or breaking updates are at least tier 2). Tier-2 migrations run
+one at a time as kanban tasks assigned to the profile.
+
+Pause it with `hermes cron pause 3b0601c27467` (the job ID; `hermes cron list`
+shows it) under `HERMES_HOME=/opt/data/profiles/renovate-steward`. A dry run
+that writes nothing: `/opt/hermes/.venv/bin/python3 scripts/steward.py --dry-run`
+from the profile directory.
+
 ## Deployment checks
 
 Before merging, confirm a usable backup of the Hermes PVC: this changes the
