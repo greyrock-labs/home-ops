@@ -129,7 +129,7 @@ spec:
         globalMounts:
           - path: /config
       metadata:
-        size: 10Gi
+        size: 25Gi
         accessMode: ReadWriteOnce
         storageClass: miroir-local
         suffix: "metadata"
@@ -138,6 +138,8 @@ spec:
             subPath: metadata
           - path: /config/data/introskipper
             subPath: introskipper
+          - path: /config/data/subtitles
+            subPath: subtitles
       nfs-nas-media:
         type: nfs
         server: codswallop.internal.greyrock.io
