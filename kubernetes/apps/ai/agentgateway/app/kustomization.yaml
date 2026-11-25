@@ -7,3 +7,4 @@ resources:
   - ./networkpolicy.yaml
   - ./ocirepository.yaml
   - ./helmrelease.yaml
+  - ./prometheusrule.yaml

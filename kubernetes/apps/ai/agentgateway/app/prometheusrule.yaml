@@ -1,0 +1,29 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/monitoring.coreos.com/prometheusrule_v1.json
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: agentgateway-rules
+spec:
+  groups:
+    - name: agentgateway.rules
+      rules:
+        # Every chatgpt/* model is served by CLIProxyAPI from one ChatGPT (Codex) login. When OpenAI
+        # revokes it (refresh_token_invalidated), every request returns 503 auth_unavailable.
+        # Per backend, so one working model cannot mask another that only fails.
+        - alert: ChatGPTBackendFailing
+          expr: |-
+            sum by (backend) (increase(agentgateway_requests_total{protocol="llm", backend=~".*:model:chatgpt/.*", status=~"5.."}[30m])) > 0
+            unless on (backend)
+            sum by (backend) (increase(agentgateway_requests_total{protocol="llm", backend=~".*:model:chatgpt/.*", status=~"2.."}[30m])) > 0
+          for: 10m
+          annotations:
+            summary: >-
+              {{ $labels.backend }} is failing with no successful requests in 30 minutes
+            description: >-
+              Likely the CLIProxyAPI Codex login was revoked (check its logs for
+              refresh_token_invalidated / auth_unavailable). Log in again with:
+              kubectl -n ai exec -it deploy/cliproxyapi -c app --
+              /CLIProxyAPI/CLIProxyAPI --config /etc/cliproxyapi/config.yaml -codex-device-login
+          labels:
+            severity: warning

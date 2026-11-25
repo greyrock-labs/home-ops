@@ -82,6 +82,8 @@ spec:
             port: 15021
             targetPort: 15021
             protocol: TCP
+    monitoring:
+      enabled: true
     resources:
       requests:
         cpu: 10m
