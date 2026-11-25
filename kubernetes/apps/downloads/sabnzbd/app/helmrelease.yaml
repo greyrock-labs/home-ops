@@ -139,6 +139,8 @@ spec:
         globalMounts:
           - path: /config/logs
             subPath: logs
+          - path: /config/nzb-backup
+            subPath: nzb-backup
           - path: /tmp
             subPath: tmp
           - path: /scripts
