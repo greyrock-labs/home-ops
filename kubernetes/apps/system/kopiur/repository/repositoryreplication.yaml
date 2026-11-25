@@ -1,0 +1,27 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/kopiur.home-operations.com/repositoryreplication_v1alpha1.json
+apiVersion: kopiur.home-operations.com/v1alpha1
+kind: RepositoryReplication
+metadata:
+  name: r2
+spec:
+  destination:
+    s3:
+      auth:
+        secretRef:
+          name: kopiur-r2-secret
+      bucket: home-ops-kopiur-backups
+      endpoint: 0ac2029102b2877dc371400a2d6eef85.r2.cloudflarestorage.com
+      region: auto
+  # After the nas repository's full maintenance (03:00 + up to 1h jitter), so
+  # blobs it just deleted are not uploaded first.
+  schedule:
+    cron: 0 5 * * *
+    timezone: America/New_York
+  sourceRef:
+    kind: ClusterRepository
+    name: nas
+  sync:
+    # Mirror maintenance deletions so R2 does not keep dead blobs forever.
+    deleteExtra: true
+    parallel: 8

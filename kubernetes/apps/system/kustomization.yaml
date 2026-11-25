@@ -11,4 +11,5 @@ resources:
   - ./descheduler/ks.yaml
   - ./kopia/ks.yaml
   - ./kopiur/ks.yaml
+  - ./offsite-sync/ks.yaml
   - ./reloader/ks.yaml

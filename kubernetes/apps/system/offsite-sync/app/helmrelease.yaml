@@ -1,0 +1,126 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: offsite-sync
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: offsite-sync
+  interval: 30m
+  values:
+    externalSecrets:
+      offsite-sync:
+        refreshInterval: 12h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: onepassword-connect
+        data:
+          - secretKey: RCLONE_CONFIG_R2_ACCESS_KEY_ID
+            remoteRef:
+              key: Cloudflare R2 - Backups
+              property: access_key_id
+          - secretKey: RCLONE_CONFIG_R2_SECRET_ACCESS_KEY
+            remoteRef:
+              key: Cloudflare R2 - Backups
+              property: secret_access_key
+          - secretKey: RCLONE_CONFIG_R2_ENDPOINT
+            remoteRef:
+              key: Cloudflare R2 - Backups
+              property: endpoint
+          - secretKey: RCLONE_CONFIG_TRUENASCNPG_ACCESS_KEY_ID
+            remoteRef:
+              key: TrueNAS S3 - CNPG
+              property: username
+          - secretKey: RCLONE_CONFIG_TRUENASCNPG_SECRET_ACCESS_KEY
+            remoteRef:
+              key: TrueNAS S3 - CNPG
+              property: password
+          - secretKey: RCLONE_CONFIG_TRUENASKANIDM_ACCESS_KEY_ID
+            remoteRef:
+              key: TrueNAS S3 - kanidm
+              property: username
+          - secretKey: RCLONE_CONFIG_TRUENASKANIDM_SECRET_ACCESS_KEY
+            remoteRef:
+              key: TrueNAS S3 - kanidm
+              property: password
+    controllers:
+      offsite-sync:
+        type: cronjob
+        cronjob:
+          # After the CNPG base backups (02:00) and the Kanidm backup (02:30).
+          schedule: "0 4 * * *"
+          timeZone: America/New_York
+          backoffLimit: 0
+          concurrencyPolicy: Forbid
+          failedJobsHistory: 1
+          successfulJobsHistory: 1
+          ttlSecondsAfterFinished: 86400
+        pod:
+          securityContext:
+            runAsGroup: 2000
+            runAsNonRoot: true
+            runAsUser: 2000
+        containers:
+          app:
+            image:
+              repository: docker.io/rclone/rclone
+              tag: 1.76.0@sha256:7cbeec24a44f206067597c0368be4de90ae19a64d5113c7d1938bd737a81e466
+            command:
+              - /bin/sh
+              - -c
+            # Mirror each TrueNAS bucket to its R2 bucket. Objects are written
+            # once, so size comparison avoids a HEAD request per object;
+            # --fast-list keeps listing to a few Class A calls; --max-delete
+            # stops a wiped source from emptying R2. Both buckets always run.
+            args:
+              - |
+                rc=0
+                flags="--fast-list --size-only --max-delete 2000 --transfers 4 --stats-one-line --stats 1m -v"
+                echo "== cnpg"
+                rclone sync truenascnpg:cnpg r2:home-ops-cnpg-backups $flags || rc=1
+                echo "== kanidm"
+                rclone sync truenaskanidm:kanidm r2:home-ops-kanidm-backups $flags || rc=1
+                exit $rc
+            env:
+              HOME: /tmp
+              RCLONE_CONFIG: /dev/null
+              RCLONE_CONFIG_R2_NO_CHECK_BUCKET: "true"
+              RCLONE_CONFIG_R2_PROVIDER: Cloudflare
+              RCLONE_CONFIG_R2_TYPE: s3
+              RCLONE_CONFIG_TRUENASCNPG_ENDPOINT: https://s3.greyrock.io
+              RCLONE_CONFIG_TRUENASCNPG_FORCE_PATH_STYLE: "true"
+              RCLONE_CONFIG_TRUENASCNPG_PROVIDER: Other
+              RCLONE_CONFIG_TRUENASCNPG_TYPE: s3
+              RCLONE_CONFIG_TRUENASKANIDM_ENDPOINT: https://s3.greyrock.io
+              RCLONE_CONFIG_TRUENASKANIDM_FORCE_PATH_STYLE: "true"
+              RCLONE_CONFIG_TRUENASKANIDM_PROVIDER: Other
+              RCLONE_CONFIG_TRUENASKANIDM_TYPE: s3
+            envFrom:
+              - externalSecretRef:
+                  identifier: offsite-sync
+            probes:
+              liveness:
+                enabled: false
+              readiness:
+                enabled: false
+              startup:
+                enabled: false
+            resources:
+              requests:
+                cpu: 10m
+                memory: 64Mi
+              limits:
+                memory: 512Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              readOnlyRootFilesystem: true
+    persistence:
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
