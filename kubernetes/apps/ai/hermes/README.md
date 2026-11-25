@@ -172,10 +172,12 @@ merged), and tier 3 gets a comment saying why it needs human intervention. Each
 PR gets a `tier-N` label and is evaluated once per commit; the hidden marker in
 the steward's comment is the only record.
 
-It is operator-maintained on the PVC only, under
+Its code is operator-maintained on the PVC only, under
 `/opt/data/profiles/renovate-steward/`: `steward/` (code), `tests/`,
-`prompts/classify.md`, `skills/renovate-migrate/`, and `docs/` (design, plan,
-decision ledger). The hourly `--no-agent` cron job `renovate-steward` (minute
+`prompts/classify.md`, `skills/renovate-migrate/`, and `docs/ledger.md` (the
+decisions made while building it). The design and implementation plan are
+[renovate-steward-design.md](renovate-steward-design.md) and
+[renovate-steward-plan.md](renovate-steward-plan.md). The hourly `--no-agent` cron job `renovate-steward` (minute
 20) runs `scripts/steward.py`; its output in the Hermes UI logs every repo, PR,
 decision with reasons, and action. Hard rules in `steward/rules.py` set a
 minimum tier (core components such as Talos, Flux, Cilium, CNPG and doco-cd are
