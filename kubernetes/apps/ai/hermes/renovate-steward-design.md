@@ -52,7 +52,7 @@ Cut down the Renovate PR noise across every Forgejo repo. Safe updates merge on 
   - The script can read a task's status and summary in machine-readable form (`kanban show`/`list` output, or the kanban DB read-only).
   - A `renovate-steward` worker can run with only file and terminal tools.
 
-## Layout (Hermes PVC only)
+## Layout (code on the Hermes PVC only)
 
 ```
 /opt/data/profiles/renovate-steward/
@@ -62,9 +62,10 @@ Cut down the Renovate PR noise across every Forgejo repo. Safe updates merge on 
   prompts/classify.md         # tiering instructions for the classifier call
   skills/renovate-migrate/SKILL.md   # tier-2 agent instructions
   work/<repo>-<pr>-<sha>/     # tier-2 checkouts (kanban workspace); removed once pushed or abandoned
+  docs/ledger.md              # decisions made while building it
 ```
 
-The Hermes README in home-ops gets a short section describing the profile (README only, per the PVC convention).
+This design and the implementation plan live in home-ops next to the Hermes README, which has a short section describing the profile.
 
 ## Cron job
 
@@ -108,6 +109,7 @@ Every printed line starts with a UTC timestamp. Lines about a PR also carry `own
    - A `low` confidence answer becomes tier 3.
    - The final tier is the higher of the model's tier and the hard-rule floor. When the floor overrides the model, the log says so.
 10. **Act** (only in `live` mode; `dry-run` logs the same lines prefixed `would`):
+    - **Processing indicator:** when the steward starts evaluating a PR (after the not-touched checks), it adds a 👀 (`eyes`) reaction as `agent-smith`, and removes it once the PR's comment is posted. A PR with a pending migration keeps 👀 until its result is posted. Reaction failures are logged and never stop the run.
     - **Tier 1:**
       1. Re-read the PR. The head must be unchanged and CI green.
       2. Merge it, using the repo's default merge style.
@@ -122,15 +124,16 @@ Every printed line starts with a UTC timestamp. Lines about a PR also carry `own
          - `--max-runtime 900 --max-retries 1`
          - a body file holding the classifier's output and the evidence
       3. The worker only edits files in the checkout. It completes the task with a JSON summary of what it changed and why. Its skill forbids pushing and merging.
-      4. In the same run, the PR gets the `tier-2` label and a decision comment: reasons, quoted evidence, any hard-rule override, the expected migration, and the migration state (queued as task t_xxx, or waiting for the one migration slot). The marker records `migration=queued|deferred`; a waiting PR is queued on a later run without a new evaluation or comment.
-    - **Tier 2, finishing it (each later run checks open tasks before evaluating new PRs):**
+      4. In the same run, the PR gets the `tier-2` label. After its other PRs, the run waits for the migration it queued (checking every 20 s, up to 960 s) and finishes it in the same run (below), posting **one** comment: the reasons, quoted evidence, any hard-rule override, and what the migration did.
+      5. A separate decision comment is posted first only when the migration can't finish in this run: the PR is waiting for the one migration slot, or the task is still running at the wait limit. The marker then records `migration=queued|deferred`; a waiting PR is queued on a later run without a new evaluation or comment, and the later result comment carries only the result, linking back to the decision.
+    - **Tier 2, finishing it (in the run that queued it, or the first later run that finds the task finished; open tasks are checked before markers):**
       - **Still running:** the log says `migration in progress (task t_xxx, running since …)`, and the PR isn't touched.
       - **Done:**
         1. Check that the PR head is still the evaluated `sha`. If Renovate pushed in the meantime, discard the work, log it, and evaluate the new commit in the same run.
         2. Check that the PR branch on Forgejo hasn't moved.
         3. Commit the checkout's diff as `agent-smith`, and push it to the PR branch.
         4. Apply the `tier-2` label.
-        5. Post a comment with the worker's summary, the diffstat, the kanban task id and the marker with `pushed=<sha>`.
+        5. Post the comment (combined, or result-only if a decision comment exists for this commit) with the worker's summary, the diffstat, the kanban task id and the marker with `pushed=<sha>`.
       - **Done with no changes:** the PR still gets `tier-2` and a comment saying no change was needed. It stays staged for review and is never merged.
       - **Blocked, failed or timed out:** the PR becomes tier 3, labelled and commented, with the failure taken from the task as the reason.
       - In every case, the log prints the task id and the path of its worker log (`/opt/data/kanban/logs/<task>.log`). The worker's full session is in the profile's `state.db`.
@@ -166,7 +169,7 @@ Any exception while handling one PR is logged with its traceback and recorded as
 - If unsure (low confidence, an unparseable answer, or a failed migration), the PR goes to tier 3.
 - PRs with CI still running aren't evaluated until it finishes.
 - One tier-2 migration at a time (Todd: they could overlap).
-- A tier-2 PR gets its commit and comment on the run after the worker finishes, usually within the hour.
+- A tier-2 PR normally gets its commit and one comment in the same run; only a migration that can't finish in that run is completed by a later run.
 - The core-component list above.
 - The tier label names are `tier-1`, `tier-2` and `tier-3`.
 - The first live run happens only after Todd has reviewed a dry run.
