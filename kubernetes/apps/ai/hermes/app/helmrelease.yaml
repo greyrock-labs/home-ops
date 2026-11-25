@@ -89,13 +89,38 @@ spec:
           terminationGracePeriodSeconds: 60
         strategy: Recreate
         initContainers:
+          # Hermes clients (kanban workers, `hermes cron run`) refuse the multiplexer's control
+          # socket unless HERMES_HOME is owned by their uid. fsGroup sets only the group of the
+          # volume root, which the provisioner creates as root (again on any restore), so own it here.
+          # Non-recursive: the volume root only.
+          chown-home:
+            image: &image
+              repository: docker.io/nousresearch/hermes-agent
+              tag: v0.23.4@sha256:ef0650d523ee1b5ab32c779acabc446d9936869a9932591553688a62bcf0c42f
+            command:
+              - chown
+              - "10000"
+              - /opt/data
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 64Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                add:
+                  - CHOWN
+                drop:
+                  - ALL
+              readOnlyRootFilesystem: true
+              runAsNonRoot: false
+              runAsUser: 0
           # Run the image's config migration before s6 starts. Its own boot hook calls it through
           # `s6-setuidgid hermes`, which needs CAP_SETGID and fails as non-root. Skipped on first
           # boot only when no profile config exists yet.
           config-migrate:
-            image: &image
-              repository: docker.io/nousresearch/hermes-agent
-              tag: v0.23.4@sha256:ef0650d523ee1b5ab32c779acabc446d9936869a9932591553688a62bcf0c42f
+            image: *image
             command:
               - /bin/sh
               - -c
@@ -207,6 +232,8 @@ spec:
         advancedMounts:
           hermes:
             app:
+              - path: /opt/data
+            chown-home:
               - path: /opt/data
             config-migrate:
               - path: /opt/data
