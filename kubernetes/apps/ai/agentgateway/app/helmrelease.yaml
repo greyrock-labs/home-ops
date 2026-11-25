@@ -93,6 +93,11 @@ spec:
     config:
       config:
         adminAddr: 'off'
+        # Drop idle upstream connections well before the 1m30s default. A Mistral
+        # connection reset after 37s idle made reused pooled connections fail with
+        # an immediate 503 UpstreamFailure; v1.7.0 has no retry for llm.models.
+        backend:
+          poolIdleTimeout: 15s
         statsAddr: 0.0.0.0:15020
         readinessAddr: 0.0.0.0:15021
       llm:
