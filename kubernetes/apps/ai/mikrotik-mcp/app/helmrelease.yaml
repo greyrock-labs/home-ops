@@ -26,7 +26,7 @@ spec:
           app:
             image:
               repository: ghcr.io/wiresage/mikrotik-mcp
-              tag: 0.29.8@sha256:93cef5af2d7cb83f22acfcd65ebc16baaf14976daf567d7194737e9f89dcc238
+              tag: 0.30.0@sha256:984fd1cf422655b8e1e66401702dd20e96912bd5963607aab9cdd85f0a07c589
             env:
               MIKROTIK_INVENTORY_FILE: /config/inventory.yaml
               # Host-header allowlist for DNS-rebinding protection; agentgateway
