@@ -66,7 +66,7 @@ spec:
           bundle:
             image:
               repository: docker.io/alpine/openssl
-              tag: 3.5.9@sha256:9698e7956c08e713265da24c4587205beba3eaa6af2b319d73575d30a6ff033e
+              tag: 3.5.9@sha256:b5d60ce9b9a318fa4efda9b0cd2111fa1e536342072885e8e2ce37c40f653ed9
             command:
               - /bin/sh
               - -c
